@@ -14,6 +14,10 @@ import type {
   JoinGameResponse,
   CreateQuizPayload,
   SessionWithQuiz,
+  SessionAnalytics,
+  QuizAnalyticsOverview,
+  TeacherAnalyticsOverview,
+  PlayerAttempt,
 } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
@@ -209,6 +213,32 @@ export const sessionAPI = {
 
   getPlayers: async (sessionId: string): Promise<Player[]> => {
     const { data } = await api.get<Player[]>(`/sessions/${sessionId}/players`)
+    return data
+  },
+}
+
+// Analytics API (teacher-only)
+export const analyticsAPI = {
+  getOverview: async (): Promise<TeacherAnalyticsOverview> => {
+    const { data } = await api.get<TeacherAnalyticsOverview>('/analytics/overview')
+    return data
+  },
+
+  getSession: async (sessionId: string): Promise<SessionAnalytics> => {
+    const { data } = await api.get<SessionAnalytics>(`/analytics/sessions/${sessionId}`)
+    return data
+  },
+
+  getQuiz: async (quizId: string): Promise<QuizAnalyticsOverview> => {
+    const { data } = await api.get<QuizAnalyticsOverview>(`/analytics/quizzes/${quizId}`)
+    return data
+  },
+}
+
+// Student API
+export const studentAPI = {
+  getAttempts: async (): Promise<PlayerAttempt[]> => {
+    const { data } = await api.get<PlayerAttempt[]>('/players/my-attempts')
     return data
   },
 }

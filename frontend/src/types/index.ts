@@ -149,3 +149,58 @@ export interface AnswerResult {
   points_earned: number
   correct_answer: string
 }
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+
+export interface QuestionStat {
+  question_id: string
+  question_text: string
+  correct_count: number
+  total_answers: number
+  accuracy_pct: number
+  avg_time_left: number
+  answer_distribution: Record<string, number>
+}
+
+export interface SessionAnalytics {
+  session_id: string
+  quiz_title: string
+  total_players: number
+  total_questions: number
+  avg_score: number
+  completion_rate: number
+  leaderboard: LeaderboardEntry[]
+  question_stats: QuestionStat[]
+}
+
+export interface QuizAnalyticsOverview {
+  quiz_id: string
+  quiz_title: string
+  total_sessions: number
+  total_players: number
+  avg_score_per_session: number
+  question_difficulty: { question_id: string; text: string; avg_accuracy_pct: number }[]
+}
+
+export interface TeacherAnalyticsOverview {
+  total_quizzes: number
+  total_sessions: number
+  total_students: number
+  avg_score_all_sessions: number
+  sessions_per_month: { month: string; count: number }[]
+}
+
+// ── Student Attempts ──────────────────────────────────────────────────────────
+
+export interface PlayerAttempt {
+  player_id: string
+  session_id: string
+  pin: string
+  quiz_title: string
+  quiz_id: string
+  teacher_name: string
+  score: number
+  correct_answers: number
+  total_questions: number
+  played_at: string
+}

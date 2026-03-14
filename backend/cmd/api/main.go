@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
+	"github.com/pae/backend/internal/analytics"
 	"github.com/pae/backend/internal/auth"
 	"github.com/pae/backend/internal/config"
 	"github.com/pae/backend/internal/database"
@@ -110,6 +111,7 @@ func main() {
 	quizService := quiz.NewService(quizRepo)
 	gameService := game.NewService(gameRepo, quizRepo, playerRepo, mqttPublisher, logger)
 	playerService := player.NewService(playerRepo, gameService, quizRepo, mqttPublisher, redisClient)
+	playerService.WithSessionByIDFinder(gameRepo)
 
 	sessionService := session.NewService(gameRepo, playerRepo)
 
@@ -121,15 +123,18 @@ func main() {
 		playerRepo,
 	)
 
+	analyticsService := analytics.NewService(db.Players(), db.QuizSessions(), db.Quizzes())
+
 	// -------------------------------------------------------------------------
 	// HTTP Handlers
 	// -------------------------------------------------------------------------
 	authHandler := auth.NewHandler(authService)
 	quizHandler := quiz.NewHandler(quizService, gcsClient)
 	gameHandler := game.NewHandler(gameService, playerRepo)
-	playerHandler := player.NewHandler(playerService)
+	playerHandler := player.NewHandlerWithSecret(playerService, cfg.JWTSecret)
 	sessionHandler := session.NewHandler(sessionService)
 	platformHandler := platform.NewHandler(platformService)
+	analyticsHandler := analytics.NewHandler(analyticsService)
 
 	// -------------------------------------------------------------------------
 	// Router
@@ -207,10 +212,14 @@ func main() {
 			r.Get("/{pin}/leaderboard", gameHandler.Leaderboard)
 		})
 
-		// Player routes – public
+		// Player routes – public, with optional auth on /my-attempts
 		r.Route("/players", func(r chi.Router) {
 			r.Post("/join", playerHandler.Join)
 			r.Post("/{player_id}/answer", playerHandler.SubmitAnswer)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireAuth(cfg.JWTSecret))
+				r.Get("/my-attempts", playerHandler.GetMyAttempts)
+			})
 		})
 
 		// Session history – teacher only
@@ -224,6 +233,14 @@ func main() {
 		// Platform stats – public
 		r.Route("/platform", func(r chi.Router) {
 			r.Get("/stats", platformHandler.Stats)
+		})
+
+		// Analytics – teacher auth required
+		r.Route("/analytics", func(r chi.Router) {
+			r.Use(middleware.RequireTeacher(cfg.JWTSecret))
+			r.Get("/overview", analyticsHandler.GetOverview)
+			r.Get("/sessions/{id}", analyticsHandler.GetSessionAnalytics)
+			r.Get("/quizzes/{id}", analyticsHandler.GetQuizAnalytics)
 		})
 	})
 

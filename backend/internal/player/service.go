@@ -106,6 +106,22 @@ func (r *Repository) Count(ctx context.Context) (int64, error) {
 	return r.col.CountDocuments(ctx, bson.M{})
 }
 
+// FindByUserID returns all player documents for a given user ID, sorted by joined_at desc.
+func (r *Repository) FindByUserID(ctx context.Context, userID primitive.ObjectID) ([]models.Player, error) {
+	opts := options.Find().SetSort(bson.D{{Key: "joined_at", Value: -1}})
+	cursor, err := r.col.Find(ctx, bson.M{"user_id": userID}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("player repo find by user: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var players []models.Player
+	if err := cursor.All(ctx, &players); err != nil {
+		return nil, fmt.Errorf("player repo decode user list: %w", err)
+	}
+	return players, nil
+}
+
 // ─── Service interfaces ───────────────────────────────────────────────────────
 
 // SessionFinder is the subset of game service the player service needs.
@@ -118,15 +134,35 @@ type QuizFinder interface {
 	FindByID(ctx context.Context, id primitive.ObjectID) (*models.Quiz, error)
 }
 
+// SessionByIDFinder lets the player service look up a session by its ObjectID.
+type SessionByIDFinder interface {
+	FindByID(ctx context.Context, id primitive.ObjectID) (*models.QuizSession, error)
+}
+
+// ─── DTOs ─────────────────────────────────────────────────────────────────────
+
+// PlayerAttemptSummary summarises a single quiz attempt for a student.
+type PlayerAttemptSummary struct {
+	PlayerID       string    `json:"player_id"`
+	SessionID      string    `json:"session_id"`
+	PIN            string    `json:"pin"`
+	QuizTitle      string    `json:"quiz_title"`
+	Score          int       `json:"score"`
+	CorrectAnswers int       `json:"correct_answers"`
+	TotalQuestions int       `json:"total_questions"`
+	PlayedAt       time.Time `json:"played_at"`
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 // Service provides player join and answer logic.
 type Service struct {
-	repo        *Repository
-	sessionSvc  SessionFinder
-	quizFinder  QuizFinder
-	publisher   events.Publisher
-	redisClient *database.RedisClient
+	repo          *Repository
+	sessionSvc    SessionFinder
+	sessionByID   SessionByIDFinder
+	quizFinder    QuizFinder
+	publisher     events.Publisher
+	redisClient   *database.RedisClient
 }
 
 // NewService creates a new player Service.
@@ -144,6 +180,11 @@ func NewService(
 		publisher:   publisher,
 		redisClient: redisClient,
 	}
+}
+
+// WithSessionByIDFinder attaches a SessionByIDFinder to the service (used for GetPlayerAttempts).
+func (s *Service) WithSessionByIDFinder(f SessionByIDFinder) {
+	s.sessionByID = f
 }
 
 // Join creates a player record in MongoDB, registers it in Redis and publishes
@@ -198,6 +239,54 @@ func (s *Service) Join(ctx context.Context, pin, nickname string, userID *primit
 // FindBySessionID returns all players for a session.
 func (s *Service) FindBySessionID(ctx context.Context, sessionID primitive.ObjectID) ([]models.Player, error) {
 	return s.repo.FindBySessionID(ctx, sessionID)
+}
+
+// GetPlayerAttempts returns a summary of all quiz attempts for the authenticated user.
+func (s *Service) GetPlayerAttempts(ctx context.Context, userIDHex string) ([]PlayerAttemptSummary, error) {
+	userOID, err := primitive.ObjectIDFromHex(userIDHex)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user_id: %w", err)
+	}
+
+	players, err := s.repo.FindByUserID(ctx, userOID)
+	if err != nil {
+		return nil, fmt.Errorf("get player attempts find: %w", err)
+	}
+
+	summaries := make([]PlayerAttemptSummary, 0, len(players))
+	for _, p := range players {
+		summary := PlayerAttemptSummary{
+			PlayerID:  p.ID.Hex(),
+			SessionID: p.SessionID.Hex(),
+			Score:     p.Score,
+			PlayedAt:  p.JoinedAt,
+		}
+
+		// Count correct answers.
+		for _, a := range p.Answers {
+			if a.IsCorrect {
+				summary.CorrectAnswers++
+			}
+		}
+
+		// Enrich with session and quiz data.
+		if s.sessionByID != nil {
+			sess, sessErr := s.sessionByID.FindByID(ctx, p.SessionID)
+			if sessErr == nil {
+				summary.PIN = sess.PIN
+
+				quiz, quizErr := s.quizFinder.FindByID(ctx, sess.QuizID)
+				if quizErr == nil {
+					summary.QuizTitle = quiz.Title
+					summary.TotalQuestions = len(quiz.Questions)
+				}
+			}
+		}
+
+		summaries = append(summaries, summary)
+	}
+
+	return summaries, nil
 }
 
 // SubmitAnswer evaluates the player's answer, persists it, then publishes

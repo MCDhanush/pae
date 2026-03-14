@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import gsap from 'gsap'
 import { useAuthStore } from '../../store/authStore'
-import { quizAPI, gameAPI, sessionAPI } from '../../lib/api'
-import type { Quiz, SessionWithQuiz, Player } from '../../types'
+import { quizAPI, gameAPI, sessionAPI, studentAPI } from '../../lib/api'
+import type { Quiz, SessionWithQuiz, Player, PlayerAttempt } from '../../types'
 import type { UpdateProfilePayload } from '../../types'
 import PAELogo from '../../components/ui/PAELogo'
 
@@ -34,6 +34,10 @@ export default function DashboardPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isStartingGame, setIsStartingGame] = useState<string | null>(null)
 
+  // Student attempts
+  const [attempts, setAttempts] = useState<PlayerAttempt[]>([])
+  const [isLoadingAttempts, setIsLoadingAttempts] = useState(false)
+
   // Session detail
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null)
   const [sessionPlayers, setSessionPlayers] = useState<Record<string, Player[]>>({})
@@ -55,19 +59,33 @@ export default function DashboardPage() {
   const [profileError, setProfileError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
-    setIsLoadingQuizzes(true)
-    setIsLoadingSessions(true)
-    try {
-      const [quizList, sessionList] = await Promise.all([quizAPI.list(), sessionAPI.list()])
-      setQuizzes(quizList ?? [])
-      setSessions(sessionList ?? [])
-    } catch (err) {
-      console.error('Failed to fetch dashboard data:', err)
-    } finally {
-      setIsLoadingQuizzes(false)
-      setIsLoadingSessions(false)
+    if (!user) return
+    if (user.role === 'teacher') {
+      setIsLoadingQuizzes(true)
+      setIsLoadingSessions(true)
+      try {
+        const [quizList, sessionList] = await Promise.all([quizAPI.list(), sessionAPI.list()])
+        setQuizzes(quizList ?? [])
+        setSessions(sessionList ?? [])
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err)
+      } finally {
+        setIsLoadingQuizzes(false)
+        setIsLoadingSessions(false)
+      }
+    } else {
+      // Student: load attempts
+      setIsLoadingAttempts(true)
+      try {
+        const attemptList = await studentAPI.getAttempts()
+        setAttempts(attemptList ?? [])
+      } catch (err) {
+        console.error('Failed to fetch student attempts:', err)
+      } finally {
+        setIsLoadingAttempts(false)
+      }
     }
-  }, [])
+  }, [user])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -415,7 +433,55 @@ export default function DashboardPage() {
         )}
 
         {/* ── SESSIONS TAB ── */}
-        {tab === 'sessions' && (
+        {tab === 'sessions' && user?.role === 'student' && (
+          <div className="gsap-tab-content space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-white">My Quiz Attempts</h2>
+              <span className="text-sm text-white/40">{attempts.length} total</span>
+            </div>
+
+            {isLoadingAttempts ? (
+              <div className="space-y-3">
+                {[1,2,3,4].map(i => <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />)}
+              </div>
+            ) : attempts.length === 0 ? (
+              <div className="bg-white/5 border border-white/10 rounded-2xl py-16 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <p className="text-white/30 text-sm">No attempts yet. Join a game using a PIN to get started!</p>
+                <Link to="/join" className="text-violet-400 text-sm font-medium hover:underline mt-1 block">Join a Game</Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {attempts.map(attempt => (
+                  <div key={attempt.player_id} className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white/90 text-sm truncate">{attempt.quiz_title || 'Quiz'}</p>
+                      <p className="text-xs text-white/30 mt-0.5">
+                        {attempt.correct_answers}/{attempt.total_questions} correct · {formatDate(attempt.played_at)}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-lg font-black text-violet-300">{attempt.score}</p>
+                      <p className="text-[10px] text-white/30 uppercase tracking-wider">pts</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── SESSIONS TAB (teacher) ── */}
+        {tab === 'sessions' && user?.role === 'teacher' && (
           <div className="gsap-tab-content space-y-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-white">All Sessions</h2>

@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
+import AnalyticsPage from './pages/dashboard/AnalyticsPage'
 import CreateQuizPage from './pages/quiz/CreateQuizPage'
 import EditQuizPage from './pages/quiz/EditQuizPage'
 import HostGamePage from './pages/game/HostGamePage'
@@ -18,6 +19,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!token) {
     return <Navigate to="/login" replace />
   }
+  return <>{children}</>
+}
+
+function TeacherOnlyRoute({ children }: { children: React.ReactNode }) {
+  const { token, user } = useAuthStore()
+  if (!token) return <Navigate to="/login" replace />
+  if (user && user.role !== 'teacher') return <Navigate to="/dashboard" replace />
   return <>{children}</>
 }
 
@@ -44,19 +52,27 @@ function App() {
         }
       />
       <Route
+        path="/analytics"
+        element={
+          <TeacherOnlyRoute>
+            <AnalyticsPage />
+          </TeacherOnlyRoute>
+        }
+      />
+      <Route
         path="/quiz/create"
         element={
-          <ProtectedRoute>
+          <TeacherOnlyRoute>
             <CreateQuizPage />
-          </ProtectedRoute>
+          </TeacherOnlyRoute>
         }
       />
       <Route
         path="/quiz/:id/edit"
         element={
-          <ProtectedRoute>
+          <TeacherOnlyRoute>
             <EditQuizPage />
-          </ProtectedRoute>
+          </TeacherOnlyRoute>
         }
       />
       <Route

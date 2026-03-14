@@ -5,15 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/pae/backend/internal/middleware"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Handler holds dependencies for player HTTP handlers.
 type Handler struct {
-	service  *Service
-	validate *validator.Validate
+	service   *Service
+	validate  *validator.Validate
+	jwtSecret string
 }
 
 // NewHandler creates a new player Handler.
@@ -21,6 +26,15 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service:  service,
 		validate: validator.New(),
+	}
+}
+
+// NewHandlerWithSecret creates a new player Handler that can parse optional JWT tokens.
+func NewHandlerWithSecret(service *Service, jwtSecret string) *Handler {
+	return &Handler{
+		service:   service,
+		validate:  validator.New(),
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -57,6 +71,44 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{"error": message})
 }
 
+// --- Helpers ---
+
+// optionalUserIDFromRequest tries to extract a user ID from the Authorization
+// header JWT. Returns nil (no error) if no token is present or the token is
+// invalid – authentication is optional for the Join endpoint.
+func (h *Handler) optionalUserIDFromRequest(r *http.Request) *primitive.ObjectID {
+	if h.jwtSecret == "" {
+		return nil
+	}
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return nil
+	}
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
+		return nil
+	}
+	tokenStr := parts[1]
+	token, err := jwt.ParseWithClaims(tokenStr, &middleware.Claims{}, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrTokenSignatureInvalid
+		}
+		return []byte(h.jwtSecret), nil
+	})
+	if err != nil || !token.Valid {
+		return nil
+	}
+	claims, ok := token.Claims.(*middleware.Claims)
+	if !ok || claims.UserID == "" {
+		return nil
+	}
+	oid, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err != nil {
+		return nil
+	}
+	return &oid
+}
+
 // --- Handlers ---
 
 // Join handles POST /api/players/join.
@@ -72,7 +124,10 @@ func (h *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := h.service.Join(r.Context(), req.PIN, req.Nickname, nil)
+	// Optionally attach authenticated user to the player record.
+	userID := h.optionalUserIDFromRequest(r)
+
+	p, err := h.service.Join(r.Context(), req.PIN, req.Nickname, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrSessionNotFound):
@@ -90,6 +145,23 @@ func (h *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		Nickname:  p.Nickname,
 		SessionID: p.SessionID.Hex(),
 	})
+}
+
+// GetMyAttempts handles GET /api/players/my-attempts (requires auth).
+func (h *Handler) GetMyAttempts(w http.ResponseWriter, r *http.Request) {
+	userIDStr, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	attempts, err := h.service.GetPlayerAttempts(r.Context(), userIDStr)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to get attempts")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, attempts)
 }
 
 // SubmitAnswer handles POST /api/players/{player_id}/answer.
