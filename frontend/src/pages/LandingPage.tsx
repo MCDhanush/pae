@@ -255,36 +255,73 @@ export default function LandingPage() {
   }, [])
 
   // GSAP ScrollTrigger animations
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Stat cards animate in on scroll
-      gsap.from('.gsap-stat-card', {
-        scrollTrigger: { trigger: '.gsap-stats-section', start: 'top 80%' },
-        opacity: 0, y: 40, duration: 0.5, stagger: 0.1, ease: 'power2.out',
-      })
-      // Feature cards stagger in
-      gsap.from('.gsap-feature-card', {
-        scrollTrigger: { trigger: '.gsap-features-section', start: 'top 75%' },
-        opacity: 0, y: 30, scale: 0.95, duration: 0.45, stagger: 0.08, ease: 'power2.out',
-      })
-      // How it works cards
-      gsap.from('.gsap-hiw-card', {
-        scrollTrigger: { trigger: '.gsap-hiw-section', start: 'top 75%' },
-        opacity: 0, x: -40, duration: 0.5, stagger: 0.15, ease: 'power2.out',
-      })
-      // Step items
-      gsap.from('.gsap-step', {
-        scrollTrigger: { trigger: '.gsap-hiw-section', start: 'top 65%' },
-        opacity: 0, x: 20, duration: 0.35, stagger: 0.1, ease: 'power2.out', delay: 0.3,
-      })
-      // CTA section
-      gsap.from('.gsap-cta', {
-        scrollTrigger: { trigger: '.gsap-cta-section', start: 'top 80%' },
-        opacity: 0, y: 30, duration: 0.5, ease: 'power2.out',
-      })
-    }, pageRef)
-    return () => ctx.revert()
-  }, [])
+  // Replace your GSAP useEffect with this:
+
+useEffect(() => {
+  const ctx = gsap.context(() => {
+    // Stat cards
+    gsap.from('.gsap-stat-card', {
+      scrollTrigger: { 
+        trigger: '.gsap-stats-section', 
+        start: 'top 85%',
+        once: true,
+      },
+      opacity: 0, y: 40, duration: 0.5, stagger: 0.1, ease: 'power2.out',
+      clearProps: 'all',
+    })
+
+    // Feature cards — THIS is the main fix
+    gsap.from('.gsap-feature-card', {
+      scrollTrigger: { 
+        trigger: '.gsap-features-section', 
+        start: 'top 85%',
+        once: true,
+      },
+      opacity: 0, y: 40, scale: 0.97, duration: 0.6,
+      stagger: { each: 0.1, ease: 'power1.inOut' },
+      ease: 'power3.out',
+      clearProps: 'all',  // ← removes inline styles after animation
+    })
+
+    // How it works cards
+    gsap.from('.gsap-hiw-card', {
+      scrollTrigger: { 
+        trigger: '.gsap-hiw-section', 
+        start: 'top 85%',
+        once: true,
+      },
+      opacity: 0, x: -40, duration: 0.5, stagger: 0.15, ease: 'power2.out',
+      clearProps: 'all',
+    })
+
+    // Step items
+    gsap.from('.gsap-step', {
+      scrollTrigger: { 
+        trigger: '.gsap-hiw-section', 
+        start: 'top 75%',
+        once: true,
+      },
+      opacity: 0, x: 20, duration: 0.35, stagger: 0.1, ease: 'power2.out', delay: 0.3,
+      clearProps: 'all',
+    })
+
+    // CTA
+    gsap.from('.gsap-cta', {
+      scrollTrigger: { 
+        trigger: '.gsap-cta-section', 
+        start: 'top 85%',
+        once: true,
+      },
+      opacity: 0, y: 30, duration: 0.5, ease: 'power2.out',
+      clearProps: 'all',
+    })
+  }, pageRef)
+
+  // Refresh after stats load changes page height
+  const t = setTimeout(() => ScrollTrigger.refresh(), 150)
+
+  return () => { ctx.revert(); clearTimeout(t) }
+}, [statsLoading]) // ← re-run after skeleton → real cards
 
   const chartData = stats
     ? STAT_CONFIG.map((c) => ({

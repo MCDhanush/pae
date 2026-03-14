@@ -73,9 +73,24 @@ export default function DashboardPage() {
   // GSAP tab change animation
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from('.gsap-tab-content', { opacity: 0, y: 20, duration: 0.4, ease: 'power2.out' })
-      gsap.from('.gsap-card', { opacity: 0, y: 24, duration: 0.4, stagger: 0.07, ease: 'power2.out', delay: 0.05 })
+      gsap.from('.gsap-tab-content', {
+        opacity: 0,
+        y: 20,
+        duration: 0.4,
+        ease: 'power2.out',
+        clearProps: 'all',  // ← never stays invisible
+      })
+      gsap.from('.gsap-card', {
+        opacity: 0,
+        y: 24,
+        duration: 0.4,
+        stagger: { each: 0.07, ease: 'power1.inOut' },
+        ease: 'power2.out',
+        delay: 0.05,
+        clearProps: 'all',  // ← never stays invisible
+      })
     }, containerRef)
+
     return () => ctx.revert()
   }, [tab])
 
