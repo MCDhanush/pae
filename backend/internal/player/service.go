@@ -373,6 +373,27 @@ func (s *Service) SubmitAnswer(
 		_ = s.redisClient.Expire(ctx, scoresKey, 4*time.Hour)
 	}
 
+	// Track answer distribution in Redis and broadcast to teacher.
+	distKey := fmt.Sprintf("room:%s:q:%s:answers", pin, questionID)
+	_, _ = s.redisClient.HIncrBy(ctx, distKey, answer, 1)
+	_ = s.redisClient.Expire(ctx, distKey, 4*time.Hour)
+
+	distRaw, _ := s.redisClient.HGetAll(ctx, distKey)
+	distribution := make(map[string]int, len(distRaw))
+	totalAnswers := 0
+	for k, v := range distRaw {
+		count := 0
+		fmt.Sscanf(v, "%d", &count)
+		distribution[k] = count
+		totalAnswers += count
+	}
+	_ = s.publisher.Publish(ctx, events.BroadcastTopic(pin), events.EventAnswerDistribution,
+		events.AnswerDistributionPayload{
+			QuestionID:   questionID,
+			Distribution: distribution,
+			TotalAnswers: totalAnswers,
+		})
+
 	result := &events.AnswerResultPayload{
 		IsCorrect:  isCorrect,
 		Points:     points,

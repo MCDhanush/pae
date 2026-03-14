@@ -112,6 +112,11 @@ func (r *RedisClient) HGetAll(ctx context.Context, key string) (map[string]strin
 	return r.client.HGetAll(ctx, key).Result()
 }
 
+// HIncrBy atomically increments a hash field by incr and returns the new value.
+func (r *RedisClient) HIncrBy(ctx context.Context, key, field string, incr int64) (int64, error) {
+	return r.client.HIncrBy(ctx, key, field, incr).Result()
+}
+
 // ZAdd adds a member with a score to a sorted set.
 func (r *RedisClient) ZAdd(ctx context.Context, key string, score float64, member string) error {
 	return r.client.ZAdd(ctx, key, redis.Z{Score: score, Member: member}).Err()

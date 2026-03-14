@@ -19,15 +19,16 @@ type EventHandler = (payload: unknown) => void
 
 export const MQTT_EVENTS = {
   // Server → Client
-  PLAYER_JOINED:      'player_join',
-  PLAYER_LEFT:        'player_leave',
-  GAME_STARTED:       'game_start',
-  QUESTION_START:     'question_start',
-  QUESTION_END:       'question_end',
-  TIMER_UPDATE:       'timer_update',
-  LEADERBOARD_UPDATE: 'leaderboard_update',
-  GAME_ENDED:         'game_end',
-  ANSWER_RESULT:      'answer_result',
+  PLAYER_JOINED:         'player_join',
+  PLAYER_LEFT:           'player_leave',
+  GAME_STARTED:          'game_start',
+  QUESTION_START:        'question_start',
+  QUESTION_END:          'question_end',
+  TIMER_UPDATE:          'timer_update',
+  LEADERBOARD_UPDATE:    'leaderboard_update',
+  GAME_ENDED:            'game_end',
+  ANSWER_RESULT:         'answer_result',
+  ANSWER_DISTRIBUTION:   'answer_distribution',
 } as const
 
 // ─── Payload types (mirror backend events package) ────────────────────────────
@@ -68,6 +69,12 @@ export interface AnswerResultPayload {
 export interface GameEndPayload {
   pin: string
   final_leaderboard: import('../types').LeaderboardEntry[]
+}
+
+export interface AnswerDistributionPayload {
+  question_id: string
+  distribution: Record<string, number>
+  total_answers: number
 }
 
 // ─── PAEMQTTClient class ──────────────────────────────────────────────────────

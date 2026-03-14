@@ -16,6 +16,7 @@ import type {
   QuestionEndPayload,
   LeaderboardPayload,
   GameEndPayload,
+  AnswerDistributionPayload,
 } from '../../mqtt'
 import type { Player } from '../../types'
 
@@ -59,6 +60,8 @@ export default function HostGamePage() {
   const [isStarting, setIsStarting] = useState(false)
   const [isEnding, setIsEnding] = useState(false)
   const [isNexting, setIsNexting] = useState(false)
+  const [answerDist, setAnswerDist] = useState<Record<string, number>>({})
+  const [distTotal, setDistTotal] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const stopTimer = useCallback(() => {
@@ -113,8 +116,17 @@ export default function HostGamePage() {
           setQuestionIndex(payload.question_index)
           setTotalQuestions(payload.total_questions)
           setCorrectAnswer(null)
+          setAnswerDist({})
+          setDistTotal(0)
           setPhase('question')
           startTimer(payload.question.time_limit)
+        })
+
+        mqttClient.on(MQTT_EVENTS.ANSWER_DISTRIBUTION, (p: unknown) => {
+          if (!mounted) return
+          const payload = p as AnswerDistributionPayload
+          setAnswerDist(payload.distribution ?? {})
+          setDistTotal(payload.total_answers ?? 0)
         })
 
         mqttClient.on(MQTT_EVENTS.QUESTION_END, (p: unknown) => {
@@ -575,6 +587,62 @@ export default function HostGamePage() {
                   )}
                 </div>
               </div>
+
+              {/* Answer Distribution Heatmap */}
+              {(Object.keys(answerDist).length > 0 || distTotal > 0) && (
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">Live Answers</h3>
+                    </div>
+                    <span className="text-xs text-amber-300 font-bold">{distTotal}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {currentQuestion?.options?.map((opt, i) => {
+                      const count = answerDist[opt.id] ?? 0
+                      const pct = distTotal > 0 ? Math.round((count / distTotal) * 100) : 0
+                      return (
+                        <div key={opt.id}>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-1.5">
+                              <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${OPTION_COLORS[i % 4]} flex items-center justify-center text-[9px] font-bold text-white`}>
+                                {OPTION_LABELS[i]}
+                              </div>
+                              <span className="text-[10px] text-white/60 truncate max-w-[80px]">{opt.text}</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-white/60">{count}</span>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full bg-gradient-to-r ${OPTION_COLORS[i % 4]} transition-all duration-500`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {/* Fill blank / true-false distribution */}
+                    {!currentQuestion?.options?.length && Object.entries(answerDist).map(([answer, count]) => {
+                      const pct = distTotal > 0 ? Math.round((count / distTotal) * 100) : 0
+                      return (
+                        <div key={answer}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] text-white/60 truncate max-w-[100px]">{answer}</span>
+                            <span className="text-[10px] font-bold text-white/60">{count}</span>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Players */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">

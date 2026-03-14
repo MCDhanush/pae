@@ -36,15 +36,16 @@ type Publisher interface {
 // ─── Event name constants ──────────────────────────────────────────────────────
 
 const (
-	EventPlayerJoin    = "player_join"
-	EventPlayerLeave   = "player_leave"
-	EventGameStart     = "game_start"
-	EventQuestionStart = "question_start"
-	EventQuestionEnd   = "question_end"
-	EventTimerUpdate   = "timer_update"
-	EventAnswerResult  = "answer_result"
-	EventLeaderboard   = "leaderboard_update"
-	EventGameEnd       = "game_end"
+	EventPlayerJoin          = "player_join"
+	EventPlayerLeave         = "player_leave"
+	EventGameStart           = "game_start"
+	EventQuestionStart       = "question_start"
+	EventQuestionEnd         = "question_end"
+	EventTimerUpdate         = "timer_update"
+	EventAnswerResult        = "answer_result"
+	EventLeaderboard         = "leaderboard_update"
+	EventGameEnd             = "game_end"
+	EventAnswerDistribution  = "answer_distribution"
 )
 
 // ─── Message envelope ─────────────────────────────────────────────────────────
@@ -118,4 +119,11 @@ type AnswerResultPayload struct {
 	IsCorrect  bool `json:"is_correct"`
 	Points     int  `json:"points"`
 	TotalScore int  `json:"total_score"`
+}
+
+// AnswerDistributionPayload is broadcast to the teacher after each answer.
+type AnswerDistributionPayload struct {
+	QuestionID   string         `json:"question_id"`
+	Distribution map[string]int `json:"distribution"`
+	TotalAnswers int            `json:"total_answers"`
 }
