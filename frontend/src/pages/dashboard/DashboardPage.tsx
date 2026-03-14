@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import gsap from 'gsap'
 import { useAuthStore } from '../../store/authStore'
 import { quizAPI, gameAPI, sessionAPI } from '../../lib/api'
 import type { Quiz, SessionWithQuiz, Player } from '../../types'
@@ -21,6 +22,7 @@ const STATUS_STYLES: Record<string, string> = {
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { user, logout, updateProfile, isLoading: authLoading, error: authError, clearError } = useAuthStore()
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const [tab, setTab] = useState<Tab>('overview')
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
@@ -67,6 +69,15 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // GSAP tab change animation
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.gsap-tab-content', { opacity: 0, y: 20, duration: 0.4, ease: 'power2.out' })
+      gsap.from('.gsap-card', { opacity: 0, y: 24, duration: 0.4, stagger: 0.07, ease: 'power2.out', delay: 0.05 })
+    }, containerRef)
+    return () => ctx.revert()
+  }, [tab])
 
   // Sync profile form when user loads
   useEffect(() => {
@@ -170,10 +181,10 @@ export default function DashboardPage() {
   })()
 
   const stats = [
-    { label: 'My Quizzes', value: quizzes.length, icon: '📋', color: 'from-violet-500 to-purple-600' },
-    { label: 'Total Sessions', value: sessions.length, icon: '⚡', color: 'from-indigo-500 to-blue-600' },
-    { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, icon: '🔴', color: 'from-rose-500 to-pink-600' },
-    { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), icon: '❓', color: 'from-amber-500 to-orange-600' },
+    { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-violet-500 to-purple-600' },
+    { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-indigo-500 to-blue-600' },
+    { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-rose-500 to-pink-600' },
+    { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-amber-500 to-orange-600' },
   ]
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -183,7 +194,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white" ref={containerRef}>
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-700/15 blur-3xl" />
@@ -265,13 +276,15 @@ export default function DashboardPage() {
 
         {/* ── OVERVIEW TAB ── */}
         {tab === 'overview' && (
-          <div className="animate-fadeInUp space-y-6">
+          <div className="gsap-tab-content space-y-6">
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map(stat => (
-                <div key={stat.label} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-lg mb-3`}>
-                    {stat.icon}
+                <div key={stat.label} className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.iconPath} />
+                    </svg>
                   </div>
                   <p className="text-2xl font-black text-white">{stat.value}</p>
                   <p className="text-xs text-white/40 mt-0.5">{stat.label}</p>
@@ -371,7 +384,7 @@ export default function DashboardPage() {
 
         {/* ── SESSIONS TAB ── */}
         {tab === 'sessions' && (
-          <div className="animate-fadeInUp space-y-3">
+          <div className="gsap-tab-content space-y-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-white">All Sessions</h2>
               <span className="text-sm text-white/40">{sessions.length} total</span>
@@ -465,7 +478,7 @@ export default function DashboardPage() {
 
         {/* ── PROFILE TAB ── */}
         {tab === 'profile' && (
-          <div className="animate-fadeInUp max-w-xl space-y-5">
+          <div className="gsap-tab-content max-w-xl space-y-5">
             <h2 className="text-lg font-bold text-white">Profile Settings</h2>
 
             {/* Account info */}

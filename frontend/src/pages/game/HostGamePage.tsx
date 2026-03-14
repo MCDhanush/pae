@@ -28,7 +28,15 @@ const OPTION_COLORS = [
 ]
 const OPTION_BG = ['bg-red-500/20 border-red-500/40', 'bg-blue-500/20 border-blue-500/40', 'bg-amber-500/20 border-amber-500/40', 'bg-emerald-500/20 border-emerald-500/40']
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
-const RANK_MEDALS = ['🥇', '🥈', '🥉']
+const RANK_MEDAL_COLORS = ['text-amber-400', 'text-slate-400', 'text-amber-700']
+function MedalIcon({ rank, size = 'sm' }: { rank: number; size?: 'sm' | 'lg' }) {
+  const sz = size === 'lg' ? 'w-6 h-6' : 'w-4 h-4'
+  return (
+    <svg className={`${sz} ${RANK_MEDAL_COLORS[rank]}`} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M5 3l3.057-3 3.943 7.9L15.943 0 19 3l-2 8H7L5 3zm2 9h10l1 9H6l1-9z" />
+    </svg>
+  )
+}
 
 export default function HostGamePage() {
   const { pin } = useParams<{ pin: string }>()
@@ -507,7 +515,7 @@ export default function HostGamePage() {
                 <div className="space-y-2">
                   {leaderboard.slice(0, 7).map((entry, i) => (
                     <div key={entry.player_id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/5 transition-colors">
-                      <span className="text-sm w-5 text-center">{i < 3 ? RANK_MEDALS[i] : <span className="text-white/30 text-xs">#{i+1}</span>}</span>
+                      <span className="text-sm w-5 text-center">{i < 3 ? <MedalIcon rank={i} /> : <span className="text-white/30 text-xs">#{i+1}</span>}</span>
                       <span className="flex-1 text-sm text-white/80 truncate font-medium">{entry.nickname}</span>
                       <span className="text-xs font-bold text-violet-300">{entry.score}</span>
                     </div>
@@ -546,7 +554,11 @@ export default function HostGamePage() {
         {phase === 'game_over' && (
           <div className="animate-fadeInUp flex flex-col items-center gap-8 py-8">
             <div className="text-center">
-              <div className="text-6xl mb-4 animate-bounceIn">🎉</div>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-violet-500/30 animate-bounceIn">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
               <h2 className="text-4xl font-black text-white">Game Over!</h2>
               <p className="text-white/50 mt-2">Here are the final results</p>
             </div>
@@ -560,7 +572,7 @@ export default function HostGamePage() {
                   const rank = podiumPos === 1 ? 0 : podiumPos === 0 ? 1 : 2
                   return (
                     <div key={entry.player_id} className="flex flex-col items-center gap-2 flex-1">
-                      <span className="text-2xl">{RANK_MEDALS[rank]}</span>
+                      <MedalIcon rank={rank} size="lg" />
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-sm">
                         {entry.nickname.charAt(0).toUpperCase()}
                       </div>
@@ -587,7 +599,7 @@ export default function HostGamePage() {
               <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
                 {leaderboard.map((entry, i) => (
                   <div key={entry.player_id} className="flex items-center gap-3 px-4 py-3">
-                    <span className="w-6 text-sm text-center">{i < 3 ? RANK_MEDALS[i] : <span className="text-white/30">#{i+1}</span>}</span>
+                    <span className="w-6 text-sm text-center">{i < 3 ? <MedalIcon rank={i} /> : <span className="text-white/30">#{i+1}</span>}</span>
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
                       {entry.nickname.charAt(0).toUpperCase()}
                     </div>

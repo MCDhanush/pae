@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   BarChart,
   Bar,
@@ -235,9 +237,12 @@ function CustomTooltip({ active, payload, label }: {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+gsap.registerPlugin(ScrollTrigger)
+
 export default function LandingPage() {
   const { token } = useAuthStore()
   const navigate = useNavigate()
+  const pageRef = useRef<HTMLDivElement>(null)
   const [stats, setStats] = useState<PlatformStats | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -249,6 +254,38 @@ export default function LandingPage() {
       .finally(() => setStatsLoading(false))
   }, [])
 
+  // GSAP ScrollTrigger animations
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Stat cards animate in on scroll
+      gsap.from('.gsap-stat-card', {
+        scrollTrigger: { trigger: '.gsap-stats-section', start: 'top 80%' },
+        opacity: 0, y: 40, duration: 0.5, stagger: 0.1, ease: 'power2.out',
+      })
+      // Feature cards stagger in
+      gsap.from('.gsap-feature-card', {
+        scrollTrigger: { trigger: '.gsap-features-section', start: 'top 75%' },
+        opacity: 0, y: 30, scale: 0.95, duration: 0.45, stagger: 0.08, ease: 'power2.out',
+      })
+      // How it works cards
+      gsap.from('.gsap-hiw-card', {
+        scrollTrigger: { trigger: '.gsap-hiw-section', start: 'top 75%' },
+        opacity: 0, x: -40, duration: 0.5, stagger: 0.15, ease: 'power2.out',
+      })
+      // Step items
+      gsap.from('.gsap-step', {
+        scrollTrigger: { trigger: '.gsap-hiw-section', start: 'top 65%' },
+        opacity: 0, x: 20, duration: 0.35, stagger: 0.1, ease: 'power2.out', delay: 0.3,
+      })
+      // CTA section
+      gsap.from('.gsap-cta', {
+        scrollTrigger: { trigger: '.gsap-cta-section', start: 'top 80%' },
+        opacity: 0, y: 30, duration: 0.5, ease: 'power2.out',
+      })
+    }, pageRef)
+    return () => ctx.revert()
+  }, [])
+
   const chartData = stats
     ? STAT_CONFIG.map((c) => ({
         name: c.chartName,
@@ -258,7 +295,7 @@ export default function LandingPage() {
     : []
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" ref={pageRef}>
 
       {/* ── Navbar ────────────────────────────────────────────────────── */}
       <nav className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
@@ -427,7 +464,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Platform Stats ────────────────────────────────────────────── */}
-      <section className="bg-gray-50 py-16 sm:py-20">
+      <section className="gsap-stats-section bg-gray-50 py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Heading */}
@@ -452,7 +489,9 @@ export default function LandingPage() {
             <>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
                 {STAT_CONFIG.map((cfg, i) => (
-                  <StatCard key={cfg.key} cfg={cfg} value={stats[cfg.key]} delay={i * 100} />
+                  <div key={cfg.key} className="gsap-stat-card">
+                    <StatCard cfg={cfg} value={stats[cfg.key]} delay={i * 100} />
+                  </div>
                 ))}
               </div>
 
@@ -504,7 +543,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ──────────────────────────────────────────────────── */}
-      <section className="py-16 sm:py-24 bg-white">
+      <section className="gsap-features-section py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="inline-block px-3 py-1 bg-violet-100 text-violet-700 text-xs font-bold rounded-full uppercase tracking-wider mb-3">
@@ -522,7 +561,7 @@ export default function LandingPage() {
             {FEATURES.map((feature) => (
               <div
                 key={feature.title}
-                className="group relative p-6 rounded-2xl border border-gray-100 bg-white hover:border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                className="gsap-feature-card group relative p-6 rounded-2xl border border-gray-100 bg-white hover:border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 {/* Subtle gradient on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`} />
@@ -538,7 +577,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ──────────────────────────────────────────────── */}
-      <section className="py-16 sm:py-24 bg-gray-50">
+      <section className="gsap-hiw-section py-16 sm:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="inline-block px-3 py-1 bg-violet-100 text-violet-700 text-xs font-bold rounded-full uppercase tracking-wider mb-3">
@@ -549,7 +588,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-8 lg:gap-16">
             {/* Teachers */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
+            <div className="gsap-hiw-card bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center">
                   <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -577,7 +616,7 @@ export default function LandingPage() {
             </div>
 
             {/* Students */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
+            <div className="gsap-hiw-card bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
                   <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -608,10 +647,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────────────────── */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-800 relative overflow-hidden">
+      <section className="gsap-cta-section py-16 sm:py-24 bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-800 relative overflow-hidden">
         <div className="absolute top-0 left-1/3 w-80 h-80 bg-violet-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <div className="gsap-cta relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Ready to make learning fun?</h2>
           <p className="text-white/70 mb-10 text-base max-w-xl mx-auto">
             Join educators already using PAE to bring competition and engagement into every classroom.
