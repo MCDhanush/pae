@@ -245,6 +245,26 @@ export default function DashboardPage() {
           <PAELogo variant="dark" size="sm" />
 
           <div className="flex items-center gap-3">
+            <Link
+              to="/marketplace"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/60 hover:text-white/90 hover:bg-white/5 rounded-xl transition-colors border border-transparent hover:border-white/10"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Marketplace
+            </Link>
+            {user?.role === 'teacher' && (
+              <Link
+                to="/analytics"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/60 hover:text-white/90 hover:bg-white/5 rounded-xl transition-colors border border-transparent hover:border-white/10"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Analytics
+              </Link>
+            )}
             <div className="hidden sm:flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl px-3 py-1.5">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-xs">
                 {user?.name?.charAt(0).toUpperCase()}
@@ -420,13 +440,21 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <h3 className="text-white font-bold mb-2">Welcome, Student!</h3>
-                <p className="text-white/40 text-sm mb-5">View your previous quiz attempts in the Sessions tab.</p>
-                <button
-                  onClick={() => setTab('sessions')}
-                  className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
-                >
-                  View My Attempts
-                </button>
+                <p className="text-white/40 text-sm mb-5">Join games via PIN or browse the quiz marketplace.</p>
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <button
+                    onClick={() => setTab('sessions')}
+                    className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
+                  >
+                    View My Attempts
+                  </button>
+                  <Link
+                    to="/marketplace"
+                    className="px-5 py-2.5 bg-white/10 border border-white/15 text-white/80 text-sm font-semibold rounded-xl hover:bg-white/15 transition-colors"
+                  >
+                    Browse Marketplace
+                  </Link>
+                </div>
               </div>
             )}
           </div>

@@ -39,10 +39,14 @@ export interface Question {
 export interface Quiz {
   id: string
   teacher_id: string
+  teacher_name?: string
   title: string
   description: string
+  category?: string
   images: string[]
   questions: Question[]
+  is_public: boolean
+  usage_count: number
   created_at: string
   updated_at: string
 }

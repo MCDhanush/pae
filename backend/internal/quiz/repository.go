@@ -137,3 +137,44 @@ func (r *Repository) AddImage(ctx context.Context, quizID, teacherID primitive.O
 func (r *Repository) Count(ctx context.Context) (int64, error) {
 	return r.col.CountDocuments(ctx, bson.M{})
 }
+
+// FindPublic returns public quizzes, optionally filtered by category and search term.
+func (r *Repository) FindPublic(ctx context.Context, category, search string) ([]models.Quiz, error) {
+	filter := bson.M{"is_public": true}
+	if category != "" {
+		filter["category"] = category
+	}
+	if search != "" {
+		filter["title"] = bson.M{"$regex": search, "$options": "i"}
+	}
+	opts := options.Find().SetSort(bson.D{{Key: "usage_count", Value: -1}, {Key: "created_at", Value: -1}})
+	cursor, err := r.col.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, fmt.Errorf("quiz repo find public: %w", err)
+	}
+	defer cursor.Close(ctx)
+	var quizzes []models.Quiz
+	if err := cursor.All(ctx, &quizzes); err != nil {
+		return nil, fmt.Errorf("quiz repo decode public: %w", err)
+	}
+	return quizzes, nil
+}
+
+// SetPublic toggles the is_public flag on a quiz (teacher-scoped).
+func (r *Repository) SetPublic(ctx context.Context, quizID, teacherID primitive.ObjectID, isPublic bool) error {
+	filter := bson.M{"_id": quizID, "teacher_id": teacherID}
+	update := bson.M{"$set": bson.M{"is_public": isPublic, "updated_at": time.Now().UTC()}}
+	res, err := r.col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("quiz repo set public: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
+}
+
+// IncrUsageCount atomically increments usage_count of a quiz.
+func (r *Repository) IncrUsageCount(ctx context.Context, quizID primitive.ObjectID) {
+	_, _ = r.col.UpdateOne(ctx, bson.M{"_id": quizID}, bson.M{"$inc": bson.M{"usage_count": 1}})
+}

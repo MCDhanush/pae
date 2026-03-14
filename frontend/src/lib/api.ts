@@ -243,4 +243,24 @@ export const studentAPI = {
   },
 }
 
+// Marketplace API
+export const marketplaceAPI = {
+  list: async (category?: string, search?: string): Promise<Quiz[]> => {
+    const params = new URLSearchParams()
+    if (category) params.set('category', category)
+    if (search) params.set('q', search)
+    const { data } = await api.get<Quiz[]>(`/marketplace?${params.toString()}`)
+    return data
+  },
+
+  copy: async (quizId: string): Promise<Quiz> => {
+    const { data } = await api.post<Quiz>(`/marketplace/${quizId}/copy`)
+    return data
+  },
+
+  publish: async (quizId: string, isPublic: boolean): Promise<void> => {
+    await api.put(`/quizzes/${quizId}/publish`, { is_public: isPublic })
+  },
+}
+
 export default api

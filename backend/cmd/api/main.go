@@ -193,6 +193,16 @@ func main() {
 				r.Put("/{id}", quizHandler.UpdateQuiz)
 				r.Delete("/{id}", quizHandler.DeleteQuiz)
 				r.Post("/{id}/upload-image", quizHandler.UploadImage)
+				r.Put("/{id}/publish", quizHandler.PublishQuiz)
+			})
+		})
+
+		// Marketplace – public browse, auth required for copy
+		r.Route("/marketplace", func(r chi.Router) {
+			r.Get("/", quizHandler.ListMarketplace)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireTeacher(cfg.JWTSecret))
+				r.Post("/{id}/copy", quizHandler.CopyMarketplaceQuiz)
 			})
 		})
 

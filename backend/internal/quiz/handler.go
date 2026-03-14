@@ -286,6 +286,88 @@ func (h *Handler) UploadImageGeneral(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"url": url})
 }
 
+// ListMarketplace handles GET /api/marketplace (public, no auth required).
+func (h *Handler) ListMarketplace(w http.ResponseWriter, r *http.Request) {
+	category := r.URL.Query().Get("category")
+	search := r.URL.Query().Get("q")
+
+	quizzes, err := h.service.ListPublic(r.Context(), category, search)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to list marketplace")
+		return
+	}
+	if quizzes == nil {
+		quizzes = []models.Quiz{}
+	}
+	writeJSON(w, http.StatusOK, quizzes)
+}
+
+// PublishQuiz handles PUT /api/quizzes/{id}/publish (teacher auth required).
+func (h *Handler) PublishQuiz(w http.ResponseWriter, r *http.Request) {
+	teacherID, ok := teacherIDFromContext(r)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	quizID, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid quiz id")
+		return
+	}
+
+	var body struct {
+		IsPublic bool `json:"is_public"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+
+	if err := h.service.Publish(r.Context(), quizID, teacherID, body.IsPublic); err != nil {
+		switch {
+		case errors.Is(err, ErrQuizNotFound):
+			writeError(w, http.StatusNotFound, "quiz not found")
+		case errors.Is(err, ErrUnauthorized):
+			writeError(w, http.StatusForbidden, "forbidden")
+		default:
+			writeError(w, http.StatusInternalServerError, "failed to update publish state")
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]bool{"is_public": body.IsPublic})
+}
+
+// CopyMarketplaceQuiz handles POST /api/marketplace/{id}/copy (teacher auth required).
+func (h *Handler) CopyMarketplaceQuiz(w http.ResponseWriter, r *http.Request) {
+	teacherID, ok := teacherIDFromContext(r)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	quizID, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid quiz id")
+		return
+	}
+
+	created, err := h.service.CopyQuiz(r.Context(), quizID, teacherID, "")
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrQuizNotFound):
+			writeError(w, http.StatusNotFound, "quiz not found")
+		case errors.Is(err, ErrUnauthorized):
+			writeError(w, http.StatusForbidden, "quiz is not public")
+		default:
+			writeError(w, http.StatusInternalServerError, "failed to copy quiz")
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, created)
+}
+
 // UploadImage handles POST /api/quizzes/{id}/upload-image.
 func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	teacherID, ok := teacherIDFromContext(r)

@@ -7,6 +7,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import AnalyticsPage from './pages/dashboard/AnalyticsPage'
+import MarketplacePage from './pages/marketplace/MarketplacePage'
 import CreateQuizPage from './pages/quiz/CreateQuizPage'
 import EditQuizPage from './pages/quiz/EditQuizPage'
 import HostGamePage from './pages/game/HostGamePage'
@@ -83,6 +84,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/marketplace" element={<MarketplacePage />} />
       <Route path="/join" element={<JoinGamePage />} />
       <Route path="/play/:pin" element={<PlayGamePage />} />
       <Route path="/results/:pin" element={<ResultsPage />} />
