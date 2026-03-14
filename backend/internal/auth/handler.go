@@ -27,15 +27,31 @@ func NewHandler(service *Service) *Handler {
 // --- DTOs ---
 
 type registerRequest struct {
-	Name     string `json:"name" validate:"required,min=2,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
-	Role     string `json:"role" validate:"required,oneof=teacher student"`
+	Name            string `json:"name" validate:"required,min=2,max=100"`
+	Email           string `json:"email" validate:"required,email"`
+	Password        string `json:"password" validate:"required,min=6"`
+	Role            string `json:"role" validate:"required,oneof=teacher student"`
+	Institution     string `json:"institution"`
+	InstitutionType string `json:"institution_type"`
+	Location        string `json:"location"`
+	YearsOfExp      int    `json:"years_of_exp"`
+	Bio             string `json:"bio"`
 }
 
 type loginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
+}
+
+type updateProfileRequest struct {
+	Name            string `json:"name" validate:"omitempty,min=2,max=100"`
+	Institution     string `json:"institution"`
+	InstitutionType string `json:"institution_type"`
+	Location        string `json:"location"`
+	YearsOfExp      int    `json:"years_of_exp"`
+	Bio             string `json:"bio"`
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password" validate:"omitempty,min=6"`
 }
 
 type authResponse struct {
@@ -52,7 +68,7 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
+	writeJSON(w, status, map[string]string{"error": message, "message": message})
 }
 
 // --- Handlers ---
@@ -70,7 +86,17 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Register(r.Context(), req.Name, req.Email, req.Password, req.Role)
+	user, err := h.service.Register(r.Context(), RegisterParams{
+		Name:            req.Name,
+		Email:           req.Email,
+		Password:        req.Password,
+		Role:            req.Role,
+		Institution:     req.Institution,
+		InstitutionType: req.InstitutionType,
+		Location:        req.Location,
+		YearsOfExp:      req.YearsOfExp,
+		Bio:             req.Bio,
+	})
 	if err != nil {
 		if errors.Is(err, ErrEmailTaken) {
 			writeError(w, http.StatusConflict, "email already registered")
@@ -132,6 +158,53 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.GetByID(r.Context(), userID)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "user not found")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, user)
+}
+
+// UpdateProfile handles PUT /api/auth/profile (protected route).
+func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	userIDStr, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid user id")
+		return
+	}
+
+	var req updateProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	user, err := h.service.UpdateProfile(r.Context(), userID, UpdateProfileParams{
+		Name:            req.Name,
+		Institution:     req.Institution,
+		InstitutionType: req.InstitutionType,
+		Location:        req.Location,
+		YearsOfExp:      req.YearsOfExp,
+		Bio:             req.Bio,
+		CurrentPassword: req.CurrentPassword,
+		NewPassword:     req.NewPassword,
+	})
+	if err != nil {
+		if errors.Is(err, ErrInvalidCredentials) {
+			writeError(w, http.StatusUnauthorized, "current password is incorrect")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to update profile")
 		return
 	}
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { authAPI } from '../lib/api'
-import type { User } from '../types'
+import type { User, RegisterPayload, UpdateProfilePayload } from '../types'
 
 interface AuthState {
   user: User | null
@@ -8,7 +8,8 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string, role?: 'teacher' | 'student') => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
+  updateProfile: (payload: UpdateProfilePayload) => Promise<void>
   logout: () => void
   loadUser: () => Promise<void>
   clearError: () => void
@@ -27,24 +28,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.setItem('auth_token', token)
       set({ token, user, isLoading: false })
     } catch (err: unknown) {
-      const message = err instanceof Error
-        ? err.message
-        : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Login failed'
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'Login failed'
       set({ error: message, isLoading: false })
       throw err
     }
   },
 
-  register: async (name: string, email: string, password: string, role: 'teacher' | 'student' = 'teacher') => {
+  register: async (payload: RegisterPayload) => {
     set({ isLoading: true, error: null })
     try {
-      const { token, user } = await authAPI.register({ name, email, password, role })
+      const { token, user } = await authAPI.register(payload)
       localStorage.setItem('auth_token', token)
       set({ token, user, isLoading: false })
     } catch (err: unknown) {
-      const message = err instanceof Error
-        ? err.message
-        : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Registration failed'
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'Registration failed'
+      set({ error: message, isLoading: false })
+      throw err
+    }
+  },
+
+  updateProfile: async (payload: UpdateProfilePayload) => {
+    set({ isLoading: true, error: null })
+    try {
+      const user = await authAPI.updateProfile(payload)
+      set({ user, isLoading: false })
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'Profile update failed'
       set({ error: message, isLoading: false })
       throw err
     }

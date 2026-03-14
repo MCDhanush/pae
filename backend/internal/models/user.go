@@ -13,5 +13,11 @@ type User struct {
 	Email     string             `bson:"email" json:"email"`
 	Password  string             `bson:"password" json:"-"`
 	Role      string             `bson:"role" json:"role"` // "teacher" | "student"
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+	// Teacher profile fields (optional)
+	Institution     string `bson:"institution,omitempty" json:"institution,omitempty"`
+	InstitutionType string `bson:"institution_type,omitempty" json:"institution_type,omitempty"` // "school" | "college" | "university"
+	Location        string `bson:"location,omitempty" json:"location,omitempty"`
+	YearsOfExp      int    `bson:"years_of_exp,omitempty" json:"years_of_exp,omitempty"`
+	Bio             string `bson:"bio,omitempty" json:"bio,omitempty"`
+	CreatedAt       time.Time `bson:"created_at" json:"created_at"`
 }

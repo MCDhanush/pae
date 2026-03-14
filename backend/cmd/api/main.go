@@ -168,6 +168,7 @@ func main() {
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireAuth(cfg.JWTSecret))
 				r.Get("/me", authHandler.Me)
+				r.Put("/profile", authHandler.UpdateProfile)
 			})
 		})
 
@@ -178,6 +179,8 @@ func main() {
 				r.Use(middleware.RequireTeacher(cfg.JWTSecret))
 				r.Post("/", quizHandler.CreateQuiz)
 				r.Get("/", quizHandler.ListQuizzes)
+				// General image upload – no quiz ID required; must be before /{id} pattern
+				r.Post("/images", quizHandler.UploadImageGeneral)
 			})
 			r.Get("/{id}", quizHandler.GetQuiz)
 			r.Group(func(r chi.Router) {

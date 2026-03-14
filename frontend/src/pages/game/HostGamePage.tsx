@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import clsx from 'clsx'
 import { gameAPI, sessionAPI } from '../../lib/api'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -18,15 +17,18 @@ import type {
   GameEndPayload,
 } from '../../mqtt'
 import type { Player } from '../../types'
-import Timer from '../../components/ui/Timer'
-import Button from '../../components/ui/Button'
-import PlayerList from '../../components/game/PlayerList'
-import Leaderboard from '../../components/game/Leaderboard'
 
 type GamePhase = 'lobby' | 'question' | 'question_end' | 'game_over'
 
-const OPTION_COLORS = ['bg-red-500', 'bg-blue-500', 'bg-yellow-500', 'bg-green-500']
+const OPTION_COLORS = [
+  'from-red-500 to-rose-600',
+  'from-blue-500 to-indigo-600',
+  'from-amber-500 to-yellow-600',
+  'from-emerald-500 to-green-600',
+]
+const OPTION_BG = ['bg-red-500/20 border-red-500/40', 'bg-blue-500/20 border-blue-500/40', 'bg-amber-500/20 border-amber-500/40', 'bg-emerald-500/20 border-emerald-500/40']
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
+const RANK_MEDALS = ['🥇', '🥈', '🥉']
 
 export default function HostGamePage() {
   const { pin } = useParams<{ pin: string }>()
@@ -62,16 +64,12 @@ export default function HostGamePage() {
     setTimeRemaining(seconds)
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          stopTimer()
-          return 0
-        }
+        if (prev <= 1) { stopTimer(); return 0 }
         return prev - 1
       })
     }, 1000)
   }, [stopTimer, setTimeRemaining])
 
-  // Load session + connect to MQTT
   useEffect(() => {
     if (!pin) return
     let mounted = true
@@ -92,7 +90,6 @@ export default function HostGamePage() {
           setPhase('question')
         }
 
-        // Connect to HiveMQ as host (no playerID)
         const mqttClient = connectMQTT(pin)
 
         mqttClient.on(MQTT_EVENTS.PLAYER_JOINED, (p: unknown) => {
@@ -150,7 +147,6 @@ export default function HostGamePage() {
     if (!session) return
     setIsStarting(true)
     try {
-      // REST call triggers MQTT game_start + question_start server-side
       await gameAPI.start(session.pin)
     } catch (err) {
       console.error('Failed to start game:', err)
@@ -164,7 +160,6 @@ export default function HostGamePage() {
     setIsNexting(true)
     setCorrectAnswer(null)
     try {
-      // REST call triggers MQTT question_start for next question server-side
       await gameAPI.next(session.pin)
     } catch (err) {
       console.error('Failed to advance question:', err)
@@ -177,7 +172,6 @@ export default function HostGamePage() {
     if (!session) return
     setIsEnding(true)
     try {
-      // REST call triggers MQTT game_end server-side
       await gameAPI.end(session.pin)
     } catch (err) {
       console.error('Failed to end game:', err)
@@ -186,226 +180,453 @@ export default function HostGamePage() {
     }
   }
 
-  const handleViewResults = () => {
-    navigate(`/results/${pin}`)
-  }
-
   const mqttClient = getMQTT()
   const isConnected = mqttClient?.connected ?? false
+  const timerPct = currentQuestion ? (timeRemaining / currentQuestion.time_limit) * 100 : 0
+  const timerColor = timerPct > 50 ? '#22c55e' : timerPct > 25 ? '#f59e0b' : '#ef4444'
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Top bar */}
-      <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white">
+      {/* Animated background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-700/15 blur-3xl" />
+        <div className="animate-blobFloat2 absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-600/15 blur-3xl" />
+        <div className="animate-blobFloat absolute top-[40%] right-[20%] w-[300px] h-[300px] rounded-full bg-purple-600/10 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
+
+      {/* Header */}
+      <header className="relative z-20 bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+          {/* Back + connection */}
           <div className="flex items-center gap-3">
-            <div className={clsx(
-              'w-2.5 h-2.5 rounded-full',
-              isConnected ? 'bg-green-400' : 'bg-red-400',
-            )} />
-            <span className="text-sm font-medium text-gray-300">
-              {isConnected ? 'Connected' : 'Connecting…'}
-            </span>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full transition-colors ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+              <span className="text-xs text-white/50 hidden sm:block">{isConnected ? 'Live' : 'Connecting…'}</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400">PIN:</span>
-            <span className="text-2xl font-black tracking-widest text-accent-400">{pin}</span>
+          {/* PIN display */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/40 uppercase tracking-wider">PIN</span>
+            <span className="text-2xl font-black tracking-[0.3em] text-violet-300">{pin}</span>
           </div>
 
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={handleEndGame}
-            isLoading={isEnding}
-          >
-            End Game
-          </Button>
+          {/* Controls */}
+          <div className="flex items-center gap-2">
+            {phase !== 'lobby' && phase !== 'game_over' && (
+              <button
+                onClick={handleEndGame}
+                disabled={isEnding}
+                className="px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl text-xs font-semibold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+              >
+                {isEnding ? 'Ending…' : 'End Game'}
+              </button>
+            )}
+            {phase === 'lobby' && (
+              <span className="text-xs text-white/40">{players.length} player{players.length !== 1 ? 's' : ''}</span>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {/* LOBBY */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+        {/* ── LOBBY ── */}
         {phase === 'lobby' && (
-          <div className="flex flex-col items-center gap-8">
-            <div className="text-center mt-4">
-              <p className="text-gray-400 text-sm mb-2">Share this PIN with players:</p>
-              <div className="inline-block bg-gray-800 rounded-3xl px-10 py-6 border border-gray-700">
-                <div className="text-7xl font-black tracking-widest text-accent-400 select-all">
+          <div className="animate-fadeInUp flex flex-col items-center gap-8 py-4">
+            {/* PIN card */}
+            <div className="text-center">
+              <p className="text-white/50 text-sm mb-4 uppercase tracking-widest font-medium">Share this PIN</p>
+              <div className="inline-flex flex-col items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/15 rounded-3xl px-14 py-8 shadow-2xl">
+                <div className="text-8xl font-black tracking-[0.3em] text-white select-all" style={{ textShadow: '0 0 40px rgba(139,92,246,0.5)' }}>
                   {pin}
                 </div>
+                <div className="h-px w-full bg-white/10" />
+                <p className="text-white/40 text-sm">
+                  Go to <span className="text-violet-300 font-semibold">pae-quiz.app/join</span>
+                </p>
               </div>
-              <p className="text-gray-500 text-sm mt-3">
-                Go to <span className="text-white font-medium">pae-quiz.app/join</span> and enter the PIN
-              </p>
             </div>
 
-            <div className="w-full max-w-2xl bg-gray-800 rounded-2xl p-6 border border-gray-700">
-              <PlayerList players={players} />
+            {/* Player list */}
+            <div className="w-full max-w-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+                  Players Joined
+                </h3>
+                <span className="px-3 py-1 bg-violet-500/20 border border-violet-500/30 rounded-full text-violet-300 text-xs font-bold">
+                  {players.length}
+                </span>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+                {players.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-7 h-7 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-white/30 text-sm">Waiting for players to join…</p>
+                    <div className="flex justify-center gap-1 mt-3">
+                      {[0,1,2].map(i => (
+                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-400/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-white/5 max-h-60 overflow-y-auto">
+                    {players.map((p, i) => (
+                      <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                          {p.nickname.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm font-medium text-white/90">{p.nickname}</span>
+                        <span className="ml-auto text-xs text-white/30">#{i + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <Button
-              variant="accent"
-              size="lg"
+            {/* Start button */}
+            <button
               onClick={handleStartGame}
-              isLoading={isStarting}
-              disabled={players.length === 0}
+              disabled={isStarting || players.length === 0}
+              className="px-10 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl text-white font-black text-lg shadow-xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-3"
             >
-              {players.length === 0 ? 'Waiting for players...' : `Start Game (${players.length} player${players.length !== 1 ? 's' : ''})`}
-            </Button>
+              {isStarting ? (
+                <>
+                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Starting…
+                </>
+              ) : players.length === 0 ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Waiting for players…
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Start Game · {players.length} player{players.length !== 1 ? 's' : ''}
+                </>
+              )}
+            </button>
           </div>
         )}
 
-        {/* ACTIVE QUESTION */}
+        {/* ── QUESTION / QUESTION_END ── */}
         {(phase === 'question' || phase === 'question_end') && currentQuestion && (
-          <div className="grid lg:grid-cols-4 gap-6">
-            {/* Main question area */}
+          <div className="animate-fadeInUp grid lg:grid-cols-4 gap-5">
+            {/* Main area */}
             <div className="lg:col-span-3 space-y-4">
+              {/* Header row */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400 text-sm">Question</span>
-                  <span className="text-white font-bold">{questionIndex + 1}</span>
-                  <span className="text-gray-500">/</span>
-                  <span className="text-gray-400">{totalQuestions}</span>
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
+                  <span className="text-white/50 text-xs">Question</span>
+                  <span className="text-white font-bold text-sm">{questionIndex + 1}</span>
+                  <span className="text-white/30 text-xs">/</span>
+                  <span className="text-white/50 text-xs">{totalQuestions}</span>
                 </div>
-                <span className="text-sm text-gray-400">{currentQuestion.points} pts</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/40">{currentQuestion.points} pts</span>
+                  {phase === 'question' && (
+                    <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center font-black text-sm"
+                      style={{ borderColor: timerColor, color: timerColor }}>
+                      {timeRemaining}
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Timer bar */}
               {phase === 'question' && (
-                <Timer
-                  total={currentQuestion.time_limit}
-                  remaining={timeRemaining}
-                  size="lg"
-                />
+                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-1000"
+                    style={{ width: `${timerPct}%`, backgroundColor: timerColor }}
+                  />
+                </div>
               )}
 
-              <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+              {/* Question card */}
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
                 {currentQuestion.image && (
-                  <img
-                    src={currentQuestion.image}
-                    alt="Question"
-                    className="w-full max-h-48 object-contain rounded-xl mb-4"
-                  />
+                  <img src={currentQuestion.image} alt="Question" className="w-full max-h-52 object-contain rounded-xl mb-4" />
                 )}
-                <h2 className="text-2xl font-bold text-white text-center mb-6">
+                <h2 className="text-xl font-bold text-white text-center mb-6 leading-snug">
                   {currentQuestion.text}
                 </h2>
 
-                {(currentQuestion.type === 'multiple_choice' || currentQuestion.type === 'image_based') &&
-                  currentQuestion.options && (
-                    <div className="grid grid-cols-2 gap-3">
-                      {currentQuestion.options.map((opt, i) => (
+                {/* Multiple choice / image based */}
+                {(currentQuestion.type === 'multiple_choice' || currentQuestion.type === 'image_based') && currentQuestion.options && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {currentQuestion.options.map((opt, i) => {
+                      const isCorrect = phase === 'question_end' && correctAnswer === opt.id
+                      const isWrong = phase === 'question_end' && correctAnswer !== opt.id
+                      return (
                         <div
                           key={opt.id}
-                          className={clsx(
-                            'flex items-center gap-3 p-4 rounded-xl text-white font-semibold',
-                            OPTION_COLORS[i % 4],
-                            phase === 'question_end' && correctAnswer === opt.id && 'ring-4 ring-white',
-                            phase === 'question_end' && correctAnswer !== opt.id && 'opacity-50',
-                          )}
+                          className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                            isCorrect
+                              ? 'bg-emerald-500/25 border-emerald-400/50 ring-2 ring-emerald-400/40'
+                              : isWrong
+                              ? `${OPTION_BG[i % 4]} opacity-40`
+                              : OPTION_BG[i % 4]
+                          }`}
                         >
-                          <span className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center font-bold text-sm shrink-0">
+                          <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${OPTION_COLORS[i % 4]} flex items-center justify-center font-bold text-sm shrink-0 text-white`}>
                             {OPTION_LABELS[i]}
-                          </span>
-                          <span className="flex-1">{opt.text}</span>
-                          {phase === 'question_end' && correctAnswer === opt.id && (
-                            <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
+                          </div>
+                          <span className="flex-1 text-sm font-medium text-white/90">{opt.text}</span>
+                          {isCorrect && (
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      )
+                    })}
+                  </div>
+                )}
 
+                {/* Fill blank */}
                 {currentQuestion.type === 'fill_blank' && (
                   <div className="text-center">
-                    <p className="text-gray-300 text-lg">{currentQuestion.text.replace('[blank]', '______')}</p>
+                    <p className="text-white/70 text-base">{currentQuestion.text.replace('[blank]', '______')}</p>
                     {phase === 'question_end' && correctAnswer && (
-                      <div className="mt-4 inline-block px-6 py-3 bg-green-500 rounded-xl text-white font-bold">
-                        Answer: {correctAnswer}
+                      <div className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
+                        <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-emerald-300 font-bold">{correctAnswer}</span>
                       </div>
                     )}
                   </div>
                 )}
 
+                {/* Match pairs */}
                 {currentQuestion.type === 'match_pair' && currentQuestion.match_pairs && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
                     {currentQuestion.match_pairs.map((pair, i) => (
-                      <div key={i} className="flex gap-2 items-center">
-                        <div className="flex-1 p-3 bg-gray-700 rounded-lg text-sm text-center">{pair.left}</div>
-                        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="flex-1 p-3 bg-violet-500/10 border border-violet-500/20 rounded-xl text-sm text-center text-white/80">{pair.left}</div>
+                        <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
-                        <div className="flex-1 p-3 bg-primary-800 rounded-lg text-sm text-center">{pair.right}</div>
+                        <div className="flex-1 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-sm text-center text-white/80">{pair.right}</div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {phase === 'question_end' && (
-                <div className="flex gap-3 justify-end">
-                  {questionIndex + 1 < totalQuestions ? (
-                    <Button variant="accent" size="lg" onClick={handleNextQuestion} isLoading={isNexting}>
-                      Next Question
-                    </Button>
-                  ) : (
-                    <Button variant="primary" size="lg" onClick={handleEndGame} isLoading={isEnding}>
-                      End Game
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {phase === 'question' && (
-                <div className="flex justify-end">
-                  <Button variant="secondary" size="sm" onClick={() => {
-                    stopTimer()
-                    setPhase('question_end')
-                  }}>
+              {/* Action buttons */}
+              <div className="flex items-center justify-between">
+                {phase === 'question' && (
+                  <button
+                    onClick={() => { stopTimer(); setPhase('question_end') }}
+                    className="px-4 py-2 bg-white/5 border border-white/15 rounded-xl text-white/60 text-sm hover:bg-white/10 hover:text-white/80 transition-all"
+                  >
                     Skip to Results
-                  </Button>
-                </div>
-              )}
+                  </button>
+                )}
+                {phase === 'question_end' && (
+                  <div className="flex gap-3 ml-auto">
+                    {questionIndex + 1 < totalQuestions ? (
+                      <button
+                        onClick={handleNextQuestion}
+                        disabled={isNexting}
+                        className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {isNexting ? (
+                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        )}
+                        Next Question
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleEndGame}
+                        disabled={isEnding}
+                        className="px-6 py-3 bg-gradient-to-r from-rose-600 to-pink-600 rounded-2xl text-white font-bold shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {isEnding ? (
+                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : null}
+                        End Game
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-4">
-              <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-400 mb-3">LIVE LEADERBOARD</h3>
-                <Leaderboard entries={leaderboard} compact maxEntries={5} />
+              {/* Live leaderboard */}
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">Leaderboard</h3>
+                </div>
+                <div className="space-y-2">
+                  {leaderboard.slice(0, 7).map((entry, i) => (
+                    <div key={entry.player_id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/5 transition-colors">
+                      <span className="text-sm w-5 text-center">{i < 3 ? RANK_MEDALS[i] : <span className="text-white/30 text-xs">#{i+1}</span>}</span>
+                      <span className="flex-1 text-sm text-white/80 truncate font-medium">{entry.nickname}</span>
+                      <span className="text-xs font-bold text-violet-300">{entry.score}</span>
+                    </div>
+                  ))}
+                  {leaderboard.length === 0 && (
+                    <p className="text-white/25 text-xs text-center py-3">No scores yet</p>
+                  )}
+                </div>
               </div>
-              <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-400 mb-3">
-                  PLAYERS ({players.length})
-                </h3>
-                <PlayerList players={players} compact maxVisible={10} />
+
+              {/* Players */}
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">Players</h3>
+                  <span className="text-xs text-violet-300 font-bold">{players.length}</span>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {players.slice(0, 12).map((p) => (
+                    <div key={p.id} className="flex items-center gap-2 py-1">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {p.nickname.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-xs text-white/70 truncate">{p.nickname}</span>
+                    </div>
+                  ))}
+                  {players.length > 12 && (
+                    <p className="text-white/30 text-xs text-center pt-1">+{players.length - 12} more</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* GAME OVER */}
+        {/* ── GAME OVER ── */}
         {phase === 'game_over' && (
-          <div className="flex flex-col items-center gap-8 py-8">
+          <div className="animate-fadeInUp flex flex-col items-center gap-8 py-8">
             <div className="text-center">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-3xl font-black">Game Over!</h2>
-              <p className="text-gray-400 mt-2">Here are the final results</p>
+              <div className="text-6xl mb-4 animate-bounceIn">🎉</div>
+              <h2 className="text-4xl font-black text-white">Game Over!</h2>
+              <p className="text-white/50 mt-2">Here are the final results</p>
             </div>
 
-            <div className="w-full max-w-lg bg-gray-800 rounded-2xl p-6 border border-gray-700">
-              <Leaderboard entries={leaderboard} />
+            {/* Top 3 podium */}
+            {leaderboard.length > 0 && (
+              <div className="flex items-end gap-3 justify-center w-full max-w-lg">
+                {[leaderboard[1], leaderboard[0], leaderboard[2]].map((entry, podiumPos) => {
+                  if (!entry) return <div key={podiumPos} className="w-28" />
+                  const heights = ['h-24', 'h-32', 'h-20']
+                  const rank = podiumPos === 1 ? 0 : podiumPos === 0 ? 1 : 2
+                  return (
+                    <div key={entry.player_id} className="flex flex-col items-center gap-2 flex-1">
+                      <span className="text-2xl">{RANK_MEDALS[rank]}</span>
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-sm">
+                        {entry.nickname.charAt(0).toUpperCase()}
+                      </div>
+                      <p className="text-xs font-bold text-white/80 text-center truncate w-full">{entry.nickname}</p>
+                      <p className="text-xs text-violet-300 font-black">{entry.score}</p>
+                      <div className={`w-full ${heights[podiumPos]} rounded-t-xl ${
+                        rank === 0 ? 'bg-gradient-to-t from-amber-600 to-amber-400' :
+                        rank === 1 ? 'bg-gradient-to-t from-slate-500 to-slate-400' :
+                        'bg-gradient-to-t from-amber-800 to-amber-600'
+                      } flex items-center justify-center`}>
+                        <span className="text-white font-black text-xl">#{rank + 1}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Full leaderboard */}
+            <div className="w-full max-w-lg bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-white/10">
+                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Full Rankings</h3>
+              </div>
+              <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
+                {leaderboard.map((entry, i) => (
+                  <div key={entry.player_id} className="flex items-center gap-3 px-4 py-3">
+                    <span className="w-6 text-sm text-center">{i < 3 ? RANK_MEDALS[i] : <span className="text-white/30">#{i+1}</span>}</span>
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                      {entry.nickname.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="flex-1 font-medium text-sm text-white/90">{entry.nickname}</span>
+                    <span className="font-black text-violet-300">{entry.score}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* All participants */}
+            {players.length > 0 && (
+              <div className="w-full max-w-lg bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">All Participants ({players.length})</h3>
+                </div>
+                <div className="flex flex-wrap gap-2 p-4 max-h-36 overflow-y-auto">
+                  {players.map((p) => (
+                    <span key={p.id} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-white/70">
+                      {p.nickname}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-4">
-              <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-6 py-3 bg-white/10 border border-white/15 rounded-2xl text-white font-semibold hover:bg-white/15 transition-colors"
+              >
                 Dashboard
-              </Button>
-              <Button variant="primary" onClick={handleViewResults}>
+              </button>
+              <button
+                onClick={() => navigate(`/results/${pin}`)}
+                className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
                 Full Results
-              </Button>
+              </button>
             </div>
           </div>
         )}

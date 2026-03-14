@@ -8,6 +8,7 @@ import type {
   LeaderboardEntry,
   LoginPayload,
   RegisterPayload,
+  UpdateProfilePayload,
   AuthResponse,
   JoinGamePayload,
   JoinGameResponse,
@@ -64,6 +65,11 @@ export const authAPI = {
     const { data } = await api.get<User>('/auth/me')
     return data
   },
+
+  updateProfile: async (payload: UpdateProfilePayload): Promise<User> => {
+    const { data } = await api.put<User>('/auth/profile', payload)
+    return data
+  },
 }
 
 // Quiz API
@@ -92,6 +98,7 @@ export const quizAPI = {
     await api.delete(`/quizzes/${id}`)
   },
 
+  // General image upload – no quiz ID required, returns GCS URL
   uploadImage: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData()
     formData.append('image', file)

@@ -20,6 +20,31 @@ var ErrInvalidCredentials = errors.New("invalid email or password")
 // ErrEmailTaken is returned when a registration email is already in use.
 var ErrEmailTaken = errors.New("email already registered")
 
+// RegisterParams holds all fields needed to register a new user.
+type RegisterParams struct {
+	Name            string
+	Email           string
+	Password        string
+	Role            string
+	Institution     string
+	InstitutionType string
+	Location        string
+	YearsOfExp      int
+	Bio             string
+}
+
+// UpdateProfileParams holds fields for updating a user profile.
+type UpdateProfileParams struct {
+	Name            string
+	Institution     string
+	InstitutionType string
+	Location        string
+	YearsOfExp      int
+	Bio             string
+	CurrentPassword string
+	NewPassword     string
+}
+
 // Service provides authentication business logic.
 type Service struct {
 	repo      *Repository
@@ -32,10 +57,8 @@ func NewService(repo *Repository, jwtSecret string) *Service {
 }
 
 // Register hashes the password with bcrypt and creates a new user record.
-// Returns ErrEmailTaken if the email is already registered.
-func (s *Service) Register(ctx context.Context, name, email, password, role string) (*models.User, error) {
-	// Check uniqueness.
-	existing, err := s.repo.FindByEmail(ctx, email)
+func (s *Service) Register(ctx context.Context, p RegisterParams) (*models.User, error) {
+	existing, err := s.repo.FindByEmail(ctx, p.Email)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, fmt.Errorf("auth service register lookup: %w", err)
 	}
@@ -43,24 +66,24 @@ func (s *Service) Register(ctx context.Context, name, email, password, role stri
 		return nil, ErrEmailTaken
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(p.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("auth service bcrypt: %w", err)
 	}
 
 	user := &models.User{
-		Name:     name,
-		Email:    email,
-		Password: string(hash),
-		Role:     role,
+		Name:            p.Name,
+		Email:           p.Email,
+		Password:        string(hash),
+		Role:            p.Role,
+		Institution:     p.Institution,
+		InstitutionType: p.InstitutionType,
+		Location:        p.Location,
+		YearsOfExp:      p.YearsOfExp,
+		Bio:             p.Bio,
 	}
 
-	created, err := s.repo.Create(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	return created, nil
+	return s.repo.Create(ctx, user)
 }
 
 // Login verifies the password against the stored bcrypt hash and returns a
@@ -86,8 +109,44 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, *m
 	return token, user, nil
 }
 
-// GenerateToken creates and signs a JWT token for the given user ID and role
-// with a 24-hour expiry.
+// UpdateProfile updates a user's profile data and optionally changes password.
+func (s *Service) UpdateProfile(ctx context.Context, userID primitive.ObjectID, p UpdateProfileParams) (*models.User, error) {
+	user, err := s.repo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("auth service update profile find: %w", err)
+	}
+
+	if p.NewPassword != "" {
+		if p.CurrentPassword == "" {
+			return nil, ErrInvalidCredentials
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(p.CurrentPassword)); err != nil {
+			return nil, ErrInvalidCredentials
+		}
+		hash, err := bcrypt.GenerateFromPassword([]byte(p.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("auth service bcrypt: %w", err)
+		}
+		user.Password = string(hash)
+	}
+
+	if p.Name != "" {
+		user.Name = p.Name
+	}
+	user.Institution = p.Institution
+	user.InstitutionType = p.InstitutionType
+	user.Location = p.Location
+	user.YearsOfExp = p.YearsOfExp
+	user.Bio = p.Bio
+
+	if err := s.repo.Update(ctx, user); err != nil {
+		return nil, fmt.Errorf("auth service update profile save: %w", err)
+	}
+
+	return user, nil
+}
+
+// GenerateToken creates and signs a JWT token for the given user ID and role.
 func (s *Service) GenerateToken(userID primitive.ObjectID, role string) (string, error) {
 	claims := middleware.Claims{
 		UserID: userID.Hex(),

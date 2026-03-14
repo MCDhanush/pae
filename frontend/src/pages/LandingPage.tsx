@@ -273,7 +273,7 @@ export default function LandingPage() {
                     d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <span className="font-black text-gray-900 text-lg tracking-tight">PAE Quiz</span>
+              <span className="font-black text-gray-900 text-lg tracking-tight">PAE</span>
             </Link>
 
             {/* Desktop nav */}
@@ -365,30 +365,31 @@ export default function LandingPage() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        {/* Glow blobs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-500/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl" />
+        {/* Animated blobs */}
+        <div className="animate-blobFloat absolute top-[-5%] left-[10%] w-96 h-96 bg-violet-500/30 rounded-full blur-3xl" />
+        <div className="animate-blobFloat2 absolute bottom-[-5%] right-[10%] w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl" />
+        <div className="animate-blobFloat absolute top-[40%] right-[5%] w-64 h-64 bg-purple-400/20 rounded-full blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full text-sm font-medium text-white mb-8">
+          <div className="animate-fadeInDown inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full text-sm font-medium text-white mb-8">
             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
             Live multiplayer quizzes — no setup required
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-none mb-6">
+          <h1 className="animate-fadeInUp text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-none mb-6">
             Make Learning<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-200">
               Competitive & Fun
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/75 max-w-2xl mx-auto mb-10 leading-relaxed">
-            PAE Quiz lets teachers create engaging quizzes and host real-time multiplayer games.
+          <p className="animate-fadeInUp delay-100 text-lg sm:text-xl text-white/75 max-w-2xl mx-auto mb-10 leading-relaxed">
+            PAE lets teachers create engaging quizzes and host real-time multiplayer games.
             Students join instantly via a PIN — no account needed.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="animate-fadeInUp delay-200 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-violet-700 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-xl shadow-black/20 text-base"
@@ -613,7 +614,7 @@ export default function LandingPage() {
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Ready to make learning fun?</h2>
           <p className="text-white/70 mb-10 text-base max-w-xl mx-auto">
-            Join educators already using PAE Quiz to bring competition and engagement into every classroom.
+            Join educators already using PAE to bring competition and engagement into every classroom.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -643,7 +644,7 @@ export default function LandingPage() {
                     d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-gray-300">PAE Quiz Platform</span>
+              <span className="text-sm font-semibold text-gray-300">PAE — Real-time Quiz Platform</span>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-5 text-xs">
               <Link to="/join" className="hover:text-gray-200 transition-colors">Join Game</Link>

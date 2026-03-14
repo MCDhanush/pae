@@ -242,6 +242,50 @@ func (h *Handler) DeleteQuiz(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "quiz deleted"})
 }
 
+// UploadImageGeneral handles POST /api/quizzes/images – uploads an image and
+// returns the GCS URL without attaching it to any quiz. Used for the image
+// library: teachers can upload once and reuse across quizzes.
+func (h *Handler) UploadImageGeneral(w http.ResponseWriter, r *http.Request) {
+	if _, ok := teacherIDFromContext(r); !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		writeError(w, http.StatusBadRequest, "failed to parse multipart form")
+		return
+	}
+
+	file, header, err := r.FormFile("image")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "image field is required")
+		return
+	}
+	defer file.Close()
+
+	contentType := header.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	if h.gcs == nil {
+		writeError(w, http.StatusServiceUnavailable, "storage service not configured")
+		return
+	}
+
+	url, err := h.gcs.Upload(r.Context(), file, header.Filename, contentType)
+	if err != nil {
+		if errors.Is(err, storage.ErrFileTooLarge) {
+			writeError(w, http.StatusRequestEntityTooLarge, "file exceeds 2 MB limit")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "upload failed")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"url": url})
+}
+
 // UploadImage handles POST /api/quizzes/{id}/upload-image.
 func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	teacherID, ok := teacherIDFromContext(r)

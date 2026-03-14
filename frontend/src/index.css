@@ -87,6 +87,146 @@
   }
 }
 
+/* ─── Custom Animation Keyframes ──────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scaleInBounce {
+  0%   { opacity: 0; transform: scale(0.7); }
+  60%  { opacity: 1; transform: scale(1.05); }
+  80%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-18px) rotate(3deg); }
+  66%       { transform: translateY(-8px) rotate(-2deg); }
+}
+
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%       { transform: translate(20px, -30px) scale(1.04); }
+  50%       { transform: translate(-15px, 20px) scale(0.96); }
+  75%       { transform: translate(25px, 10px) scale(1.02); }
+}
+
+@keyframes blobFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%       { transform: translate(-25px, 20px) scale(1.03); }
+  50%       { transform: translate(20px, -25px) scale(0.97); }
+  75%       { transform: translate(-10px, 15px) scale(1.01); }
+}
+
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes pulseRing {
+  0%   { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+  0%   { transform: scale(0); opacity: 0; }
+  50%  { transform: scale(1.12); }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ─── Animation utility classes ──────────────────────────────────────────── */
+
+.animate-fadeIn        { animation: fadeIn 0.5s ease-out both; }
+.animate-fadeInUp      { animation: fadeInUp 0.55s ease-out both; }
+.animate-fadeInDown    { animation: fadeInDown 0.45s ease-out both; }
+.animate-fadeInLeft    { animation: fadeInLeft 0.5s ease-out both; }
+.animate-fadeInRight   { animation: fadeInRight 0.5s ease-out both; }
+.animate-scaleIn       { animation: scaleIn 0.4s ease-out both; }
+.animate-scaleInBounce { animation: scaleInBounce 0.6s ease-out both; }
+.animate-float         { animation: float 3s ease-in-out infinite; }
+.animate-floatSlow     { animation: floatSlow 5s ease-in-out infinite; }
+.animate-blobFloat     { animation: blobFloat 12s ease-in-out infinite; }
+.animate-blobFloat2    { animation: blobFloat2 14s ease-in-out infinite; }
+.animate-spinSlow      { animation: spinSlow 12s linear infinite; }
+.animate-spinReverse   { animation: spinReverse 10s linear infinite; }
+.animate-pulseRing     { animation: pulseRing 1.8s ease-out infinite; }
+.animate-slideUpFade   { animation: slideUpFade 0.6s ease-out both; }
+.animate-bounceIn      { animation: bounceIn 0.6s ease-out both; }
+.animate-gradientShift { animation: gradientShift 6s ease infinite; background-size: 200% 200%; }
+.animate-pulse-slow    { animation: pulse 3s ease-in-out infinite; }
+
+/* Delay helpers */
+.delay-75   { animation-delay: 75ms; }
+.delay-100  { animation-delay: 100ms; }
+.delay-150  { animation-delay: 150ms; }
+.delay-200  { animation-delay: 200ms; }
+.delay-300  { animation-delay: 300ms; }
+.delay-400  { animation-delay: 400ms; }
+.delay-500  { animation-delay: 500ms; }
+.delay-600  { animation-delay: 600ms; }
+.delay-700  { animation-delay: 700ms; }
+.delay-800  { animation-delay: 800ms; }
+.delay-1000 { animation-delay: 1000ms; }
+.delay-1200 { animation-delay: 1200ms; }
+
+/* Glassmorphism helpers */
+.glass-dark {
+  backdrop-filter: blur(16px);
+  background-color: rgba(0, 0, 0, 0.25);
+}
+.glass-light {
+  backdrop-filter: blur(16px);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

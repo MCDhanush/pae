@@ -53,3 +53,21 @@ func (r *Repository) FindByID(ctx context.Context, id primitive.ObjectID) (*mode
 	}
 	return &user, nil
 }
+
+// Update saves all fields of the user document.
+func (r *Repository) Update(ctx context.Context, user *models.User) error {
+	filter := bson.M{"_id": user.ID}
+	update := bson.M{"$set": bson.M{
+		"name":             user.Name,
+		"password":         user.Password,
+		"institution":      user.Institution,
+		"institution_type": user.InstitutionType,
+		"location":         user.Location,
+		"years_of_exp":     user.YearsOfExp,
+		"bio":              user.Bio,
+	}}
+	if _, err := r.col.UpdateOne(ctx, filter, update); err != nil {
+		return fmt.Errorf("auth repo update: %w", err)
+	}
+	return nil
+}

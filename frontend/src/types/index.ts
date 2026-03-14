@@ -3,6 +3,11 @@ export interface User {
   name: string
   email: string
   role: 'teacher' | 'student'
+  institution?: string
+  institution_type?: string
+  location?: string
+  years_of_exp?: number
+  bio?: string
   created_at: string
 }
 
@@ -99,6 +104,22 @@ export interface RegisterPayload {
   email: string
   password: string
   role: 'teacher' | 'student'
+  institution?: string
+  institution_type?: string
+  location?: string
+  years_of_exp?: number
+  bio?: string
+}
+
+export interface UpdateProfilePayload {
+  name?: string
+  institution?: string
+  institution_type?: string
+  location?: string
+  years_of_exp?: number
+  bio?: string
+  current_password?: string
+  new_password?: string
 }
 
 export interface AuthResponse {
