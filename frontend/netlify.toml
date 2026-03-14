@@ -6,15 +6,3 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[rewrites]]
-  from = "/api/*"
-  to = "https://pae-o48s.onrender.com/api/:splat"
-  status = 200
-  force = false
-
-[[rewrites]]
-  from = "/ws/*"
-  to = "https://pae-o48s.onrender.com/ws/:splat"
-  status = 200
-  force = false
