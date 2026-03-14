@@ -15,6 +15,7 @@ import {
 import { platformAPI } from '../lib/api'
 import type { PlatformStats } from '../types'
 import { useAuthStore } from '../store/authStore'
+import "../index.css"
 
 // ─── Static content ────────────────────────────────────────────────────────────
 
@@ -433,6 +434,9 @@ useEffect(() => {
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-800">
         {/* Background grid */}
+        <div className="hero-stars">
+         {Array.from({ length: 70 }).map((_, i) => <span key={i} />)}
+        </div>
         <div
           className="absolute inset-0 opacity-10"
           style={{
