@@ -345,7 +345,7 @@ func buildLeaderboard(players []models.Player) []events.LeaderboardEntry {
 
 func correctAnswer(q *models.Question) string {
 	switch q.Type {
-	case models.MultipleChoice, models.ImageBased:
+	case models.MultipleChoice, models.ImageBased, models.TrueFalse:
 		for _, opt := range q.Options {
 			if opt.IsRight {
 				return opt.ID

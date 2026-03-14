@@ -21,6 +21,10 @@ interface GameState {
   lastAnswerCorrect: boolean | null
   pointsEarned: number
   questionIndex: number
+  /** Persisted: last known game PIN so we can detect re-entry to same game */
+  activePin: string | null
+  /** Persisted: last known player phase so UI can restore on re-mount */
+  savedPhase: string | null
 
   setSession: (s: QuizSession) => void
   setQuiz: (q: Quiz) => void
@@ -35,6 +39,8 @@ interface GameState {
   setMyNickname: (name: string) => void
   setLastAnswerResult: (correct: boolean, points: number) => void
   incrementQuestionIndex: () => void
+  setActivePin: (pin: string | null) => void
+  setSavedPhase: (phase: string | null) => void
   reset: () => void
 }
 
@@ -52,6 +58,8 @@ const initialState = {
   lastAnswerCorrect: null,
   pointsEarned: 0,
   questionIndex: 0,
+  activePin: null,
+  savedPhase: null,
 }
 
 export const useGameStore = create<GameState>()(
@@ -98,7 +106,10 @@ export const useGameStore = create<GameState>()(
       incrementQuestionIndex: () =>
         set((state) => ({ questionIndex: state.questionIndex + 1 })),
 
-      reset: () => set({ 
+      setActivePin: (activePin) => set({ activePin }),
+      setSavedPhase: (savedPhase) => set({ savedPhase }),
+
+      reset: () => set({
         session: null,
         quiz: null,
         players: [],
@@ -110,6 +121,8 @@ export const useGameStore = create<GameState>()(
         pointsEarned: 0,
         questionIndex: 0,
         myScore: 0,
+        activePin: null,
+        savedPhase: null,
       }),
     }),
     {
@@ -118,6 +131,11 @@ export const useGameStore = create<GameState>()(
         myPlayerID: state.myPlayerID,
         myNickname: state.myNickname,
         myScore: state.myScore,
+        activePin: state.activePin,
+        savedPhase: state.savedPhase,
+        currentQuestion: state.currentQuestion,
+        questionIndex: state.questionIndex,
+        leaderboard: state.leaderboard,
       }),
     }
   )

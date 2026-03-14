@@ -41,8 +41,14 @@ export default function PlayGamePage() {
   const updateLeaderboard = useGameStore(s => s.updateLeaderboard)
   const setLastAnswerResult = useGameStore(s => s.setLastAnswerResult)
   const reset = useGameStore(s => s.reset)
+  const activePin = useGameStore(s => s.activePin)
+  const savedPhase = useGameStore(s => s.savedPhase)
+  const setActivePin = useGameStore(s => s.setActivePin)
+  const setSavedPhase = useGameStore(s => s.setSavedPhase)
 
-  const [phase, setPhase] = useState<PlayerPhase>('lobby')
+  // Restore phase from persisted store when re-entering the same game
+  const restoredPhase = (activePin === pin && savedPhase) ? savedPhase as PlayerPhase : 'lobby'
+  const [phase, setPhase] = useState<PlayerPhase>(restoredPhase)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [totalQuestions, setTotalQuestions] = useState(0)
   const [answerStartTime, setAnswerStartTime] = useState<number>(0)
@@ -86,9 +92,18 @@ export default function PlayGamePage() {
     }, 4000)
   }, [])
 
+  // Persist phase so re-entry after backgrounding restores state
+  const setPhaseAndSave = useCallback((p: PlayerPhase) => {
+    setPhase(p)
+    setSavedPhase(p)
+  }, [setSavedPhase])
+
   useEffect(() => {
     if (!pin) { navigate('/join'); return }
     if (!myPlayerID) { navigate('/join'); return }
+
+    // Register this pin as the active game
+    setActivePin(pin)
 
     let mounted = true
 
@@ -100,7 +115,7 @@ export default function PlayGamePage() {
       gameAPI.getByPIN(pin).then(sess => {
         if (!mounted) return
         if (sess.status === 'active') setGameInProgress(true)
-        if (sess.status === 'finished') setPhase('game_over')
+        if (sess.status === 'finished') setPhaseAndSave('game_over')
       }).catch(() => {})
     })
 
@@ -116,7 +131,7 @@ export default function PlayGamePage() {
       setQuestionIndex(payload.question_index)
       setTotalQuestions(payload.total_questions)
       setHasAnswered(false)
-      setPhase('question')
+      setPhaseAndSave('question')
       setAnswerStartTime(Date.now())
       startTimer(payload.question.time_limit)
       setGameInProgress(false)
@@ -132,7 +147,7 @@ export default function PlayGamePage() {
     mqttClient.on(MQTT_EVENTS.QUESTION_END, () => {
       if (!mounted) return
       stopTimer()
-      setPhase('question_end')
+      setPhaseAndSave('question_end')
     })
 
     mqttClient.on(MQTT_EVENTS.LEADERBOARD_UPDATE, (p: unknown) => {
@@ -150,7 +165,7 @@ export default function PlayGamePage() {
       updateLeaderboard(lb)
       const myEntry = lb.find((e) => e.player_id === myPlayerIDRef.current)
       if (myEntry) setMyScore(myEntry.score)
-      setPhase('game_over')
+      setPhaseAndSave('game_over')
     })
 
     // Start polling as fallback after 5 seconds
@@ -165,7 +180,8 @@ export default function PlayGamePage() {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
       removeAllMQTTListeners()
       disconnectMQTT()
-      reset()
+      // Don't call reset() here — we want to preserve state when user backgrounds the app
+      // reset() is only called when intentionally leaving (Play Again → /join)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin, myPlayerID])
@@ -176,7 +192,7 @@ export default function PlayGamePage() {
     const timeLeft = Math.max(0, currentQuestion.time_limit - elapsed)
     setHasAnswered(true)
     stopTimer()
-    setPhase('answered')
+    setPhaseAndSave('answered')
     try {
       const result = await playerAPI.submitAnswer(myPlayerID, {
         pin,
@@ -189,7 +205,7 @@ export default function PlayGamePage() {
     } catch (err) {
       console.error('[Answer] Failed:', err)
     }
-  }, [hasAnswered, currentQuestion, answerStartTime, myPlayerID, pin, setHasAnswered, stopTimer, setLastAnswerResult])
+  }, [hasAnswered, currentQuestion, answerStartTime, myPlayerID, pin, setHasAnswered, stopTimer, setLastAnswerResult, setPhaseAndSave])
 
   const myRank = leaderboard.find((e) => e.player_id === myPlayerID)?.rank ?? null
 
@@ -408,7 +424,7 @@ export default function PlayGamePage() {
                   Full Results
                 </button>
                 <button
-                  onClick={() => navigate('/join')}
+                  onClick={() => { reset(); navigate('/join') }}
                   className="w-full py-3.5 bg-white/10 text-white font-semibold rounded-2xl hover:bg-white/20 active:scale-[0.98] transition-all border border-white/20"
                 >
                   Play Again

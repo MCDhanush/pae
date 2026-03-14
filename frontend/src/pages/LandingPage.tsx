@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import PAELogo from '../components/ui/PAELogo'
 import {
   BarChart,
   Bar,
@@ -341,15 +342,7 @@ useEffect(() => {
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0">
-              <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-purple-700 rounded-xl flex items-center justify-center shadow-md shadow-violet-200">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <span className="font-black text-gray-900 text-lg tracking-tight">PAE</span>
-            </Link>
+            <Link to="/"><PAELogo variant="light" size="md" /></Link>
 
             {/* Desktop nav */}
             <div className="hidden sm:flex items-center gap-6">
@@ -717,21 +710,20 @@ useEffect(() => {
       <footer className="bg-gray-900 text-gray-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <span className="text-sm font-semibold text-gray-300">PAE — Real-time Quiz Platform</span>
-            </div>
+            <PAELogo variant="dark" size="sm" />
             <div className="flex flex-wrap items-center justify-center gap-5 text-xs">
               <Link to="/join" className="hover:text-gray-200 transition-colors">Join Game</Link>
               <Link to="/login" className="hover:text-gray-200 transition-colors">Sign In</Link>
               <Link to="/register" className="hover:text-gray-200 transition-colors">Register</Link>
             </div>
-            {/* <p className="text-xs text-gray-600">Built with React · Go · HiveMQ MQTT</p> */}
+          </div>
+          <div className="mt-6 pt-6 border-t border-gray-800 text-center">
+            <p className="text-xs text-gray-600">
+              Built by{' '}
+              <span className="text-violet-400 font-semibold">Dhanush</span>
+              {' '}·{' '}
+              <span className="text-gray-500">PAE Real-time Quiz Platform</span>
+            </p>
           </div>
         </div>
       </footer>

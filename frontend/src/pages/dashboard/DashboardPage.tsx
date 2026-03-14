@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/authStore'
 import { quizAPI, gameAPI, sessionAPI } from '../../lib/api'
 import type { Quiz, SessionWithQuiz, Player } from '../../types'
 import type { UpdateProfilePayload } from '../../types'
+import PAELogo from '../../components/ui/PAELogo'
 
 type Tab = 'overview' | 'sessions' | 'profile'
 
@@ -223,12 +224,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="relative z-20 bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg">
-              <span className="font-black text-white text-lg">P</span>
-            </div>
-            <span className="font-black text-white text-lg tracking-tight hidden sm:block">PAE</span>
-          </div>
+          <PAELogo variant="dark" size="sm" />
 
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl px-3 py-1.5">
@@ -258,15 +254,17 @@ export default function DashboardPage() {
               {quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''} · {sessions.length} session{sessions.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <Link
-            to="/quiz/create"
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl text-white font-bold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </svg>
-            New Quiz
-          </Link>
+          {user?.role === 'teacher' && (
+            <Link
+              to="/quiz/create"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl text-white font-bold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              New Quiz
+            </Link>
+          )}
         </div>
 
         {/* Tabs */}
@@ -324,8 +322,8 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
 
-            {/* My Quizzes */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+            {/* My Quizzes — teachers only */}
+            {user?.role === 'teacher' && <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
                 <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">My Quizzes</h3>
                 <Link to="/quiz/create" className="text-xs text-violet-400 hover:text-violet-300 font-semibold transition-colors">
@@ -393,7 +391,26 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </div>}
+
+            {/* Student message */}
+            {user?.role === 'student' && (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-violet-500/20 border border-violet-500/20 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <h3 className="text-white font-bold mb-2">Welcome, Student!</h3>
+                <p className="text-white/40 text-sm mb-5">View your previous quiz attempts in the Sessions tab.</p>
+                <button
+                  onClick={() => setTab('sessions')}
+                  className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  View My Attempts
+                </button>
+              </div>
+            )}
           </div>
         )}
 

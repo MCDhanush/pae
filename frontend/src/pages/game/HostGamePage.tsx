@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { QRCodeSVG } from 'qrcode.react'
 import { gameAPI, sessionAPI } from '../../lib/api'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -268,17 +269,54 @@ export default function HostGamePage() {
         {/* ── LOBBY ── */}
         {phase === 'lobby' && (
           <div className="animate-fadeInUp flex flex-col items-center gap-8 py-4">
-            {/* PIN card */}
-            <div className="text-center">
-              <p className="text-white/50 text-sm mb-4 uppercase tracking-widest font-medium">Share this PIN</p>
-              <div className="inline-flex flex-col items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/15 rounded-3xl px-14 py-8 shadow-2xl">
-                <div className="text-8xl font-black tracking-[0.3em] text-white select-all" style={{ textShadow: '0 0 40px rgba(139,92,246,0.5)' ,fontSize:"29px"}}>
-                  {pin}
+            {/* PIN card + QR code */}
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              {/* PIN */}
+              <div className="text-center">
+                <p className="text-white/50 text-sm mb-4 uppercase tracking-widest font-medium">Share this PIN</p>
+                <div className="inline-flex flex-col items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/15 rounded-3xl px-10 py-8 shadow-2xl">
+                  <div className="text-4xl font-black tracking-[0.3em] text-white select-all" style={{ textShadow: '0 0 40px rgba(139,92,246,0.5)' }}>
+                    {pin}
+                  </div>
+                  <div className="h-px w-full bg-white/10" />
+                  <p className="text-white/40 text-xs">
+                    Go to <span className="text-violet-300 font-semibold">join</span> page
+                  </p>
+                  {/* Copy link */}
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(`${window.location.origin}/join?pin=${pin}`).then(() => alert('Link copied!'))}
+                    className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors px-3 py-1.5 bg-white/5 rounded-lg hover:bg-white/10"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Join Link
+                  </button>
                 </div>
-                <div className="h-px w-full bg-white/10" />
-                <p className="text-white/40 text-sm">
-                  Go to <span className="text-violet-300 font-semibold">pae-quiz.app/join</span>
-                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden sm:flex flex-col items-center gap-2">
+                <div className="w-px h-16 bg-white/10" />
+                <span className="text-white/30 text-xs font-medium">OR</span>
+                <div className="w-px h-16 bg-white/10" />
+              </div>
+              <div className="sm:hidden h-px w-24 bg-white/10 my-1" />
+
+              {/* QR Code */}
+              <div className="flex flex-col items-center gap-3">
+                <p className="text-white/50 text-sm uppercase tracking-widest font-medium">Scan to Join</p>
+                <div className="p-4 bg-white rounded-2xl shadow-2xl">
+                  <QRCodeSVG
+                    value={`${window.location.origin}/join?pin=${pin}`}
+                    size={140}
+                    bgColor="white"
+                    fgColor="#1e1b4b"
+                    level="M"
+                  />
+                </div>
+                <p className="text-white/30 text-xs">Point your camera at the code</p>
               </div>
             </div>
 

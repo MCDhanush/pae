@@ -18,6 +18,19 @@ interface QuizForm { title: string; description: string; questions: QuestionForm
 function generateId() { return Math.random().toString(36).slice(2, 10) }
 
 function defaultQuestion(type: QuestionType = 'multiple_choice'): QuestionForm {
+  if (type === 'true_false') {
+    const trueId = generateId()
+    const falseId = generateId()
+    return {
+      type, text: '', image: '',
+      options: [
+        { id: trueId, text: 'True', is_right: true },
+        { id: falseId, text: 'False', is_right: false },
+      ],
+      match_pairs: [],
+      answer: '', time_limit: 20, points: 100,
+    }
+  }
   return {
     type, text: '', image: '',
     options: [
@@ -36,6 +49,7 @@ const QUESTION_TYPE_TABS: { type: QuestionType; label: string; icon: string }[] 
   { type: 'image_based', label: 'Image Based', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
   { type: 'match_pair', label: 'Match Pair', icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' },
   { type: 'fill_blank', label: 'Fill Blank', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+  { type: 'true_false', label: 'True / False', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
 ]
 
 const STEPS = [
@@ -168,6 +182,40 @@ function QuestionEditor({ index, watchQuestions, errors, register, setValue, upd
             </div>
           ))}
           <p className="text-xs text-white/30">Click the circle to mark the correct answer.</p>
+        </div>
+      )}
+
+      {/* True / False */}
+      {q.type === 'true_false' && (
+        <div>
+          <label className="text-xs font-bold text-white/50 uppercase tracking-wider block mb-3">Correct Answer</label>
+          <div className="flex gap-3">
+            {q.options.map((opt, optIdx) => (
+              <button
+                key={opt.id} type="button"
+                onClick={() => q.options.forEach((_, i) => setValue(`questions.${index}.options.${i}.is_right`, i === optIdx))}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-base transition-all border-2 ${
+                  opt.is_right
+                    ? opt.text === 'True'
+                      ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-200'
+                      : 'bg-rose-500/20 border-rose-400/60 text-rose-200'
+                    : 'bg-white/5 border-white/15 text-white/50 hover:bg-white/10'
+                }`}
+              >
+                {opt.text === 'True' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {opt.text}
+                {opt.is_right && <span className="text-xs opacity-75">(correct)</span>}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

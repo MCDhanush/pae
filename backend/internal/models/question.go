@@ -8,6 +8,7 @@ const (
 	ImageBased     QuestionType = "image_based"
 	MatchPair      QuestionType = "match_pair"
 	FillBlank      QuestionType = "fill_blank"
+	TrueFalse      QuestionType = "true_false"
 )
 
 // Option is a single answer choice for a multiple-choice or image-based question.

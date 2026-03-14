@@ -22,7 +22,7 @@ export interface MatchPairItem {
   right: string
 }
 
-export type QuestionType = 'multiple_choice' | 'image_based' | 'match_pair' | 'fill_blank'
+export type QuestionType = 'multiple_choice' | 'image_based' | 'match_pair' | 'fill_blank' | 'true_false'
 
 export interface Question {
   id: string

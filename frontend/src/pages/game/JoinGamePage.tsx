@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { playerAPI } from '../../lib/api'
 import { useGameStore } from '../../store/gameStore'
@@ -20,6 +20,8 @@ const FLOATING_SHAPES = [
 
 export default function JoinGamePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const prefillPin = searchParams.get('pin')?.toUpperCase() ?? ''
   const { setMyPlayerID, setMyNickname } = useGameStore()
   const [joinError, setJoinError] = useState<string | null>(null)
   const [focused, setFocused] = useState<string | null>(null)
@@ -28,7 +30,7 @@ export default function JoinGamePage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<JoinFormData>()
+  } = useForm<JoinFormData>({ defaultValues: { pin: prefillPin } })
 
   const onSubmit = async (data: JoinFormData) => {
     setJoinError(null)

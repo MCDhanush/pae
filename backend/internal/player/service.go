@@ -327,8 +327,8 @@ func evaluateAnswer(q *models.Question, answer string) bool {
 		result := q.Answer != "" && q.Answer == answer
 		fmt.Printf("[Eval] FillBlank: expected='%s', got='%s', match=%v\n", q.Answer, answer, result)
 		return result
-	case models.MultipleChoice, models.ImageBased:
-		fmt.Printf("[Eval] MultipleChoice: received answer ID='%s', options count=%d\n", answer, len(q.Options))
+	case models.MultipleChoice, models.ImageBased, models.TrueFalse:
+		fmt.Printf("[Eval] MultipleChoice/TrueFalse: received answer ID='%s', options count=%d\n", answer, len(q.Options))
 		for i, opt := range q.Options {
 			fmt.Printf("[Eval]   Option %d: id='%s', text='%s', isRight=%v\n", i, opt.ID, opt.Text, opt.IsRight)
 			if opt.ID == answer && opt.IsRight {

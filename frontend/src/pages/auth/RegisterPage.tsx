@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuthStore } from '../../store/authStore'
+import PAELogo from '../../components/ui/PAELogo'
 
 interface RegisterFormData {
   name: string
@@ -97,9 +98,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo + step indicator */}
         <div className="animate-fadeInDown text-center mb-7">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 shadow-xl mb-4 animate-float">
-            <span className="text-3xl font-black text-white">P</span>
-          </div>
+          <PAELogo variant="dark" size="lg" className="mx-auto mb-6" />
           <h1 className="text-2xl font-black text-white">Create your account</h1>
           <p className="text-white/50 mt-1.5 text-sm">Join PAE — it's free</p>
           {/* Step indicator */}
