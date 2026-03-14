@@ -49,7 +49,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           <input
             id={id}
-            ref={ref}
+            ref={register?.ref || ref}
             autoComplete="off"
             spellCheck="false"
             className={clsx(
@@ -64,7 +64,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed',
               className,
             )}
-            {...(register || {})}
+            {...(register ? { onChange: register.onChange, onBlur: register.onBlur, name: register.name } : {})}
             {...props}
           />
           {rightAddon && (

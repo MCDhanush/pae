@@ -78,7 +78,6 @@ interface QuestionEditorProps {
   update: (index: number, value: QuestionForm) => void
   uploadingImage: boolean
   handleImageUpload: (file: File, questionIndex?: number) => Promise<void>
-  onClose: () => void
 }
 
 // ---- QuestionEditor is defined OUTSIDE CreateQuizPage ----
@@ -93,7 +92,6 @@ function QuestionEditor({
   update,
   uploadingImage,
   handleImageUpload,
-  onClose,
 }: QuestionEditorProps) {
   const q = watchQuestions[index]
   if (!q) return null
@@ -608,7 +606,6 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
                       update={update}
                       uploadingImage={uploadingImage}
                       handleImageUpload={handleImageUpload}
-                      onClose={() => setEditingQuestionIndex(null)}
                     />
                   </div>
                 ) : (

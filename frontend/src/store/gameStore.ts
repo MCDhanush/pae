@@ -38,7 +38,7 @@ interface GameState {
   reset: () => void
 }
 
-const initialState: GameState = {
+const initialState = {
   session: null,
   quiz: null,
   players: [],
@@ -56,7 +56,7 @@ const initialState: GameState = {
 
 export const useGameStore = create<GameState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
 
       setSession: (session) => set({ session }),

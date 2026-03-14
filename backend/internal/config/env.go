@@ -16,6 +16,7 @@ type Config struct {
 	JWTSecret                    string
 	FirebaseBucket               string
 	GoogleApplicationCredentials string
+	FrontendURL                  string
 
 	// MQTT / HiveMQ
 	HiveMQBrokerURL string // e.g. tcp://broker.hivemq.com:1883
@@ -40,6 +41,7 @@ func Load() *Config {
 		JWTSecret:                    requireEnv("JWT_SECRET"),
 		FirebaseBucket:               getEnv("FirebaseBucket", ""),
 		GoogleApplicationCredentials: getEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
+		FrontendURL:                  getEnv("FRONTEND_URL", "http://localhost:5173"),
 
 		HiveMQBrokerURL: getEnv("HIVEMQ_BROKER_URL", "tcp://broker.hivemq.com:1883"),
 		HiveMQUsername:  getEnv("HIVEMQ_USERNAME", ""),
