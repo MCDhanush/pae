@@ -1,0 +1,117 @@
+package middleware
+
+import (
+	"context"
+	"net/http"
+	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
+)
+
+type contextKey string
+
+const (
+	// ContextKeyUserID is the context key under which the authenticated user ID is stored.
+	ContextKeyUserID contextKey = "user_id"
+	// ContextKeyRole is the context key under which the authenticated user role is stored.
+	ContextKeyRole contextKey = "role"
+)
+
+// Claims defines the JWT payload shape.
+type Claims struct {
+	UserID string `json:"user_id"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+// RequireAuth is an HTTP middleware that validates the JWT in the Authorization
+// header and injects the user ID and role into the request context.
+func RequireAuth(jwtSecret string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token, err := extractAndValidateToken(r, jwtSecret)
+			if err != nil {
+				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
+
+			claims, ok := token.Claims.(*Claims)
+			if !ok || !token.Valid {
+				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
+			ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// RequireTeacher builds on RequireAuth and additionally enforces that the
+// authenticated user has the "teacher" role.
+func RequireTeacher(jwtSecret string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token, err := extractAndValidateToken(r, jwtSecret)
+			if err != nil {
+				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
+
+			claims, ok := token.Claims.(*Claims)
+			if !ok || !token.Valid {
+				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
+
+			if claims.Role != "teacher" {
+				http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
+			ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// UserIDFromContext extracts the authenticated user ID from the context.
+func UserIDFromContext(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(ContextKeyUserID).(string)
+	return id, ok
+}
+
+// RoleFromContext extracts the authenticated user role from the context.
+func RoleFromContext(ctx context.Context) (string, bool) {
+	role, ok := ctx.Value(ContextKeyRole).(string)
+	return role, ok
+}
+
+// extractAndValidateToken parses the Bearer token from the Authorization header
+// and validates it with the provided secret.
+func extractAndValidateToken(r *http.Request, jwtSecret string) (*jwt.Token, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return nil, jwt.ErrTokenMalformed
+	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
+		return nil, jwt.ErrTokenMalformed
+	}
+
+	tokenStr := parts[1]
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrTokenSignatureInvalid
+		}
+		return []byte(jwtSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}

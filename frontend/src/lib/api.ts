@@ -1,0 +1,207 @@
+import axios from 'axios'
+import type {
+  User,
+  Quiz,
+  QuizSession,
+  Player,
+  PlatformStats,
+  LeaderboardEntry,
+  LoginPayload,
+  RegisterPayload,
+  AuthResponse,
+  JoinGamePayload,
+  JoinGameResponse,
+  CreateQuizPayload,
+  SessionWithQuiz,
+} from '../types'
+
+const api = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Request interceptor to attach Authorization header
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error),
+)
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  },
+)
+
+// Auth API
+export const authAPI = {
+  register: async (payload: RegisterPayload): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>('/auth/register', payload)
+    return data
+  },
+
+  login: async (payload: LoginPayload): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>('/auth/login', payload)
+    return data
+  },
+
+  getMe: async (): Promise<User> => {
+    const { data } = await api.get<User>('/auth/me')
+    return data
+  },
+}
+
+// Quiz API
+export const quizAPI = {
+  create: async (payload: CreateQuizPayload): Promise<Quiz> => {
+    const { data } = await api.post<Quiz>('/quizzes', payload)
+    return data
+  },
+
+  list: async (): Promise<Quiz[]> => {
+    const { data } = await api.get<Quiz[]>('/quizzes')
+    return data
+  },
+
+  getById: async (id: string): Promise<Quiz> => {
+    const { data } = await api.get<Quiz>(`/quizzes/${id}`)
+    return data
+  },
+
+  update: async (id: string, payload: Partial<CreateQuizPayload>): Promise<Quiz> => {
+    const { data } = await api.put<Quiz>(`/quizzes/${id}`, payload)
+    return data
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/quizzes/${id}`)
+  },
+
+  uploadImage: async (file: File): Promise<{ url: string }> => {
+    const formData = new FormData()
+    formData.append('image', file)
+    const { data } = await api.post<{ url: string }>('/quizzes/images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return data
+  },
+}
+
+// Game / Session API
+export const gameAPI = {
+  createSession: async (quizId: string): Promise<QuizSession> => {
+    const { data } = await api.post<QuizSession>('/game/sessions', {
+      quiz_id: quizId,
+    })
+    return data
+  },
+
+  getByPIN: async (pin: string): Promise<QuizSession> => {
+    const { data } = await api.get<QuizSession>(`/game/sessions/${pin}`)
+    return data
+  },
+
+  start: async (pin: string): Promise<void> => {
+    await api.post(`/game/sessions/${pin}/start`)
+  },
+
+  next: async (pin: string): Promise<void> => {
+    await api.post(`/game/sessions/${pin}/next`)
+  },
+
+  end: async (pin: string): Promise<void> => {
+    await api.post(`/game/sessions/${pin}/end`)
+  },
+
+  getLeaderboard: async (sessionId: string): Promise<LeaderboardEntry[]> => {
+    const { data } = await api.get<{ players: Player[] }>(
+      `/game/sessions/${sessionId}/leaderboard`
+    )
+    const players = (data.players ?? []) as Player[]
+    return players
+      .sort((a, b) => b.score - a.score)
+      .map((p, i) => ({ player_id: p.id, nickname: p.nickname, score: p.score, rank: i + 1 }))
+  },
+
+  getResults: async (pin: string): Promise<{
+    session_id: string
+    quiz_title: string
+    total_players: number
+    total_questions: number
+    leaderboard: LeaderboardEntry[]
+    question_stats: { question_id: string; text: string; correct_count: number; total_answers: number; avg_time_taken: number }[]
+  }> => {
+    const session = await api.get<QuizSession>(`/game/sessions/${pin}`).then((r) => r.data)
+    const { data } = await api.get<{ players: Player[] }>(`/game/sessions/${pin}/leaderboard`)
+    const players = (data.players ?? []) as Player[]
+    const leaderboard: LeaderboardEntry[] = players
+      .sort((a, b) => b.score - a.score)
+      .map((p, i) => ({ player_id: p.id, nickname: p.nickname, score: p.score, rank: i + 1 }))
+    return {
+      session_id: session.id,
+      quiz_title: 'Quiz Results',
+      total_players: players.length,
+      total_questions: 0,
+      leaderboard,
+      question_stats: [],
+    }
+  },
+}
+
+
+// Player API
+export const playerAPI = {
+  join: async (payload: JoinGamePayload): Promise<JoinGameResponse> => {
+    const { data } = await api.post<JoinGameResponse>('/players/join', payload)
+    return data
+  },
+
+  submitAnswer: async (
+    playerId: string,
+    payload: { pin: string; question_id: string; answer: string; time_left: number; total_time: number },
+  ): Promise<{ is_correct: boolean; points: number; total_score: number }> => {
+    const { data } = await api.post(`/players/${playerId}/answer`, payload)
+    return data
+  },
+}
+
+// Platform stats API
+export const platformAPI = {
+  getStats: async (): Promise<PlatformStats> => {
+    const { data } = await api.get<PlatformStats>('/platform/stats')
+    return data
+  },
+}
+
+// Session API
+export const sessionAPI = {
+  list: async (): Promise<SessionWithQuiz[]> => {
+    const { data } = await api.get<SessionWithQuiz[]>('/sessions')
+    return data
+  },
+
+  getById: async (id: string): Promise<QuizSession> => {
+    const { data } = await api.get<QuizSession>(`/sessions/${id}`)
+    return data
+  },
+
+  getPlayers: async (sessionId: string): Promise<Player[]> => {
+    const { data } = await api.get<Player[]>(`/sessions/${sessionId}/players`)
+    return data
+  },
+}
+
+export default api

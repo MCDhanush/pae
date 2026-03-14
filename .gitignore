@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+cred.json
+credentials.json
+backend/cred.json
+
+# Build output
+dist/
+build/
+frontend/dist/
+
+# Go
+backend/tmp/
+*.test
+
+# Misc
+.DS_Store
+Thumbs.db
