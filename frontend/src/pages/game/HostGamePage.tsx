@@ -235,17 +235,29 @@ export default function HostGamePage() {
 
           {/* Controls */}
           <div className="flex items-center gap-2">
-            {phase !== 'lobby' && phase !== 'game_over' && (
+            {phase === 'lobby' && (
+              <span className="text-xs text-white/40 mr-2">
+                {players.length} player{players.length !== 1 ? 's' : ''}
+              </span>
+            )}
+            {phase !== 'game_over' && (
               <button
                 onClick={handleEndGame}
                 disabled={isEnding}
-                className="px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl text-xs font-semibold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl text-xs font-semibold hover:bg-red-500/30 active:scale-95 transition-all disabled:opacity-50"
               >
-                {isEnding ? 'Ending…' : 'End Game'}
+                {isEnding ? (
+                  <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12H9m12 0l-4-4m4 4l-4 4M3 5v14" />
+                  </svg>
+                )}
+                {isEnding ? 'Ending…' : 'End Session'}
               </button>
-            )}
-            {phase === 'lobby' && (
-              <span className="text-xs text-white/40">{players.length} player{players.length !== 1 ? 's' : ''}</span>
             )}
           </div>
         </div>
@@ -260,7 +272,7 @@ export default function HostGamePage() {
             <div className="text-center">
               <p className="text-white/50 text-sm mb-4 uppercase tracking-widest font-medium">Share this PIN</p>
               <div className="inline-flex flex-col items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/15 rounded-3xl px-14 py-8 shadow-2xl">
-                <div className="text-8xl font-black tracking-[0.3em] text-white select-all" style={{ textShadow: '0 0 40px rgba(139,92,246,0.5)' }}>
+                <div className="text-8xl font-black tracking-[0.3em] text-white select-all" style={{ textShadow: '0 0 40px rgba(139,92,246,0.5)' ,fontSize:"29px"}}>
                   {pin}
                 </div>
                 <div className="h-px w-full bg-white/10" />
