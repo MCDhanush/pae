@@ -28,11 +28,32 @@ function Section({ id, title, children }: { id: string; title: string; children:
   )
 }
 
-function Card({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+const ICON_COLORS: Record<string, string> = {
+  violet: 'bg-violet-500/15 border-violet-500/20 text-violet-400',
+  emerald: 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400',
+  blue: 'bg-blue-500/15 border-blue-500/20 text-blue-400',
+  amber: 'bg-amber-500/15 border-amber-500/20 text-amber-400',
+  rose: 'bg-rose-500/15 border-rose-500/20 text-rose-400',
+  indigo: 'bg-indigo-500/15 border-indigo-500/20 text-indigo-400',
+}
+
+function Icon({ path, color = 'violet', size = 'md' }: { path: string; color?: string; size?: 'sm' | 'md' }) {
+  const sz = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5'
+  const wrap = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
+  return (
+    <div className={`${wrap} rounded-xl border flex items-center justify-center shrink-0 ${ICON_COLORS[color] ?? ICON_COLORS.violet}`}>
+      <svg className={sz} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={path} />
+      </svg>
+    </div>
+  )
+}
+
+function Card({ iconPath, iconColor = 'violet', title, children }: { iconPath: string; iconColor?: string; title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-2xl">{icon}</span>
+        <Icon path={iconPath} color={iconColor} />
         <h3 className="text-white font-bold text-base">{title}</h3>
       </div>
       <p className="text-white/60 text-sm leading-relaxed">{children}</p>
@@ -145,7 +166,6 @@ export default function DocsPage() {
             >
               Sign In
             </Link>
-            {/* Mobile nav toggle */}
             <button
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
               className="lg:hidden p-2 text-white/60 hover:text-white/90 rounded-lg"
@@ -224,13 +244,25 @@ export default function DocsPage() {
               PAE is a <strong className="text-white">real-time multiplayer quiz platform</strong> — like Kahoot, but built for educators who want more control. Teachers create rich quiz content, share a 6-character PIN, and students join instantly from any device. No app installation required.
             </p>
             <div className="grid sm:grid-cols-3 gap-4 mt-6">
-              <Card icon="🎯" title="Engage Students">
+              <Card
+                iconPath="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                iconColor="violet"
+                title="Engage Students"
+              >
                 Live leaderboards, timed questions, and instant feedback keep every student actively participating.
               </Card>
-              <Card icon="🤖" title="AI-Powered">
+              <Card
+                iconPath="M13 10V3L4 14h7v7l9-11h-7z"
+                iconColor="indigo"
+                title="AI-Powered"
+              >
                 Generate full question sets from any topic in seconds using the built-in AI generator.
               </Card>
-              <Card icon="📊" title="Track Progress">
+              <Card
+                iconPath="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                iconColor="emerald"
+                title="Track Progress"
+              >
                 Per-student, per-quiz analytics let teachers identify who needs help before the next lesson.
               </Card>
             </div>
@@ -261,8 +293,8 @@ export default function DocsPage() {
 
             <div className="grid sm:grid-cols-2 gap-6 mt-6">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xl">🎓</span>
+                <div className="flex items-center gap-3 mb-4">
+                  <Icon path="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" color="violet" />
                   <h3 className="text-white font-bold">Teacher Quick Start</h3>
                 </div>
                 <div className="space-y-4">
@@ -274,8 +306,8 @@ export default function DocsPage() {
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xl">🧑‍🎓</span>
+                <div className="flex items-center gap-3 mb-4">
+                  <Icon path="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" color="blue" />
                   <h3 className="text-white font-bold">Student Quick Start</h3>
                 </div>
                 <div className="space-y-4">
@@ -397,7 +429,7 @@ export default function DocsPage() {
 
             <h3 className="text-white font-semibold mt-6 mb-3">How to Use</h3>
             <div className="space-y-3">
-              <Step number={1} title="Open AI Generate">Inside the quiz editor, click the ✨ AI Generate button in the question toolbar.</Step>
+              <Step number={1} title="Open AI Generate">Inside the quiz editor, click the AI Generate button in the question toolbar.</Step>
               <Step number={2} title="Describe your topic">Type a topic or subject (e.g. "Year 9 photosynthesis", "World War II causes", "Python list comprehensions").</Step>
               <Step number={3} title="Set question count">Choose how many questions to generate (up to 20 per batch).</Step>
               <Step number={4} title="Review & import">The generated questions appear in a preview. You can edit, remove, or import them all into your quiz.</Step>
@@ -470,16 +502,32 @@ export default function DocsPage() {
             <p>The Analytics page (teachers only, at <code className="text-violet-300 text-xs bg-violet-500/10 px-1 py-0.5 rounded">/analytics</code>) gives a deep view into how your class is performing.</p>
 
             <div className="grid sm:grid-cols-2 gap-4 mt-6">
-              <Card icon="📈" title="Session Trends">
-                A line chart showing the number of sessions hosted per day over the last 30 days, helping you spot active teaching periods.
+              <Card
+                iconPath="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                iconColor="emerald"
+                title="Session Trends"
+              >
+                A line chart showing sessions hosted per day over the last 30 days, helping you spot active teaching periods.
               </Card>
-              <Card icon="🏆" title="Top Students">
+              <Card
+                iconPath="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                iconColor="amber"
+                title="Top Students"
+              >
                 A leaderboard of your highest-scoring students across all sessions.
               </Card>
-              <Card icon="❓" title="Question Difficulty">
+              <Card
+                iconPath="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                iconColor="rose"
+                title="Question Difficulty"
+              >
                 Per-question accuracy rates across all sessions, so you can identify which topics students struggle with most.
               </Card>
-              <Card icon="🎯" title="Quiz Performance">
+              <Card
+                iconPath="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                iconColor="blue"
+                title="Quiz Performance"
+              >
                 Average score per quiz, letting you compare how different quizzes perform in terms of engagement and difficulty.
               </Card>
             </div>
@@ -560,7 +608,7 @@ export default function DocsPage() {
               },
               {
                 q: 'How many students can join a single session?',
-                a: 'There is no hard cap on player count per session. The platform has been tested with up to 60 concurrent players. Performance depends on HiveMQ\'s public broker capacity.',
+                a: "There is no hard cap on player count per session. The platform has been tested with up to 60 concurrent players. Performance depends on HiveMQ's public broker capacity.",
               },
               {
                 q: 'Can I edit a quiz after it has been used in a session?',
