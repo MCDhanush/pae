@@ -104,7 +104,7 @@ export default function MarketplacePage() {
       {/* Header */}
       <header className="relative z-20 bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <Link to="/dashboard"><PAELogo variant="dark" size="sm" /></Link>
+          <Link to="/"><PAELogo variant="dark" size="sm" /></Link>
           <div className="flex items-center gap-3">
             <Link
               to="/dashboard"

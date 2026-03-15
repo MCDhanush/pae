@@ -68,7 +68,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="animate-fadeInDown text-center mb-8">
-          <PAELogo variant="dark" size="lg" className="mx-auto mb-6" />
+          <Link to="/"><PAELogo variant="dark" size="lg" className="mx-auto mb-6" /></Link>
           <h1 className="text-3xl font-black text-white tracking-tight">Welcome back</h1>
           <p className="text-white/60 mt-2 text-sm">Sign in to your PAE account</p>
         </div>

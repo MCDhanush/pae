@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/pae/backend/internal/database"
@@ -434,7 +435,7 @@ func (s *Service) broadcastLeaderboard(ctx context.Context, pin string, sessionI
 func evaluateAnswer(q *models.Question, answer string) bool {
 	switch q.Type {
 	case models.FillBlank:
-		result := q.Answer != "" && q.Answer == answer
+		result := q.Answer != "" && strings.EqualFold(strings.TrimSpace(q.Answer), strings.TrimSpace(answer))
 		fmt.Printf("[Eval] FillBlank: expected='%s', got='%s', match=%v\n", q.Answer, answer, result)
 		return result
 	case models.MultipleChoice, models.ImageBased, models.TrueFalse:
@@ -449,8 +450,14 @@ func evaluateAnswer(q *models.Question, answer string) bool {
 		fmt.Printf("[Eval] No matching correct option found\n")
 		return false
 	case models.MatchPair:
-		result := q.Answer != "" && q.Answer == answer
-		fmt.Printf("[Eval] MatchPair: expected='%s', got='%s', match=%v\n", q.Answer, answer, result)
+		// Build expected answer from the original order of right-side values.
+		rights := make([]string, len(q.MatchPairs))
+		for i, pair := range q.MatchPairs {
+			rights[i] = pair.Right
+		}
+		expected := strings.Join(rights, "|")
+		result := expected != "" && expected == answer
+		fmt.Printf("[Eval] MatchPair: expected='%s', got='%s', match=%v\n", expected, answer, result)
 		return result
 	default:
 		fmt.Printf("[Eval] Unknown question type: %s\n", q.Type)

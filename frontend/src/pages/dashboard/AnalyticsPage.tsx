@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
       <header className="bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/dashboard"><PAELogo variant="dark" size="sm" /></Link>
+            <Link to="/"><PAELogo variant="dark" size="sm" /></Link>
             <div className="h-5 w-px bg-white/15 hidden sm:block" />
             <span className="font-bold text-white/80 text-sm hidden sm:block">Analytics</span>
           </div>

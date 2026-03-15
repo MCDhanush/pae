@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -351,8 +352,15 @@ func correctAnswer(q *models.Question) string {
 				return opt.ID
 			}
 		}
-	case models.FillBlank, models.MatchPair:
+	case models.FillBlank:
 		return q.Answer
+	case models.MatchPair:
+		// Compute expected answer from original order of right-side values.
+		rights := make([]string, len(q.MatchPairs))
+		for i, pair := range q.MatchPairs {
+			rights[i] = pair.Right
+		}
+		return strings.Join(rights, "|")
 	}
 	return ""
 }

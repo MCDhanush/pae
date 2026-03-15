@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import gsap from 'gsap'
 import { useAuthStore } from '../../store/authStore'
-import { quizAPI, gameAPI, sessionAPI, studentAPI } from '../../lib/api'
+import { useGameStore } from '../../store/gameStore'
+import { quizAPI, gameAPI, sessionAPI, studentAPI, playerAPI } from '../../lib/api'
 import type { Quiz, SessionWithQuiz, Player, PlayerAttempt } from '../../types'
 import type { UpdateProfilePayload } from '../../types'
 import PAELogo from '../../components/ui/PAELogo'
@@ -24,6 +25,9 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const { user, logout, updateProfile, isLoading: authLoading, error: authError, clearError } = useAuthStore()
   const containerRef = useRef<HTMLDivElement>(null)
+  const resetGame = useGameStore(s => s.reset)
+  const setGamePlayerID = useGameStore(s => s.setMyPlayerID)
+  const setGameNickname = useGameStore(s => s.setMyNickname)
 
   const [tab, setTab] = useState<Tab>('overview')
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
@@ -33,6 +37,7 @@ export default function DashboardPage() {
   const [deleteQuizId, setDeleteQuizId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isStartingGame, setIsStartingGame] = useState<string | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Student attempts
   const [attempts, setAttempts] = useState<PlayerAttempt[]>([])
@@ -214,12 +219,34 @@ export default function DashboardPage() {
     return Object.entries(days).map(([date, sessions]) => ({ date, sessions }))
   })()
 
-  const stats = [
-    { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-violet-500 to-purple-600' },
-    { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-indigo-500 to-blue-600' },
-    { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-rose-500 to-pink-600' },
-    { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-amber-500 to-orange-600' },
-  ]
+  const attemptsChartData = (() => {
+    const days: Record<string, number> = {}
+    const now = new Date()
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(d.getDate() - i)
+      days[d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })] = 0
+    }
+    attempts.forEach(a => {
+      const key = new Date(a.played_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      if (key in days) days[key] += a.score
+    })
+    return Object.entries(days).map(([date, score]) => ({ date, score }))
+  })()
+
+  const stats = user?.role === 'teacher'
+    ? [
+        { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-violet-500 to-purple-600' },
+        { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-indigo-500 to-blue-600' },
+        { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-rose-500 to-pink-600' },
+        { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-amber-500 to-orange-600' },
+      ]
+    : [
+        { label: 'Quiz Attempts', value: attempts.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-violet-500 to-purple-600' },
+        { label: 'Total Score', value: attempts.reduce((a, att) => a + att.score, 0), iconPath: 'M13 10V3L4 14h7v7l9-11h-7z', color: 'from-indigo-500 to-blue-600' },
+        { label: 'Avg Score', value: attempts.length > 0 ? Math.round(attempts.reduce((a, att) => a + att.score, 0) / attempts.length) : 0, iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: 'from-emerald-500 to-teal-600' },
+        { label: 'Accuracy', value: attempts.length > 0 ? Math.round((attempts.reduce((a, att) => a + att.correct_answers, 0) / attempts.reduce((a, att) => a + att.total_questions, 0)) * 100) : 0, iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-rose-500 to-pink-600' },
+      ]
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -231,8 +258,8 @@ export default function DashboardPage() {
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white" ref={containerRef}>
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-700/15 blur-3xl" />
-        <div className="animate-blobFloat2 absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-600/15 blur-3xl" />
+        <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[700px] h-[700px] rounded-full bg-violet-600/35 blur-3xl" />
+        <div className="animate-blobFloat2 absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-indigo-600/30 blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")` }}
@@ -240,11 +267,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Header */}
-      <header className="relative z-20 bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0">
+      <header className="relative z-20 bg-white/5 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <PAELogo variant="dark" size="sm" />
+          <Link to="/"><PAELogo variant="dark" size="sm" /></Link>
 
           <div className="flex items-center gap-3">
+            {/* Desktop menu */}
             <Link
               to="/marketplace"
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/60 hover:text-white/90 hover:bg-white/5 rounded-xl transition-colors border border-transparent hover:border-white/10"
@@ -273,12 +301,71 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => { logout(); navigate('/') }}
-              className="px-3 py-1.5 text-xs text-white/50 hover:text-white/80 hover:bg-white/10 rounded-xl transition-colors border border-transparent hover:border-white/10"
+              className="hidden sm:block px-3 py-1.5 text-xs text-white/50 hover:text-white/80 hover:bg-white/10 rounded-xl transition-colors border border-transparent hover:border-white/10"
             >
               Sign Out
             </button>
+
+            {/* Mobile menu toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 text-white/60 hover:text-white/90 rounded-lg"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-white/10 bg-white/5 px-4 py-4 space-y-3">
+            <Link
+              to="/marketplace"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/70 hover:text-white/90 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Marketplace
+            </Link>
+            {user?.role === 'teacher' && (
+              <Link
+                to="/analytics"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/70 hover:text-white/90 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Analytics
+              </Link>
+            )}
+            <div className="border-t border-white/10 pt-3 mt-3 space-y-3">
+              <div className="flex items-center gap-2 px-3 py-2">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-xs">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium text-white/80">{user?.name}</span>
+              </div>
+              <button
+                onClick={() => { logout(); navigate('/'); setMobileMenuOpen(false) }}
+                className="w-full px-3 py-2 text-sm text-white/50 hover:text-white/80 hover:bg-white/10 rounded-lg transition-colors border border-transparent"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -289,7 +376,10 @@ export default function DashboardPage() {
               Welcome back, {user?.name?.split(' ')[0]}!
             </h1>
             <p className="text-white/40 text-sm mt-0.5">
-              {quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''} · {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+              {user?.role === 'teacher' 
+                ? `${quizzes.length} quiz${quizzes.length !== 1 ? 'zes' : ''} · ${sessions.length} session${sessions.length !== 1 ? 's' : ''}`
+                : `${attempts.length} attempt${attempts.length !== 1 ? 's' : ''} · ${attempts.reduce((a, att) => a + att.score, 0)} total point${attempts.reduce((a, att) => a + att.score, 0) !== 1 ? 's' : ''}`
+              }
             </p>
           </div>
           {user?.role === 'teacher' && (
@@ -337,28 +427,46 @@ export default function DashboardPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.iconPath} />
                     </svg>
                   </div>
-                  <p className="text-2xl font-black text-white">{stat.value}</p>
+                  <p className="text-2xl font-black text-white">{stat.value}{stat.label === 'Accuracy' ? '%' : ''}</p>
                   <p className="text-xs text-white/40 mt-0.5">{stat.label}</p>
                 </div>
               ))}
             </div>
 
-            {/* Chart */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">Sessions (Last 7 Days)</h3>
-              <ResponsiveContainer width="100%" height={160}>
-                <LineChart data={sessionsChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ background: 'rgba(15,15,30,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
-                    cursor={{ stroke: 'rgba(255,255,255,0.1)' }}
-                  />
-                  <Line type="monotone" dataKey="sessions" stroke="#7C3AED" strokeWidth={2} dot={{ fill: '#7C3AED', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {/* Chart - Teacher: Sessions | Student: Scores */}
+            {user?.role === 'teacher' ? (
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">Sessions (Last 7 Days)</h3>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={sessionsChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'rgba(15,15,30,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
+                      cursor={{ stroke: 'rgba(255,255,255,0.1)' }}
+                    />
+                    <Line type="monotone" dataKey="sessions" stroke="#7C3AED" strokeWidth={2} dot={{ fill: '#7C3AED', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">Your Scores (Last 7 Days)</h3>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={attemptsChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'rgba(15,15,30,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
+                      cursor={{ stroke: 'rgba(255,255,255,0.1)' }}
+                    />
+                    <Line type="monotone" dataKey="score" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             {/* My Quizzes — teachers only */}
             {user?.role === 'teacher' && <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
@@ -431,29 +539,82 @@ export default function DashboardPage() {
               )}
             </div>}
 
-            {/* Student message */}
+            {/* Student - Join Game */}
             {user?.role === 'student' && (
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-violet-500/20 border border-violet-500/20 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h3 className="text-white font-bold mb-2">Welcome, Student!</h3>
-                <p className="text-white/40 text-sm mb-5">Join games via PIN or browse the quiz marketplace.</p>
-                <div className="flex gap-3 justify-center flex-wrap">
-                  <button
-                    onClick={() => setTab('sessions')}
-                    className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
-                  >
-                    View My Attempts
-                  </button>
-                  <Link
-                    to="/marketplace"
-                    className="px-5 py-2.5 bg-white/10 border border-white/15 text-white/80 text-sm font-semibold rounded-xl hover:bg-white/15 transition-colors"
-                  >
-                    Browse Marketplace
-                  </Link>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+                <div className="max-w-md">
+                  <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Join a Game
+                  </h3>
+                  <p className="text-white/40 text-sm mb-5">Enter the game PIN to join and play instantly</p>
+                  
+                  <form onSubmit={async (e) => {
+                    e.preventDefault()
+                    const formData = new FormData(e.currentTarget)
+                    const pin = (formData.get('pin') as string).toUpperCase()
+                    const nickname = formData.get('nickname') as string
+                    
+                    if (!pin || pin.length !== 6) {
+                      alert('PIN must be exactly 6 characters')
+                      return
+                    }
+                    
+                    try {
+                      const result = await playerAPI.join({ pin, nickname })
+                      if (result.player_id) {
+                        resetGame()
+                        setGamePlayerID(result.player_id)
+                        setGameNickname(nickname)
+                        navigate(`/play/${pin}`)
+                      }
+                    } catch (err) {
+                      alert('Could not join game. Check your PIN and try again.')
+                    }
+                  }} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-white/80 mb-2">Game PIN</label>
+                      <input
+                        type="text"
+                        name="pin"
+                        placeholder="E.g. ABC123"
+                        maxLength={6}
+                        className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-400 transition-colors"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-white/80 mb-2">Your Name</label>
+                      <input
+                        type="text"
+                        name="nickname"
+                        defaultValue={user?.name ?? ''}
+                        placeholder="Enter your name"
+                        className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-400 transition-colors"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      Join Game
+                    </button>
+                  </form>
+                  
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <Link
+                      to="/marketplace"
+                      className="inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 text-sm font-semibold transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      Browse Marketplace
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}
@@ -604,7 +765,7 @@ export default function DashboardPage() {
 
         {/* ── PROFILE TAB ── */}
         {tab === 'profile' && (
-          <div className="gsap-tab-content max-w-xl space-y-5">
+          <div className="gsap-tab-content space-y-5">
             <h2 className="text-lg font-bold text-white">Profile Settings</h2>
 
             {/* Account info */}

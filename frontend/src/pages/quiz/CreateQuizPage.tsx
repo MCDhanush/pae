@@ -13,7 +13,7 @@ interface QuestionForm {
   options: OptionForm[]; match_pairs: MatchPairItem[]
   answer: string; time_limit: number; points: number
 }
-interface QuizForm { title: string; description: string; questions: QuestionForm[] }
+interface QuizForm { title: string; description: string; questions: QuestionForm[]; is_public: boolean; category: string }
 
 function generateId() { return Math.random().toString(36).slice(2, 10) }
 
@@ -282,10 +282,11 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { register, watch, control, setValue, getValues, formState: { errors }, trigger } = useForm<QuizForm>({
-    defaultValues: { title: initialData?.title ?? '', description: initialData?.description ?? '', questions: initialData?.questions ?? [] },
+    defaultValues: { title: initialData?.title ?? '', description: initialData?.description ?? '', questions: initialData?.questions ?? [], is_public: false, category: '' },
   })
   const { fields: questionFields, append, remove, update } = useFieldArray({ control, name: 'questions' })
   const watchQuestions = watch('questions')
+  const watchIsPublic = watch('is_public')
 
   // GSAP entry animation on step change
   useEffect(() => {
@@ -319,9 +320,11 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
     try {
       const payload = {
         title: data.title, description: data.description,
+        is_public: data.is_public,
+        category: data.category || undefined,
         questions: data.questions.map((q) => ({
           type: q.type, text: q.text, image: q.image || undefined,
-          options: q.type === 'multiple_choice' || q.type === 'image_based' ? q.options : undefined,
+          options: q.type === 'multiple_choice' || q.type === 'image_based' || q.type === 'true_false' ? q.options : undefined,
           match_pairs: q.type === 'match_pair' ? q.match_pairs : undefined,
           answer: q.type === 'fill_blank' ? q.answer : undefined,
           time_limit: q.time_limit, points: q.points,
@@ -425,6 +428,38 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
                 placeholder="Brief description of your quiz..."
                 className={`${darkInput} resize-none`}
               />
+            </div>
+
+            {/* Marketplace toggle */}
+            <div className="border-t border-white/10 pt-4">
+              <label className="text-xs font-bold text-white/50 uppercase tracking-wider block mb-3">Marketplace</label>
+              <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                <div>
+                  <p className="text-sm font-semibold text-white/80">Publish to Marketplace</p>
+                  <p className="text-xs text-white/35 mt-0.5">Let other teachers discover and copy this quiz</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setValue('is_public', !watchIsPublic)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${watchIsPublic ? 'bg-violet-500' : 'bg-white/15'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${watchIsPublic ? 'translate-x-5' : ''}`} />
+                </button>
+              </div>
+              {watchIsPublic && (
+                <div className="mt-3">
+                  <label className="text-xs font-bold text-white/50 uppercase tracking-wider block mb-1.5">Category</label>
+                  <select
+                    {...register('category')}
+                    className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-xl text-white text-sm focus:outline-none focus:border-white/40 transition-all"
+                  >
+                    <option value="" className="bg-gray-900">Select a category...</option>
+                    {['Math', 'Science', 'History', 'Geography', 'Language', 'Technology', 'Arts', 'Sports', 'General'].map(c => (
+                      <option key={c} value={c} className="bg-gray-900">{c}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         )}

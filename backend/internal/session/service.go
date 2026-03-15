@@ -19,6 +19,11 @@ type PlayerRepository interface {
 	FindBySessionID(ctx context.Context, sessionID primitive.ObjectID) ([]models.Player, error)
 }
 
+// QuizFinder looks up a quiz by its ID.
+type QuizFinder interface {
+	FindByID(ctx context.Context, id primitive.ObjectID) (*models.Quiz, error)
+}
+
 // Player is a local alias so this package doesn't import the player package.
 type Player = models.Player
 
@@ -28,27 +33,55 @@ type SessionDetail struct {
 	Players []models.Player     `json:"players"`
 }
 
+// SessionSummary is a session enriched with quiz title and player count.
+type SessionSummary struct {
+	models.QuizSession
+	QuizTitle   string `json:"quiz_title"`
+	PlayerCount int    `json:"player_count"`
+}
+
 // Service provides session history logic for the teacher dashboard.
 type Service struct {
 	sessionRepo SessionRepository
 	playerRepo  PlayerRepository
+	quizFinder  QuizFinder
 }
 
 // NewService creates a new session Service.
-func NewService(sessionRepo SessionRepository, playerRepo PlayerRepository) *Service {
+func NewService(sessionRepo SessionRepository, playerRepo PlayerRepository, quizFinder QuizFinder) *Service {
 	return &Service{
 		sessionRepo: sessionRepo,
 		playerRepo:  playerRepo,
+		quizFinder:  quizFinder,
 	}
 }
 
-// ListByTeacher returns all sessions for a teacher.
-func (s *Service) ListByTeacher(ctx context.Context, teacherID primitive.ObjectID) ([]models.QuizSession, error) {
+// ListByTeacher returns all sessions for a teacher enriched with quiz title and player count.
+func (s *Service) ListByTeacher(ctx context.Context, teacherID primitive.ObjectID) ([]SessionSummary, error) {
 	sessions, err := s.sessionRepo.FindByTeacherID(ctx, teacherID)
 	if err != nil {
 		return nil, fmt.Errorf("session service list: %w", err)
 	}
-	return sessions, nil
+
+	summaries := make([]SessionSummary, 0, len(sessions))
+	for _, sess := range sessions {
+		sum := SessionSummary{QuizSession: sess}
+
+		// Enrich with quiz title.
+		if s.quizFinder != nil {
+			if quiz, qErr := s.quizFinder.FindByID(ctx, sess.QuizID); qErr == nil {
+				sum.QuizTitle = quiz.Title
+			}
+		}
+
+		// Enrich with player count.
+		if players, pErr := s.playerRepo.FindBySessionID(ctx, sess.ID); pErr == nil {
+			sum.PlayerCount = len(players)
+		}
+
+		summaries = append(summaries, sum)
+	}
+	return summaries, nil
 }
 
 // GetDetail returns a session with its player list.

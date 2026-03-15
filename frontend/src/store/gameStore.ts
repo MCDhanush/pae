@@ -25,6 +25,8 @@ interface GameState {
   activePin: string | null
   /** Persisted: last known player phase so UI can restore on re-mount */
   savedPhase: string | null
+  /** Persisted: last question ID answered — prevents duplicate submit after page reload */
+  lastAnsweredQuestionId: string | null
 
   setSession: (s: QuizSession) => void
   setQuiz: (q: Quiz) => void
@@ -41,6 +43,7 @@ interface GameState {
   incrementQuestionIndex: () => void
   setActivePin: (pin: string | null) => void
   setSavedPhase: (phase: string | null) => void
+  setLastAnsweredQuestionId: (id: string | null) => void
   reset: () => void
 }
 
@@ -60,6 +63,7 @@ const initialState = {
   questionIndex: 0,
   activePin: null,
   savedPhase: null,
+  lastAnsweredQuestionId: null,
 }
 
 export const useGameStore = create<GameState>()(
@@ -108,6 +112,7 @@ export const useGameStore = create<GameState>()(
 
       setActivePin: (activePin) => set({ activePin }),
       setSavedPhase: (savedPhase) => set({ savedPhase }),
+      setLastAnsweredQuestionId: (lastAnsweredQuestionId) => set({ lastAnsweredQuestionId }),
 
       reset: () => set({
         session: null,
@@ -123,6 +128,7 @@ export const useGameStore = create<GameState>()(
         myScore: 0,
         activePin: null,
         savedPhase: null,
+        lastAnsweredQuestionId: null,
       }),
     }),
     {
@@ -136,6 +142,7 @@ export const useGameStore = create<GameState>()(
         currentQuestion: state.currentQuestion,
         questionIndex: state.questionIndex,
         leaderboard: state.leaderboard,
+        lastAnsweredQuestionId: state.lastAnsweredQuestionId,
       }),
     }
   )

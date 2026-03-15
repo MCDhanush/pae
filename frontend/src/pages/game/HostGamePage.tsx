@@ -451,8 +451,8 @@ export default function HostGamePage() {
                   {currentQuestion.text}
                 </h2>
 
-                {/* Multiple choice / image based */}
-                {(currentQuestion.type === 'multiple_choice' || currentQuestion.type === 'image_based') && currentQuestion.options && (
+                {/* Multiple choice / image based / true-false */}
+                {(currentQuestion.type === 'multiple_choice' || currentQuestion.type === 'image_based' || currentQuestion.type === 'true_false') && currentQuestion.options && (
                   <div className="grid grid-cols-2 gap-3">
                     {currentQuestion.options.map((opt, i) => {
                       const isCorrect = phase === 'question_end' && correctAnswer === opt.id

@@ -98,7 +98,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo + step indicator */}
         <div className="animate-fadeInDown text-center mb-7">
-          <PAELogo variant="dark" size="lg" className="mx-auto mb-6" />
+          <Link to="/"><PAELogo variant="dark" size="lg" className="mx-auto mb-6" /></Link>
           <h1 className="text-2xl font-black text-white">Create your account</h1>
           <p className="text-white/50 mt-1.5 text-sm">Join PAE — it's free</p>
           {/* Step indicator */}

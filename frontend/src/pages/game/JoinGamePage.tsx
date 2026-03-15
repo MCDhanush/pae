@@ -22,7 +22,7 @@ export default function JoinGamePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const prefillPin = searchParams.get('pin')?.toUpperCase() ?? ''
-  const { setMyPlayerID, setMyNickname } = useGameStore()
+  const { setMyPlayerID, setMyNickname, reset } = useGameStore()
   const [joinError, setJoinError] = useState<string | null>(null)
   const [focused, setFocused] = useState<string | null>(null)
 
@@ -49,6 +49,7 @@ export default function JoinGamePage() {
         setJoinError('Invalid response from server')
         return
       }
+      reset()
       setMyPlayerID(result.player_id)
       setMyNickname(data.nickname.trim())
       navigate(`/play/${trimmedPin}`)

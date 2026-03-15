@@ -34,17 +34,21 @@ func NewHandler(service *Service, gcs *storage.GCSClient) *Handler {
 // --- DTOs ---
 
 type createQuizRequest struct {
-	Title       string           `json:"title" validate:"required,min=1,max=200"`
-	Description string           `json:"description" validate:"max=1000"`
-	Images      []string         `json:"images"`
+	Title       string            `json:"title" validate:"required,min=1,max=200"`
+	Description string            `json:"description" validate:"max=1000"`
+	Images      []string          `json:"images"`
 	Questions   []models.Question `json:"questions"`
+	IsPublic    bool              `json:"is_public"`
+	Category    string            `json:"category" validate:"max=100"`
 }
 
 type updateQuizRequest struct {
-	Title       string           `json:"title" validate:"required,min=1,max=200"`
-	Description string           `json:"description" validate:"max=1000"`
-	Images      []string         `json:"images"`
+	Title       string            `json:"title" validate:"required,min=1,max=200"`
+	Description string            `json:"description" validate:"max=1000"`
+	Images      []string          `json:"images"`
 	Questions   []models.Question `json:"questions"`
+	IsPublic    bool              `json:"is_public"`
+	Category    string            `json:"category" validate:"max=100"`
 }
 
 // --- Helpers ---
@@ -98,6 +102,8 @@ func (h *Handler) CreateQuiz(w http.ResponseWriter, r *http.Request) {
 		Description: req.Description,
 		Images:      req.Images,
 		Questions:   req.Questions,
+		IsPublic:    req.IsPublic,
+		Category:    req.Category,
 	}
 
 	if quiz.Images == nil {
@@ -192,6 +198,8 @@ func (h *Handler) UpdateQuiz(w http.ResponseWriter, r *http.Request) {
 		Description: req.Description,
 		Images:      req.Images,
 		Questions:   req.Questions,
+		IsPublic:    req.IsPublic,
+		Category:    req.Category,
 	}
 
 	updated, err := h.service.Update(r.Context(), quiz, teacherID)

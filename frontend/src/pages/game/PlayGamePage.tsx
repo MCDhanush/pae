@@ -45,9 +45,17 @@ export default function PlayGamePage() {
   const savedPhase = useGameStore(s => s.savedPhase)
   const setActivePin = useGameStore(s => s.setActivePin)
   const setSavedPhase = useGameStore(s => s.setSavedPhase)
+  const lastAnsweredQuestionId = useGameStore(s => s.lastAnsweredQuestionId)
+  const setLastAnsweredQuestionId = useGameStore(s => s.setLastAnsweredQuestionId)
 
-  // Restore phase from persisted store when re-entering the same game
-  const restoredPhase = (activePin === pin && savedPhase) ? savedPhase as PlayerPhase : 'lobby'
+  // Restore phase from persisted store when re-entering the same game.
+  // If the current question was already answered (lastAnsweredQuestionId matches),
+  // restore to 'answered' to prevent the "already submitted" error on re-entry.
+  const restoredPhase = (() => {
+    if (activePin !== pin || !savedPhase) return 'lobby'
+    if (savedPhase === 'question' && currentQuestion && lastAnsweredQuestionId === currentQuestion.id) return 'answered'
+    return savedPhase as PlayerPhase
+  })()
   const [phase, setPhase] = useState<PlayerPhase>(restoredPhase)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [totalQuestions, setTotalQuestions] = useState(0)
@@ -188,6 +196,8 @@ export default function PlayGamePage() {
 
   const handleAnswer = useCallback(async (answer: string) => {
     if (hasAnswered || !currentQuestion || !myPlayerID || !pin) return
+    // Guard against duplicate submit after page reload (stale persisted question)
+    if (lastAnsweredQuestionId === currentQuestion.id) return
     const elapsed = Math.round((Date.now() - answerStartTime) / 1000)
     const timeLeft = Math.max(0, currentQuestion.time_limit - elapsed)
     setHasAnswered(true)
@@ -201,11 +211,12 @@ export default function PlayGamePage() {
         time_left: timeLeft,
         total_time: currentQuestion.time_limit,
       })
+      setLastAnsweredQuestionId(currentQuestion.id)
       setLastAnswerResult(result.is_correct, result.points)
     } catch (err) {
       console.error('[Answer] Failed:', err)
     }
-  }, [hasAnswered, currentQuestion, answerStartTime, myPlayerID, pin, setHasAnswered, stopTimer, setLastAnswerResult, setPhaseAndSave])
+  }, [hasAnswered, currentQuestion, answerStartTime, myPlayerID, pin, lastAnsweredQuestionId, setHasAnswered, stopTimer, setLastAnsweredQuestionId, setLastAnswerResult, setPhaseAndSave])
 
   const myRank = leaderboard.find((e) => e.player_id === myPlayerID)?.rank ?? null
 

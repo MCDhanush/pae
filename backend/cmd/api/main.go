@@ -113,7 +113,7 @@ func main() {
 	playerService := player.NewService(playerRepo, gameService, quizRepo, mqttPublisher, redisClient)
 	playerService.WithSessionByIDFinder(gameRepo)
 
-	sessionService := session.NewService(gameRepo, playerRepo)
+	sessionService := session.NewService(gameRepo, playerRepo, quizRepo)
 
 	platformService := platform.NewService(
 		db.PlatformStats(),

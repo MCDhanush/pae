@@ -96,6 +96,8 @@ export interface CreateQuizPayload {
   title: string
   description: string
   questions: Omit<Question, 'id'>[]
+  is_public?: boolean
+  category?: string
 }
 
 export interface LoginPayload {

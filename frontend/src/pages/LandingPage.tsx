@@ -337,7 +337,7 @@ useEffect(() => {
     <div className="min-h-screen bg-white" ref={pageRef}>
 
       {/* ── Navbar ────────────────────────────────────────────────────── */}
-      <nav className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+      <nav className="bg-white/90 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
 
