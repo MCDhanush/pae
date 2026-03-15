@@ -355,10 +355,6 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
   }
 
   const handleGenerate = async () => {
-    if (!topic.trim()) {
-      setError('Please enter a topic.')
-      return
-    }
     setError('')
     setPhase('loading')
     try {

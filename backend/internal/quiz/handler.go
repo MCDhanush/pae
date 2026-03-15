@@ -573,9 +573,6 @@ func (h *Handler) GetAIUsage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	remaining := effectiveLimit - usedCount
-	if remaining < 0 {
-		remaining = 0
-	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"used":      usedCount,
