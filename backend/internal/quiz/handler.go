@@ -3,11 +3,15 @@ package quiz
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"github.com/pae/backend/internal/ai"
+	"github.com/pae/backend/internal/database"
 	"github.com/pae/backend/internal/middleware"
 	"github.com/pae/backend/internal/models"
 	"github.com/pae/backend/internal/storage"
@@ -21,14 +25,18 @@ type Handler struct {
 	service   *Service
 	gcs       *storage.GCSClient
 	validate  *validator.Validate
+	redis     *database.RedisClient
+	geminiKey string
 }
 
 // NewHandler creates a new quiz Handler.
-func NewHandler(service *Service, gcs *storage.GCSClient) *Handler {
+func NewHandler(service *Service, gcs *storage.GCSClient, rdb *database.RedisClient, geminiKey string) *Handler {
 	return &Handler{
-		service:  service,
-		gcs:      gcs,
-		validate: validator.New(),
+		service:   service,
+		gcs:       gcs,
+		validate:  validator.New(),
+		redis:     rdb,
+		geminiKey: geminiKey,
 	}
 }
 
@@ -533,4 +541,118 @@ func evalAnswer(q *models.Question, answer string) (bool, string) {
 		return answer == expected, expected
 	}
 	return false, ""
+}
+
+// GenerateQuestions handles POST /api/quizzes/ai/generate.
+// Teacher-only. Calls Gemini 1.5 Flash to generate quiz questions and returns
+// them for review — questions are NOT saved until the teacher saves the quiz.
+func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
+	teacherID, ok := teacherIDFromContext(r)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	var req struct {
+		Topic      string `json:"topic"`
+		Difficulty string `json:"difficulty"`
+		Type       string `json:"type"`
+		Count      int    `json:"count"`
+		Context    string `json:"context"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Validate inputs
+	req.Topic = strings.TrimSpace(req.Topic)
+	if req.Topic == "" {
+		writeError(w, http.StatusBadRequest, "topic is required")
+		return
+	}
+	validDifficulties := map[string]bool{"easy": true, "medium": true, "hard": true}
+	if !validDifficulties[req.Difficulty] {
+		writeError(w, http.StatusBadRequest, "difficulty must be easy, medium, or hard")
+		return
+	}
+	validTypes := map[string]bool{
+		"multiple_choice": true,
+		"true_false":      true,
+		"fill_blank":      true,
+		"reflection":      true,
+	}
+	if !validTypes[req.Type] {
+		writeError(w, http.StatusBadRequest, "unsupported question type for AI generation")
+		return
+	}
+	if req.Count < 1 {
+		req.Count = 1
+	}
+	if req.Count > ai.MaxQuestionsPerRequest {
+		req.Count = ai.MaxQuestionsPerRequest
+	}
+
+	// Rate limit: max DailyRequestLimit requests per teacher per day
+	rateLimitKey := fmt.Sprintf("ai:ratelimit:%s", teacherID.Hex())
+	dateField := time.Now().Format("2006-01-02")
+	dayCount, err := h.redis.HIncrBy(r.Context(), rateLimitKey, dateField, 1)
+	if err == nil {
+		if dayCount == 1 {
+			// First hit today — set TTL so the key expires automatically
+			_ = h.redis.Client().Expire(r.Context(), rateLimitKey, 25*time.Hour)
+		}
+		if dayCount > int64(ai.DailyRequestLimit) {
+			writeError(w, http.StatusTooManyRequests,
+				fmt.Sprintf("daily AI generation limit reached (%d/day)", ai.DailyRequestLimit))
+			return
+		}
+	}
+	// Fail-open: if Redis is unavailable, allow the request through
+
+	// Call Gemini
+	client := ai.NewClient(h.geminiKey)
+	generated, err := client.Generate(r.Context(), ai.GenerateRequest{
+		Topic:      req.Topic,
+		Difficulty: req.Difficulty,
+		Type:       req.Type,
+		Count:      req.Count,
+		Context:    req.Context,
+	})
+	if err != nil {
+		if errors.Is(err, ai.ErrNotConfigured) {
+			writeError(w, http.StatusServiceUnavailable, "AI service not configured")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "AI generation failed: "+err.Error())
+		return
+	}
+
+	// Convert to models.Question and assign IDs
+	questions := make([]models.Question, 0, len(generated))
+	for _, g := range generated {
+		q := models.Question{
+			ID:            primitive.NewObjectID().Hex(),
+			Type:          models.QuestionType(g.Type),
+			Text:          g.Text,
+			Answer:        g.Answer,
+			TimeLimit:     g.TimeLimit,
+			Points:        g.Points,
+			Explanation:   g.Explanation,
+			IsAIGenerated: true,
+		}
+		if len(g.Options) > 0 {
+			q.Options = make([]models.Option, len(g.Options))
+			for i, o := range g.Options {
+				q.Options[i] = models.Option{
+					ID:      primitive.NewObjectID().Hex(),
+					Text:    o.Text,
+					IsRight: o.IsRight,
+				}
+			}
+		}
+		questions = append(questions, q)
+	}
+
+	writeJSON(w, http.StatusOK, questions)
 }

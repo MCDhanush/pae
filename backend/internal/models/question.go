@@ -9,6 +9,7 @@ const (
 	MatchPair      QuestionType = "match_pair"
 	FillBlank      QuestionType = "fill_blank"
 	TrueFalse      QuestionType = "true_false"
+	Reflection     QuestionType = "reflection" // open-ended / ungraded
 )
 
 // Option is a single answer choice for a multiple-choice or image-based question.
@@ -42,13 +43,15 @@ func (q Question) Sanitize() Question {
 
 // Question is a single question within a Quiz.
 type Question struct {
-	ID         string          `bson:"id" json:"id"`
-	Type       QuestionType    `bson:"type" json:"type"`
-	Text       string          `bson:"text" json:"text"`
-	Image      string          `bson:"image,omitempty" json:"image,omitempty"`
-	Options    []Option        `bson:"options,omitempty" json:"options,omitempty"`
-	MatchPairs []MatchPairItem `bson:"match_pairs,omitempty" json:"match_pairs,omitempty"`
-	Answer     string          `bson:"answer,omitempty" json:"answer,omitempty"` // for fill_blank
-	TimeLimit  int             `bson:"time_limit" json:"time_limit"`              // seconds
-	Points     int             `bson:"points" json:"points"`
+	ID           string          `bson:"id" json:"id"`
+	Type         QuestionType    `bson:"type" json:"type"`
+	Text         string          `bson:"text" json:"text"`
+	Image        string          `bson:"image,omitempty" json:"image,omitempty"`
+	Options      []Option        `bson:"options,omitempty" json:"options,omitempty"`
+	MatchPairs   []MatchPairItem `bson:"match_pairs,omitempty" json:"match_pairs,omitempty"`
+	Answer       string          `bson:"answer,omitempty" json:"answer,omitempty"` // for fill_blank
+	TimeLimit    int             `bson:"time_limit" json:"time_limit"`              // seconds
+	Points       int             `bson:"points" json:"points"`
+	Explanation  string          `bson:"explanation,omitempty" json:"explanation,omitempty"`
+	IsAIGenerated bool           `bson:"is_ai_generated,omitempty" json:"is_ai_generated,omitempty"`
 }

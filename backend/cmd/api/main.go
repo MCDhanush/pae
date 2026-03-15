@@ -129,7 +129,7 @@ func main() {
 	// HTTP Handlers
 	// -------------------------------------------------------------------------
 	authHandler := auth.NewHandler(authService)
-	quizHandler := quiz.NewHandler(quizService, gcsClient)
+	quizHandler := quiz.NewHandler(quizService, gcsClient, redisClient, cfg.GeminiAPIKey)
 	gameHandler := game.NewHandler(gameService, playerRepo)
 	playerHandler := player.NewHandlerWithSecret(playerService, cfg.JWTSecret)
 	sessionHandler := session.NewHandler(sessionService)
@@ -184,8 +184,9 @@ func main() {
 				r.Use(middleware.RequireTeacher(cfg.JWTSecret))
 				r.Post("/", quizHandler.CreateQuiz)
 				r.Get("/", quizHandler.ListQuizzes)
-				// General image upload – no quiz ID required; must be before /{id} pattern
+				// Fixed-path routes must be before /{id} pattern
 				r.Post("/images", quizHandler.UploadImageGeneral)
+				r.Post("/ai/generate", quizHandler.GenerateQuestions)
 			})
 			r.Get("/{id}", quizHandler.GetQuiz)
 			r.Group(func(r chi.Router) {

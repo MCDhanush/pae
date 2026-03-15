@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
 import gsap from 'gsap'
 import { quizAPI } from '../../lib/api'
-import type { QuestionType, MatchPairItem } from '../../types'
+import type { QuestionType, MatchPairItem, Question } from '../../types'
 import MatchPairEditor from '../../components/quiz/MatchPairEditor'
 import { QuestionTypePreview } from '../../components/quiz/QuestionCard'
+import AIGenerateModal from '../../components/quiz/AIGenerateModal'
 
 interface OptionForm { id: string; text: string; is_right: boolean }
 interface QuestionForm {
   type: QuestionType; text: string; image?: string
   options: OptionForm[]; match_pairs: MatchPairItem[]
   answer: string; time_limit: number; points: number
+  explanation?: string; is_ai_generated?: boolean
 }
 interface QuizForm { title: string; description: string; questions: QuestionForm[]; is_public: boolean; category: string }
 
@@ -33,6 +35,13 @@ function defaultQuestion(type: QuestionType = 'multiple_choice'): QuestionForm {
       answer: '', time_limit: 20, points: 100,
     }
   }
+  if (type === 'reflection') {
+    return {
+      type, text: '', image: '',
+      options: [], match_pairs: [],
+      answer: '', time_limit: 30, points: 0,
+    }
+  }
   return {
     type, text: '', image: '',
     options: [
@@ -52,6 +61,7 @@ const QUESTION_TYPE_TABS: { type: QuestionType; label: string; icon: string }[] 
   { type: 'match_pair', label: 'Match Pair', icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' },
   { type: 'fill_blank', label: 'Fill Blank', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
   { type: 'true_false', label: 'True / False', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { type: 'reflection', label: 'Reflection', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
 ]
 
 const STEPS = [
@@ -241,6 +251,18 @@ function QuestionEditor({ index, watchQuestions, errors, register, setValue, upd
         </div>
       )}
 
+      {/* Reflection — open-ended, no graded answer */}
+      {q.type === 'reflection' && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-emerald-500/8 border border-emerald-400/20 rounded-xl">
+          <svg className="w-4 h-4 text-emerald-300 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          <p className="text-emerald-200/70 text-xs leading-relaxed">
+            <span className="font-bold text-emerald-300">Reflection question</span> — students read and reflect. No graded answer required. Use the question text to pose an open-ended prompt.
+          </p>
+        </div>
+      )}
+
       {/* Time + Points */}
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -281,6 +303,7 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
   const [saveError, setSaveError] = useState<string | null>(null)
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<number | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [showAIModal, setShowAIModal] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { register, watch, control, setValue, getValues, formState: { errors }, trigger } = useForm<QuizForm>({
@@ -289,6 +312,26 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
   const { fields: questionFields, append, remove, update } = useFieldArray({ control, name: 'questions' })
   const watchQuestions = watch('questions')
   const watchIsPublic = watch('is_public')
+
+  // Convert AI-generated Question[] to QuestionForm[] and append to field array
+  const handleAddAIQuestions = (aiQuestions: Question[]) => {
+    aiQuestions.forEach(q => {
+      const form: QuestionForm = {
+        type: q.type,
+        text: q.text,
+        image: q.image ?? '',
+        options: q.options?.map(o => ({ id: o.id, text: o.text, is_right: o.is_right ?? false })) ?? [],
+        match_pairs: q.match_pairs ?? [],
+        answer: q.answer ?? '',
+        time_limit: q.time_limit,
+        points: q.points,
+        explanation: q.explanation,
+        is_ai_generated: true,
+      }
+      append(form)
+    })
+    setEditingQuestionIndex(questionFields.length)
+  }
 
   // Track which dropdown option is selected separately from the saved category value.
   // When 'Other' is chosen the user types a custom subject; that text becomes the category.
@@ -498,14 +541,24 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
                 <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">
                   Questions <span className="text-violet-300">({questionFields.length})</span>
                 </h3>
-                <button type="button"
-                  onClick={() => { append(defaultQuestion()); setEditingQuestionIndex(questionFields.length) }}
-                  className="text-xs text-violet-400 hover:text-violet-300 font-semibold transition-colors flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add
-                </button>
+                <div className="flex items-center gap-2">
+                  <button type="button"
+                    onClick={() => setShowAIModal(true)}
+                    className="text-xs text-violet-300 hover:text-violet-200 font-semibold transition-colors flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/25">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    AI
+                  </button>
+                  <button type="button"
+                    onClick={() => { append(defaultQuestion()); setEditingQuestionIndex(questionFields.length) }}
+                    className="text-xs text-violet-400 hover:text-violet-300 font-semibold transition-colors flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add
+                  </button>
+                </div>
               </div>
 
               {questionFields.length === 0 ? (
@@ -535,7 +588,10 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
                                 <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${isActive ? 'bg-violet-500 text-white' : 'bg-white/10 text-white/50'}`}>
                                   {i + 1}
                                 </span>
-                                <span className="text-[10px] text-white/40 capitalize">{q?.type?.replace('_', ' ')}</span>
+                                <span className="text-[10px] text-white/40 capitalize">{q?.type?.replace(/_/g, ' ')}</span>
+                                {q?.is_ai_generated && (
+                                  <span className="text-[9px] text-violet-300/70 font-semibold">✨</span>
+                                )}
                               </div>
                               {q && <QuestionTypePreview question={{ ...q, id: field.id }} />}
                             </div>
@@ -685,6 +741,14 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
           )}
         </div>
       </div>
+
+      {/* AI Generate Modal */}
+      {showAIModal && (
+        <AIGenerateModal
+          onAdd={handleAddAIQuestions}
+          onClose={() => setShowAIModal(false)}
+        />
+      )}
     </div>
   )
 }

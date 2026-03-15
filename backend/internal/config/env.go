@@ -22,6 +22,9 @@ type Config struct {
 	HiveMQBrokerURL string // e.g. tcp://broker.hivemq.com:1883
 	HiveMQUsername  string // optional for public broker
 	HiveMQPassword  string // optional for public broker
+
+	// AI / Gemini
+	GeminiAPIKey string // GEMINI_API_KEY – optional; AI generation disabled when empty
 }
 
 // Load reads environment variables from the .env file (if present) and returns
@@ -46,6 +49,8 @@ func Load() *Config {
 		HiveMQBrokerURL: getEnv("HIVEMQ_BROKER_URL", "tcp://broker.hivemq.com:1883"),
 		HiveMQUsername:  getEnv("HIVEMQ_USERNAME", ""),
 		HiveMQPassword:  getEnv("HIVEMQ_PASSWORD", ""),
+
+		GeminiAPIKey: getEnv("GEMINI_API_KEY", ""),
 	}
 
 	return cfg

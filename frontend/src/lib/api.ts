@@ -112,6 +112,17 @@ export const quizAPI = {
     })
     return data
   },
+
+  generateWithAI: async (payload: {
+    topic: string
+    difficulty: 'easy' | 'medium' | 'hard'
+    type: string
+    count: number
+    context?: string
+  }): Promise<Question[]> => {
+    const { data } = await api.post<Question[]>('/quizzes/ai/generate', payload)
+    return data
+  },
 }
 
 // Game / Session API

@@ -22,7 +22,7 @@ export interface MatchPairItem {
   right: string
 }
 
-export type QuestionType = 'multiple_choice' | 'image_based' | 'match_pair' | 'fill_blank' | 'true_false'
+export type QuestionType = 'multiple_choice' | 'image_based' | 'match_pair' | 'fill_blank' | 'true_false' | 'reflection'
 
 export interface Question {
   id: string
@@ -34,6 +34,8 @@ export interface Question {
   answer?: string
   time_limit: number
   points: number
+  explanation?: string
+  is_ai_generated?: boolean
 }
 
 export interface Quiz {
