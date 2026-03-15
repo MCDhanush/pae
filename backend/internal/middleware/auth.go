@@ -23,16 +23,19 @@ const (
 	ContextKeyExtraSessions contextKey = "extra_sessions"
 	// ContextKeyExtraAI tracks purchased AI generation credits.
 	ContextKeyExtraAI contextKey = "extra_ai"
+	// ContextKeyUnlimitedSessions tracks whether the user has unlimited sessions (₹299 plan).
+	ContextKeyUnlimitedSessions contextKey = "unlimited_sessions"
 )
 
 // Claims defines the JWT payload shape.
 type Claims struct {
-	UserID        string `json:"user_id"`
-	Role          string `json:"role"`
-	IsPro         bool   `json:"is_pro,omitempty"`
-	IsAdmin       bool   `json:"is_admin,omitempty"`
-	ExtraSessions int    `json:"extra_sessions,omitempty"`
-	ExtraAI       int    `json:"extra_ai,omitempty"`
+	UserID             string `json:"user_id"`
+	Role               string `json:"role"`
+	IsPro              bool   `json:"is_pro,omitempty"`
+	IsAdmin            bool   `json:"is_admin,omitempty"`
+	UnlimitedSessions  bool   `json:"unlimited_sessions,omitempty"`
+	ExtraSessions      int    `json:"extra_sessions,omitempty"`
+	ExtraAI            int    `json:"extra_ai,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -57,6 +60,7 @@ func RequireAuth(jwtSecret string) func(http.Handler) http.Handler {
 			ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
 			ctx = context.WithValue(ctx, ContextKeyIsPro, claims.IsPro)
 			ctx = context.WithValue(ctx, ContextKeyIsAdmin, claims.IsAdmin)
+			ctx = context.WithValue(ctx, ContextKeyUnlimitedSessions, claims.UnlimitedSessions)
 			ctx = context.WithValue(ctx, ContextKeyExtraSessions, claims.ExtraSessions)
 			ctx = context.WithValue(ctx, ContextKeyExtraAI, claims.ExtraAI)
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -90,6 +94,7 @@ func RequireTeacher(jwtSecret string) func(http.Handler) http.Handler {
 			ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
 			ctx = context.WithValue(ctx, ContextKeyIsPro, claims.IsPro)
 			ctx = context.WithValue(ctx, ContextKeyIsAdmin, claims.IsAdmin)
+			ctx = context.WithValue(ctx, ContextKeyUnlimitedSessions, claims.UnlimitedSessions)
 			ctx = context.WithValue(ctx, ContextKeyExtraSessions, claims.ExtraSessions)
 			ctx = context.WithValue(ctx, ContextKeyExtraAI, claims.ExtraAI)
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -122,9 +127,16 @@ func IsAdminFromContext(ctx context.Context) bool {
 }
 
 // IsUnrestrictedFromContext returns true if the user is admin or pro —
-// both bypass free-plan limits entirely.
+// both bypass free-plan limits entirely (sessions + AI).
 func IsUnrestrictedFromContext(ctx context.Context) bool {
 	return IsAdminFromContext(ctx) || IsProFromContext(ctx)
+}
+
+// UnlimitedSessionsFromContext returns true if the user has unlimited game sessions
+// (admin, pro, or the ₹299 sessions-only unlimited plan).
+func UnlimitedSessionsFromContext(ctx context.Context) bool {
+	v, _ := ctx.Value(ContextKeyUnlimitedSessions).(bool)
+	return v || IsUnrestrictedFromContext(ctx)
 }
 
 // ExtraSessionsFromContext returns the number of purchased extra session credits.

@@ -114,6 +114,11 @@ func (s *Service) SetPro(ctx context.Context, userID primitive.ObjectID) error {
 	return s.repo.SetPro(ctx, userID)
 }
 
+// SetUnlimitedSessions grants unlimited game sessions (₹299 plan — sessions only, not AI).
+func (s *Service) SetUnlimitedSessions(ctx context.Context, userID primitive.ObjectID) error {
+	return s.repo.SetUnlimitedSessions(ctx, userID)
+}
+
 // AddSessionCredits adds extra session cap credits for a user.
 func (s *Service) AddSessionCredits(ctx context.Context, userID primitive.ObjectID, credits int) error {
 	return s.repo.AddSessionCredits(ctx, userID, credits)
@@ -166,12 +171,13 @@ func (s *Service) UpdateProfile(ctx context.Context, userID primitive.ObjectID, 
 // extra DB lookups.
 func (s *Service) GenerateToken(user *models.User) (string, error) {
 	claims := middleware.Claims{
-		UserID:        user.ID.Hex(),
-		Role:          user.Role,
-		IsPro:         user.IsPro,
-		IsAdmin:       user.IsAdmin,
-		ExtraSessions: user.ExtraSessions,
-		ExtraAI:       user.ExtraAI,
+		UserID:            user.ID.Hex(),
+		Role:              user.Role,
+		IsPro:             user.IsPro,
+		IsAdmin:           user.IsAdmin,
+		UnlimitedSessions: user.UnlimitedSessions,
+		ExtraSessions:     user.ExtraSessions,
+		ExtraAI:           user.ExtraAI,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

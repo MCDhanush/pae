@@ -380,7 +380,7 @@ export default function DashboardPage() {
                 Analytics
               </Link>
             )}
-            {user?.role === 'teacher' && !(user.is_pro || user.is_admin) && (
+            {user?.role === 'teacher' && !(user.is_pro || user.is_admin || user.unlimited_sessions) && (
               <button
                 onClick={() => setShowUpgradeModal(true)}
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:text-violet-200 bg-violet-500/15 hover:bg-violet-500/25 rounded-xl transition-colors border border-violet-500/30 hover:border-violet-500/50"
@@ -458,7 +458,7 @@ export default function DashboardPage() {
                 Analytics
               </Link>
             )}
-            {user?.role === 'teacher' && !(user.is_pro || user.is_admin) && (
+            {user?.role === 'teacher' && !(user.is_pro || user.is_admin || user.unlimited_sessions) && (
               <button
                 onClick={() => { setShowUpgradeModal(true); setMobileMenuOpen(false) }}
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-violet-300 hover:text-violet-200 hover:bg-violet-500/10 rounded-lg transition-colors w-full"
@@ -555,7 +555,8 @@ export default function DashboardPage() {
             {/* Plan & Usage card — teachers only */}
             {user?.role === 'teacher' && (() => {
               const isPro = user.is_pro || user.is_admin
-              const sessionCap = isPro ? null : 30 + (user.extra_sessions ?? 0)
+              const hasUnlimitedSessions = isPro || user.unlimited_sessions
+              const sessionCap = hasUnlimitedSessions ? null : 30 + (user.extra_sessions ?? 0)
               const sessionUsed = sessions.length
               const sessionPct = sessionCap ? Math.min(100, Math.round((sessionUsed / sessionCap) * 100)) : 0
               const aiUsed = aiUsage?.used ?? 0
@@ -567,6 +568,8 @@ export default function DashboardPage() {
                     <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Plan & Usage</h3>
                     {isPro ? (
                       <span className="text-[11px] bg-violet-500/20 border border-violet-500/30 text-violet-300 px-2.5 py-1 rounded-full font-bold">PRO / ADMIN</span>
+                    ) : user.unlimited_sessions ? (
+                      <span className="text-[11px] bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-full font-bold">Unlimited Sessions</span>
                     ) : (
                       <span className="text-[11px] bg-white/5 border border-white/10 text-white/40 px-2.5 py-1 rounded-full font-semibold">Free Plan</span>
                     )}
@@ -578,9 +581,9 @@ export default function DashboardPage() {
                         <span className="text-xs text-white/60 font-medium">Game Sessions</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-white/50">
-                            {isPro ? <span className="text-violet-300 font-semibold">Unlimited</span> : `${sessionUsed} / ${sessionCap}`}
+                            {hasUnlimitedSessions ? <span className="text-violet-300 font-semibold">Unlimited</span> : `${sessionUsed} / ${sessionCap}`}
                           </span>
-                          {!isPro && (
+                          {!hasUnlimitedSessions && (
                             <button
                               onClick={() => setShowUpgradeModal(true)}
                               className="text-[11px] text-violet-400 hover:text-violet-300 font-bold transition-colors"
@@ -590,7 +593,7 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
-                      {!isPro && (
+                      {!hasUnlimitedSessions && (
                         <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${sessionPct >= 90 ? 'bg-rose-500' : sessionPct >= 70 ? 'bg-amber-500' : 'bg-violet-500'}`}
@@ -876,7 +879,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Session limit banner */}
-            {!(user.is_pro || user.is_admin) && sessions.length >= 30 + (user.extra_sessions ?? 0) && (
+            {!(user.is_pro || user.is_admin || user.unlimited_sessions) && sessions.length >= 30 + (user.extra_sessions ?? 0) && (
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1236,7 +1239,7 @@ export default function DashboardPage() {
                     <p className="text-white font-semibold text-sm">Unlimited</p>
                     <span className="text-[10px] bg-violet-500/30 text-violet-300 px-1.5 py-0.5 rounded-full font-bold">BEST</span>
                   </div>
-                  <p className="text-white/40 text-xs">Sessions + AI — forever</p>
+                  <p className="text-white/40 text-xs">Unlimited sessions — forever</p>
                 </div>
                 <button
                   onClick={() => handleUpgrade('sessions_unlimited')}
@@ -1312,7 +1315,7 @@ export default function DashboardPage() {
                     <p className="text-white font-semibold text-sm">Unlimited Plan</p>
                     <span className="text-[10px] bg-violet-500/30 text-violet-300 px-1.5 py-0.5 rounded-full font-bold">BEST</span>
                   </div>
-                  <p className="text-white/40 text-xs">Sessions + AI — both unlimited forever</p>
+                  <p className="text-white/40 text-xs">Unlimited sessions (₹299) — AI credits separate</p>
                 </div>
                 <button
                   onClick={() => { setShowAIUpgradeModal(false); handleUpgrade('sessions_unlimited') }}

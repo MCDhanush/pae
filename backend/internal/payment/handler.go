@@ -22,7 +22,7 @@ const razorpayOrdersURL = "https://api.razorpay.com/v1/orders"
 const (
 	PlanSessions50        = "sessions_50"        // +50 session cap
 	PlanSessions100       = "sessions_100"        // +100 session cap
-	PlanSessionsUnlimited = "sessions_unlimited"  // unlimited sessions + AI
+	PlanSessionsUnlimited = "sessions_unlimited"  // unlimited sessions only
 	PlanAI10              = "ai_10"               // +10 AI generation credits
 	PlanAI20              = "ai_20"               // +20 AI generation credits
 )
@@ -38,7 +38,7 @@ type planDetail struct {
 var plans = map[string]planDetail{
 	PlanSessions50:        {9900, "50 extra game sessions"},
 	PlanSessions100:       {17900, "100 extra game sessions"},
-	PlanSessionsUnlimited: {29900, "Unlimited sessions & AI generation"},
+	PlanSessionsUnlimited: {29900, "Unlimited game sessions"},
 	PlanAI10:              {4900, "10 extra AI question generations"},
 	PlanAI20:              {7900, "20 extra AI question generations"},
 }
@@ -46,6 +46,7 @@ var plans = map[string]planDetail{
 // AuthService is the subset of auth.Service methods the payment handler needs.
 type AuthService interface {
 	SetPro(ctx context.Context, userID primitive.ObjectID) error
+	SetUnlimitedSessions(ctx context.Context, userID primitive.ObjectID) error
 	AddSessionCredits(ctx context.Context, userID primitive.ObjectID, credits int) error
 	AddAICredits(ctx context.Context, userID primitive.ObjectID, credits int) error
 	GetByID(ctx context.Context, id primitive.ObjectID) (*models.User, error)
@@ -206,7 +207,7 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	case PlanSessions100:
 		err = h.authService.AddSessionCredits(r.Context(), userID, 100)
 	case PlanSessionsUnlimited:
-		err = h.authService.SetPro(r.Context(), userID)
+		err = h.authService.SetUnlimitedSessions(r.Context(), userID)
 	case PlanAI10:
 		err = h.authService.AddAICredits(r.Context(), userID, 10)
 	case PlanAI20:
@@ -230,7 +231,7 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	case PlanSessions100:
 		user.ExtraSessions += 100
 	case PlanSessionsUnlimited:
-		user.IsPro = true
+		user.UnlimitedSessions = true
 	case PlanAI10:
 		user.ExtraAI += 10
 	case PlanAI20:

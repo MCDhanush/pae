@@ -63,6 +63,15 @@ func (r *Repository) SetPro(ctx context.Context, id primitive.ObjectID) error {
 	return err
 }
 
+// SetUnlimitedSessions marks the user as having unlimited game sessions (₹299 plan).
+func (r *Repository) SetUnlimitedSessions(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.col.UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{"unlimited_sessions": true}},
+	)
+	return err
+}
+
 // AddSessionCredits increments the user's extra_sessions counter by credits.
 func (r *Repository) AddSessionCredits(ctx context.Context, id primitive.ObjectID, credits int) error {
 	_, err := r.col.UpdateOne(ctx,

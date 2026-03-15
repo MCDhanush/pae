@@ -10,6 +10,7 @@ export interface User {
   bio?: string
   is_pro?: boolean
   is_admin?: boolean
+  unlimited_sessions?: boolean
   extra_sessions?: number
   extra_ai?: number
   created_at: string

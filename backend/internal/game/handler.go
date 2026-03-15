@@ -93,7 +93,7 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isUnrestricted := middleware.IsUnrestrictedFromContext(r.Context())
+	isUnrestricted := middleware.UnlimitedSessionsFromContext(r.Context())
 	extraSessions := middleware.ExtraSessionsFromContext(r.Context())
 	session, err := h.service.CreateSession(r.Context(), quizID, teacherID, isUnrestricted, extraSessions)
 	if err != nil {

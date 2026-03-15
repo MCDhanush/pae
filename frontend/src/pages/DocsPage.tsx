@@ -591,7 +591,7 @@ export default function DocsPage() {
                 price="₹299"
                 badge="BEST VALUE"
                 highlight
-                features={['Unlimited game sessions', 'Unlimited AI generations', 'PRO badge on profile', 'Never worry about limits again']}
+                features={['Unlimited game sessions', 'AI limits still apply', 'Never run out of sessions', 'Instant activation']}
               />
             </div>
 
