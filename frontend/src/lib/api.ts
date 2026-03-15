@@ -66,8 +66,8 @@ export const authAPI = {
     return data
   },
 
-  getMe: async (): Promise<User> => {
-    const { data } = await api.get<User>('/auth/me')
+  getMe: async (): Promise<{ user: User; token: string }> => {
+    const { data } = await api.get<{ user: User; token: string }>('/auth/me')
     return data
   },
 

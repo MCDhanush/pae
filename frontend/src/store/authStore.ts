@@ -75,8 +75,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!token) return
     set({ isLoading: true })
     try {
-      const user = await authAPI.getMe()
-      set({ user, isLoading: false })
+      const { user, token: freshToken } = await authAPI.getMe()
+      localStorage.setItem('auth_token', freshToken)
+      set({ user, token: freshToken, isLoading: false })
     } catch {
       localStorage.removeItem('auth_token')
       set({ user: null, token: null, isLoading: false })

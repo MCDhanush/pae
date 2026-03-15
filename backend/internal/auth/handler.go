@@ -142,6 +142,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Me handles GET /api/auth/me (protected route).
+// Returns the user from the database plus a freshly-issued JWT so that
+// any permission changes (e.g. is_admin, is_pro) take effect immediately
+// without requiring a full logout/login cycle.
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	userIDStr, ok := middleware.UserIDFromContext(r.Context())
 	if !ok {
@@ -161,7 +164,17 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, user)
+	// Issue a fresh token embedding the latest DB flags (is_admin, is_pro, etc.)
+	token, err := h.service.GenerateToken(user)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not generate token")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"user":  user,
+		"token": token,
+	})
 }
 
 // UpdateProfile handles PUT /api/auth/profile (protected route).
