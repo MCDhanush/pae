@@ -18,7 +18,7 @@ function formatDate(dateStr: string) {
 const STATUS_STYLES: Record<string, string> = {
   waiting: 'bg-blue-500/20 border-blue-500/30 text-blue-300',
   active: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300',
-  finished: 'bg-white/10 border-white/20 text-white/50',
+  finished: 'bg-green-500/90 border-white/20 text-white/90',
 }
 
 export default function DashboardPage() {
