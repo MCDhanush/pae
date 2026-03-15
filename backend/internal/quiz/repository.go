@@ -89,6 +89,8 @@ func (r *Repository) Update(ctx context.Context, quiz *models.Quiz) (*models.Qui
 			"description": quiz.Description,
 			"images":      quiz.Images,
 			"questions":   quiz.Questions,
+			"is_public":   quiz.IsPublic,
+			"category":    quiz.Category,
 			"updated_at":  quiz.UpdatedAt,
 		},
 	}
