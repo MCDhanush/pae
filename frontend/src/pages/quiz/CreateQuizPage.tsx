@@ -15,6 +15,8 @@ interface QuestionForm {
 }
 interface QuizForm { title: string; description: string; questions: QuestionForm[]; is_public: boolean; category: string }
 
+const PRESET_CATEGORIES = ['Science', 'Math', 'History', 'Language', 'Geography', 'Technology', 'Arts', 'Other'] as const
+
 function generateId() { return Math.random().toString(36).slice(2, 10) }
 
 function defaultQuestion(type: QuestionType = 'multiple_choice'): QuestionForm {
@@ -288,6 +290,15 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
   const watchQuestions = watch('questions')
   const watchIsPublic = watch('is_public')
 
+  // Track which dropdown option is selected separately from the saved category value.
+  // When 'Other' is chosen the user types a custom subject; that text becomes the category.
+  const initCategoryOption = (() => {
+    const c = initialData?.category ?? ''
+    if (!c) return ''
+    return (PRESET_CATEGORIES as readonly string[]).includes(c) ? c : 'Other'
+  })()
+  const [categoryOption, setCategoryOption] = useState(initCategoryOption)
+
   // GSAP entry animation on step change
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -447,17 +458,31 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
                 </button>
               </div>
               {watchIsPublic && (
-                <div className="mt-3">
-                  <label className="text-xs font-bold text-white/50 uppercase tracking-wider block mb-1.5">Category</label>
+                <div className="mt-3 space-y-2">
+                  <label className="text-xs font-bold text-white/50 uppercase tracking-wider block">Category</label>
                   <select
-                    {...register('category')}
+                    value={categoryOption}
+                    onChange={e => {
+                      const val = e.target.value
+                      setCategoryOption(val)
+                      if (val !== 'Other') setValue('category', val)
+                      else setValue('category', '')
+                    }}
                     className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-xl text-white text-sm focus:outline-none focus:border-white/40 transition-all"
                   >
                     <option value="" className="bg-gray-900">Select a category...</option>
-                    {['Math', 'Science', 'History', 'Geography', 'Language', 'Technology', 'Arts', 'Sports', 'General'].map(c => (
+                    {PRESET_CATEGORIES.map(c => (
                       <option key={c} value={c} className="bg-gray-900">{c}</option>
                     ))}
                   </select>
+                  {categoryOption === 'Other' && (
+                    <input
+                      {...register('category')}
+                      type="text"
+                      placeholder="e.g. Commerce, Accountancy, Law..."
+                      className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-xl text-white text-sm placeholder-white/30 focus:outline-none focus:border-white/40 transition-all"
+                    />
+                  )}
                 </div>
               )}
             </div>

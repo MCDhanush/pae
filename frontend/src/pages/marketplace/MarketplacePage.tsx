@@ -21,7 +21,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 function getCategoryGradient(category?: string) {
   if (!category) return 'from-violet-500 to-indigo-600'
-  return CATEGORY_COLORS[category] ?? 'from-violet-500 to-indigo-600'
+  return CATEGORY_COLORS[category] ?? CATEGORY_COLORS['Other']
 }
 
 export default function MarketplacePage() {
