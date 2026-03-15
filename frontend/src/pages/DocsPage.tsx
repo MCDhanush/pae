@@ -437,7 +437,7 @@ export default function DocsPage() {
             </div>
 
             <div className="mt-4 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-sm text-blue-300">
-              <strong>Note:</strong> Failed AI generations (network error, bad API key, etc.) do <em>not</em> consume a credit. Your quota is only decremented when Gemini successfully returns questions.
+              <strong>Note:</strong> Failed AI generations (network error, timeout, etc.) do <em>not</em> consume a credit. Your quota is only used when questions are successfully generated.
             </div>
           </Section>
 
@@ -448,13 +448,13 @@ export default function DocsPage() {
             <h3 className="text-white font-semibold mt-6 mb-3">Session Lifecycle</h3>
             <div className="space-y-3">
               <Step number={1} title="Waiting (Lobby)">Teacher creates the session. A unique 6-character PIN is generated. Students join and appear in the lobby in real time.</Step>
-              <Step number={2} title="Active">Teacher presses Start. Questions are sent one by one. Each question has a configurable timer. Students submit answers via REST API; the backend evaluates and scores them instantly.</Step>
+              <Step number={2} title="Active">Teacher presses Start. Questions are sent one by one with a countdown timer. Students tap their answer and receive instant feedback.</Step>
               <Step number={3} title="Leaderboard">After each question, the top players are shown on a leaderboard screen (both host and student views).</Step>
               <Step number={4} title="Finished">After the last question, the session is marked finished. Full results are available at <code className="text-violet-300 text-xs bg-violet-500/10 px-1 py-0.5 rounded">/results/:pin</code>.</Step>
             </div>
 
             <h3 className="text-white font-semibold mt-6 mb-3">Resuming a Session</h3>
-            <p>If you accidentally close the host window, navigate to the Sessions tab in your dashboard and click <strong className="text-white">Resume</strong> next to any waiting or active session. The game state is preserved in Redis.</p>
+            <p>If you accidentally close the host window, navigate to the Sessions tab in your dashboard and click <strong className="text-white">Resume</strong> next to any waiting or active session. The game state is preserved and students stay connected.</p>
           </Section>
 
           {/* ── MARKETPLACE ── */}
@@ -602,7 +602,7 @@ export default function DocsPage() {
               },
               {
                 q: 'Can I use PAE offline?',
-                a: 'No. PAE requires an internet connection for real-time communication. Both the backend and HiveMQ MQTT broker must be reachable.',
+                a: 'No. PAE requires an internet connection for real-time communication between the host and all players.',
               },
               {
                 q: 'How do I become an admin?',
