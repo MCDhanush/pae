@@ -23,31 +23,39 @@ import { CSS } from '@dnd-kit/utilities'
 const ANSWER_COLORS = [
   {
     label: 'A',
-    idle: 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/40',
-    correct: 'bg-gradient-to-br from-emerald-500 to-green-600 ring-4 ring-emerald-300 shadow-emerald-500/40',
-    wrong: 'bg-gradient-to-br from-rose-700 to-red-800 opacity-70 ring-4 ring-red-400',
-    faded: 'bg-gradient-to-br from-rose-500/40 to-red-600/40',
+    badge: 'bg-rose-500',
+    idle: 'bg-rose-500/10 border border-rose-500/35 hover:bg-rose-500/18 hover:border-rose-500/55',
+    selected: 'bg-rose-500/20 border-2 border-rose-400/80',
+    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
+    wrong: 'bg-rose-500/15 border border-rose-400/40 opacity-60',
+    faded: 'bg-white/5 border border-white/10 opacity-50',
   },
   {
     label: 'B',
-    idle: 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/40',
-    correct: 'bg-gradient-to-br from-emerald-500 to-green-600 ring-4 ring-emerald-300 shadow-emerald-500/40',
-    wrong: 'bg-gradient-to-br from-blue-700 to-indigo-800 opacity-70 ring-4 ring-blue-400',
-    faded: 'bg-gradient-to-br from-blue-500/40 to-indigo-600/40',
+    badge: 'bg-blue-500',
+    idle: 'bg-blue-500/10 border border-blue-500/35 hover:bg-blue-500/18 hover:border-blue-500/55',
+    selected: 'bg-blue-500/20 border-2 border-blue-400/80',
+    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
+    wrong: 'bg-blue-500/15 border border-blue-400/40 opacity-60',
+    faded: 'bg-white/5 border border-white/10 opacity-50',
   },
   {
     label: 'C',
-    idle: 'bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/40',
-    correct: 'bg-gradient-to-br from-emerald-500 to-green-600 ring-4 ring-emerald-300 shadow-emerald-500/40',
-    wrong: 'bg-gradient-to-br from-amber-700 to-yellow-800 opacity-70 ring-4 ring-amber-400',
-    faded: 'bg-gradient-to-br from-amber-500/40 to-yellow-600/40',
+    badge: 'bg-amber-500',
+    idle: 'bg-amber-500/10 border border-amber-500/35 hover:bg-amber-500/18 hover:border-amber-500/55',
+    selected: 'bg-amber-500/20 border-2 border-amber-400/80',
+    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
+    wrong: 'bg-amber-500/15 border border-amber-400/40 opacity-60',
+    faded: 'bg-white/5 border border-white/10 opacity-50',
   },
   {
     label: 'D',
-    idle: 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/40',
-    correct: 'bg-gradient-to-br from-emerald-500 to-green-600 ring-4 ring-emerald-300 shadow-emerald-500/40',
-    wrong: 'bg-gradient-to-br from-emerald-700 to-green-800 opacity-70 ring-4 ring-emerald-400',
-    faded: 'bg-gradient-to-br from-emerald-500/40 to-green-600/40',
+    badge: 'bg-emerald-500',
+    idle: 'bg-emerald-500/10 border border-emerald-500/35 hover:bg-emerald-500/18 hover:border-emerald-500/55',
+    selected: 'bg-emerald-500/20 border-2 border-emerald-400/80',
+    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
+    wrong: 'bg-emerald-500/15 border border-emerald-400/40 opacity-60',
+    faded: 'bg-white/5 border border-white/10 opacity-50',
   },
 ]
 
@@ -154,16 +162,16 @@ export default function QuestionCard({
 
             let cls = clsx(
               'relative flex items-center gap-3 p-4 rounded-2xl text-white font-semibold',
-              'transition-all duration-200 text-left shadow-lg',
-              mode === 'play' && !disabled ? 'cursor-pointer active:scale-[0.97] hover:scale-[1.02] hover:shadow-xl' : 'cursor-default',
+              'transition-all duration-200 text-left',
+              mode === 'play' && !disabled ? 'cursor-pointer active:scale-[0.97] hover:scale-[1.01]' : 'cursor-default',
             )
 
             if (showResult) {
-              if (isCorrect) cls = clsx(cls, c.correct, 'scale-[1.02]')
+              if (isCorrect) cls = clsx(cls, c.correct, 'scale-[1.01]')
               else if (isSelected) cls = clsx(cls, c.wrong)
               else cls = clsx(cls, c.faded)
             } else if (isSelected) {
-              cls = clsx(cls, c.idle, 'ring-4 ring-white/60 scale-[1.02]')
+              cls = clsx(cls, c.selected, 'scale-[1.01]')
             } else {
               cls = clsx(cls, c.idle, disabled ? 'opacity-70' : '')
             }
@@ -176,17 +184,17 @@ export default function QuestionCard({
                 disabled={disabled}
                 className={cls}
               >
-                <span className="w-9 h-9 rounded-xl bg-black/20 flex items-center justify-center font-black text-sm shrink-0">
+                <span className={clsx('w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 text-white', c.badge)}>
                   {c.label}
                 </span>
-                <span className="flex-1 text-sm sm:text-base leading-snug">{option.text}</span>
+                <span className="flex-1 text-sm sm:text-base leading-snug text-white/90">{option.text}</span>
                 {showResult && isCorrect && (
-                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
                 {showResult && isSelected && !isCorrect && (
-                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 )}
@@ -209,24 +217,27 @@ export default function QuestionCard({
       const id = isTrue ? trueId : falseId
       const isSelected = selectedAnswer === id
       const isCorrectOpt = isTrue ? isTrueCorrect : isFalseCorrect
-      const baseGrad = isTrue
-        ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/40'
-        : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/40'
-      const correctCls = 'ring-4 ring-white/70 scale-[1.03] shadow-2xl'
-      const wrongCls = 'opacity-50 ring-4 ring-white/20'
+      const idleCls = isTrue
+        ? 'bg-emerald-500/10 border border-emerald-500/35 hover:bg-emerald-500/18 hover:border-emerald-500/55'
+        : 'bg-rose-500/10 border border-rose-500/35 hover:bg-rose-500/18 hover:border-rose-500/55'
+      const selectedCls = isTrue
+        ? 'bg-emerald-500/20 border-2 border-emerald-400/80 scale-[1.01]'
+        : 'bg-rose-500/20 border-2 border-rose-400/80 scale-[1.01]'
+      const iconColor = isTrue ? 'text-emerald-400' : 'text-rose-400'
 
       let cls = clsx(
         'flex-1 flex flex-col items-center justify-center gap-3 py-8 px-6 rounded-2xl',
-        'text-white font-black text-2xl shadow-xl transition-all duration-200',
-        mode === 'play' && !disabled ? 'cursor-pointer active:scale-[0.97] hover:scale-[1.02] hover:shadow-2xl' : 'cursor-default',
-        baseGrad,
+        'text-white font-black text-2xl transition-all duration-200',
+        mode === 'play' && !disabled ? 'cursor-pointer active:scale-[0.97]' : 'cursor-default',
       )
       if (showResult) {
-        if (isCorrectOpt) cls = clsx(cls, correctCls)
-        else if (isSelected) cls = clsx(cls, wrongCls)
-        else cls += ' opacity-60'
+        if (isCorrectOpt) cls = clsx(cls, 'bg-emerald-500/20 border-2 border-emerald-400 scale-[1.01]')
+        else if (isSelected) cls = clsx(cls, isTrue ? 'bg-emerald-500/15 border border-emerald-400/40 opacity-60' : 'bg-rose-500/15 border border-rose-400/40 opacity-60')
+        else cls = clsx(cls, 'bg-white/5 border border-white/10 opacity-50')
       } else if (isSelected) {
-        cls = clsx(cls, 'ring-4 ring-white/60 scale-[1.02]')
+        cls = clsx(cls, selectedCls)
+      } else {
+        cls = clsx(cls, idleCls, disabled ? 'opacity-70' : '')
       }
 
       return (
@@ -238,11 +249,11 @@ export default function QuestionCard({
           className={cls}
         >
           {isTrue ? (
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className={clsx('w-10 h-10', iconColor)} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           ) : (
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className={clsx('w-10 h-10', iconColor)} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
             </svg>
           )}
