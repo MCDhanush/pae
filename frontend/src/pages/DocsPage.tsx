@@ -267,24 +267,6 @@ export default function DocsPage() {
               </Card>
             </div>
 
-            <div className="mt-6 bg-white/5 border border-white/10 rounded-2xl p-5">
-              <h3 className="text-white font-bold mb-3">Platform at a glance</h3>
-              <div className="grid sm:grid-cols-2 gap-3 text-sm">
-                {[
-                  ['Frontend', 'React + TypeScript + TailwindCSS'],
-                  ['Backend', 'Go (Chi Router) + MongoDB + Redis'],
-                  ['Real-time', 'MQTT via HiveMQ (WebSocket)'],
-                  ['Storage', 'Google Cloud Storage (quiz images)'],
-                  ['Auth', 'JWT — teachers + optional students'],
-                  ['Payments', 'Razorpay (INR)'],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex gap-2">
-                    <span className="text-white/40 w-24 shrink-0">{k}</span>
-                    <span className="text-white/70">{v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </Section>
 
           {/* ── GETTING STARTED ── */}
@@ -356,7 +338,7 @@ export default function DocsPage() {
             </div>
 
             <h3 className="text-white font-semibold mt-6 mb-3">Admin Accounts</h3>
-            <p>Users with <Badge color="violet">is_admin: true</Badge> in the database bypass all session and AI limits. Admin status is set directly in MongoDB — there is no in-app admin panel. Contact your platform administrator to receive admin access.</p>
+            <p>Admin users have no session or AI limits. Admin access is granted by the platform owner — contact your administrator to request it. Once granted, log out and log back in for it to take effect.</p>
           </Section>
 
           {/* ── FOR STUDENTS ── */}
@@ -425,7 +407,7 @@ export default function DocsPage() {
 
           {/* ── AI GENERATOR ── */}
           <Section id="ai-generator" title="AI Question Generator">
-            <p>The AI generator creates a complete set of multiple-choice questions from any topic or subject you describe. It uses <strong className="text-white">Google Gemini</strong> under the hood.</p>
+            <p>The AI generator creates a complete set of multiple-choice questions from any topic or subject you describe. Just tell it what you want to teach and it handles the rest.</p>
 
             <h3 className="text-white font-semibold mt-6 mb-3">How to Use</h3>
             <div className="space-y-3">
@@ -469,14 +451,6 @@ export default function DocsPage() {
               <Step number={2} title="Active">Teacher presses Start. Questions are sent one by one. Each question has a configurable timer. Students submit answers via REST API; the backend evaluates and scores them instantly.</Step>
               <Step number={3} title="Leaderboard">After each question, the top players are shown on a leaderboard screen (both host and student views).</Step>
               <Step number={4} title="Finished">After the last question, the session is marked finished. Full results are available at <code className="text-violet-300 text-xs bg-violet-500/10 px-1 py-0.5 rounded">/results/:pin</code>.</Step>
-            </div>
-
-            <h3 className="text-white font-semibold mt-6 mb-3">Real-time Architecture</h3>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-sm space-y-2 text-white/60">
-              <div className="flex gap-3"><span className="text-white/40 w-28 shrink-0">Broker</span><span>HiveMQ public MQTT broker</span></div>
-              <div className="flex gap-3"><span className="text-white/40 w-28 shrink-0">Backend → UI</span><span>TCP publish via paho.mqtt.golang</span></div>
-              <div className="flex gap-3"><span className="text-white/40 w-28 shrink-0">UI ← Broker</span><span>WebSocket subscribe via mqtt.js (wss://)</span></div>
-              <div className="flex gap-3"><span className="text-white/40 w-28 shrink-0">Topics</span><span><code className="text-violet-300">pae/game/&#123;pin&#125;/broadcast</code>, <code className="text-violet-300">pae/game/&#123;pin&#125;/lobby</code>, <code className="text-violet-300">pae/game/&#123;pin&#125;/player/&#123;id&#125;/result</code></span></div>
             </div>
 
             <h3 className="text-white font-semibold mt-6 mb-3">Resuming a Session</h3>
@@ -533,7 +507,7 @@ export default function DocsPage() {
             </div>
 
             <div className="mt-6 bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-white/60">
-              Analytics are calculated from the <code className="text-violet-300">student_participation</code> and <code className="text-violet-300">quiz_sessions</code> MongoDB collections in real time. Data updates automatically after each completed session.
+              Analytics update automatically after each completed session. No manual refresh needed.
             </div>
           </Section>
 
@@ -632,7 +606,7 @@ export default function DocsPage() {
               },
               {
                 q: 'How do I become an admin?',
-                a: 'Admin status is set directly in MongoDB by setting is_admin: true on your user document. There is no in-app admin panel. Log out and log back in after the change to get a new JWT.',
+                a: 'Admin status is granted by the platform owner. Contact your administrator to request admin access, then log out and log back in for it to take effect.',
               },
               {
                 q: 'Do session credits expire?',
