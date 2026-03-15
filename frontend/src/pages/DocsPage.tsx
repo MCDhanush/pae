@@ -162,42 +162,91 @@ export default function DocsPage() {
             </Link>
             <Link
               to="/login"
-              className="px-3 py-1.5 text-xs font-semibold text-violet-300 bg-violet-500/15 hover:bg-violet-500/25 rounded-xl transition-colors border border-violet-500/30"
+              className="hidden sm:flex px-3 py-1.5 text-xs font-semibold text-violet-300 bg-violet-500/15 hover:bg-violet-500/25 rounded-xl transition-colors border border-violet-500/30"
             >
               Sign In
             </Link>
             <button
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
               className="lg:hidden p-2 text-white/60 hover:text-white/90 rounded-lg"
+              aria-label="Toggle menu"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              {mobileNavOpen ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Mobile section nav — inside header so it stays sticky */}
+        {/* Mobile menu — inside header so it stays sticky */}
         {mobileNavOpen && (
-        <div className="lg:hidden border-t border-white/10 bg-gray-900/95 px-4 py-4">
-          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Sections</p>
-          <div className="flex flex-wrap gap-2">
-            {sections.map(s => (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
+          <div className="lg:hidden border-t border-white/10 bg-gray-950/95 backdrop-blur-xl px-4 py-5 space-y-5">
+
+            {/* Quick links */}
+            <div className="flex gap-2">
+              <Link
+                to="/marketplace"
                 onClick={() => setMobileNavOpen(false)}
-                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                  activeSection === s.id
-                    ? 'bg-violet-500/20 border-violet-500/30 text-violet-300'
-                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white/80'
-                }`}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 transition-colors"
               >
-                {s.label}
-              </a>
-            ))}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Marketplace
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setMobileNavOpen(false)}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-violet-500/15 border border-violet-500/30 rounded-xl text-sm font-semibold text-violet-300 hover:bg-violet-500/25 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setMobileNavOpen(false)}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-violet-600 rounded-xl text-sm font-semibold text-white hover:bg-violet-500 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Sign Up
+              </Link>
+            </div>
+
+            {/* On this page */}
+            <div>
+              <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2.5">On this page</p>
+              <nav className="space-y-0.5">
+                {sections.map(s => (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={() => setMobileNavOpen(false)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeSection === s.id
+                        ? 'bg-violet-500/15 text-violet-300'
+                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                    }`}
+                  >
+                    {activeSection === s.id && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+                    )}
+                    {s.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+
           </div>
-        </div>
         )}
       </header>
 
