@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -93,7 +94,11 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.service.CreateSession(r.Context(), quizID, teacherID)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
+		if strings.Contains(err.Error(), "session limit reached") {
+			writeError(w, http.StatusPaymentRequired, err.Error())
+		} else {
+			writeError(w, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 

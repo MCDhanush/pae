@@ -72,6 +72,8 @@ func NewService(
 
 // ─── Session lifecycle ────────────────────────────────────────────────────────
 
+const maxSessionsPerTeacher = 30
+
 // CreateSession generates a PIN and persists a new waiting session.
 func (s *Service) CreateSession(ctx context.Context, quizID, teacherID primitive.ObjectID) (*models.QuizSession, error) {
 	if _, err := s.quizRepo.FindByID(ctx, quizID); err != nil {
@@ -79,6 +81,12 @@ func (s *Service) CreateSession(ctx context.Context, quizID, teacherID primitive
 			return nil, fmt.Errorf("quiz not found")
 		}
 		return nil, fmt.Errorf("game service create session quiz lookup: %w", err)
+	}
+
+	// Enforce free-tier session cap.
+	sessionCount, err := s.repo.CountByTeacherID(ctx, teacherID)
+	if err == nil && sessionCount >= maxSessionsPerTeacher {
+		return nil, fmt.Errorf("session limit reached: free plan allows %d sessions", maxSessionsPerTeacher)
 	}
 
 	pin := utils.GeneratePIN()

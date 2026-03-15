@@ -433,14 +433,14 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                 <input
                   type="range"
                   min={1}
-                  max={20}
+                  max={10}
                   value={count}
                   onChange={e => setCount(Number(e.target.value))}
                   className="w-full accent-violet-500"
                 />
                 <div className="flex justify-between text-[10px] text-white/25 mt-0.5">
                   <span>1</span>
-                  <span>20</span>
+                  <span>10</span>
                 </div>
               </div>
 

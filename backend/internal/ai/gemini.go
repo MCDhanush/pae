@@ -17,11 +17,12 @@ import (
 const (
 	geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 	// MaxQuestionsPerRequest caps how many questions can be generated in one call.
-	MaxQuestionsPerRequest = 20
+	// Keeping this at 10 prevents Gemini from truncating large JSON responses.
+	MaxQuestionsPerRequest = 10
 
 	// FreeQuotaLimit is the total number of AI generation requests a teacher gets for free.
 	// Once exhausted, the teacher must upgrade to continue.
-	FreeQuotaLimit = 5
+	FreeQuotaLimit = 3
 )
 
 // ErrNotConfigured is returned when no API key has been set.

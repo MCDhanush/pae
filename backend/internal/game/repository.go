@@ -137,3 +137,8 @@ func (r *Repository) Start(ctx context.Context, id primitive.ObjectID) error {
 func (r *Repository) Count(ctx context.Context) (int64, error) {
 	return r.col.CountDocuments(ctx, bson.M{})
 }
+
+// CountByTeacherID returns how many sessions a teacher has created in total.
+func (r *Repository) CountByTeacherID(ctx context.Context, teacherID primitive.ObjectID) (int64, error) {
+	return r.col.CountDocuments(ctx, bson.M{"teacher_id": teacherID})
+}
