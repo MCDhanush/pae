@@ -47,6 +47,7 @@ export interface Quiz {
   questions: Question[]
   is_public: boolean
   usage_count: number
+  source_id?: string
   created_at: string
   updated_at: string
 }

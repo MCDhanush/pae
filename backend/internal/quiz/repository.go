@@ -180,3 +180,12 @@ func (r *Repository) SetPublic(ctx context.Context, quizID, teacherID primitive.
 func (r *Repository) IncrUsageCount(ctx context.Context, quizID primitive.ObjectID) {
 	_, _ = r.col.UpdateOne(ctx, bson.M{"_id": quizID}, bson.M{"$inc": bson.M{"usage_count": 1}})
 }
+
+// ExistsImport returns true if teacherID already has an import of sourceQuizID.
+func (r *Repository) ExistsImport(ctx context.Context, teacherID, sourceQuizID primitive.ObjectID) (bool, error) {
+	count, err := r.col.CountDocuments(ctx, bson.M{"teacher_id": teacherID, "source_id": sourceQuizID})
+	if err != nil {
+		return false, fmt.Errorf("quiz repo exists import: %w", err)
+	}
+	return count > 0, nil
+}

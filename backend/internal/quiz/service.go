@@ -23,6 +23,9 @@ var ErrUnauthorized = errors.New("unauthorized")
 // ErrTooManyImages is returned when the image limit would be exceeded.
 var ErrTooManyImages = errors.New("quiz already has maximum number of images (3)")
 
+// ErrAlreadyImported is returned when a teacher tries to import the same quiz twice.
+var ErrAlreadyImported = errors.New("quiz already imported")
+
 // Service provides quiz business logic.
 type Service struct {
 	repo *Repository
@@ -171,6 +174,15 @@ func (s *Service) CopyQuiz(ctx context.Context, quizID, teacherID primitive.Obje
 		return nil, ErrUnauthorized
 	}
 
+	// Prevent duplicate imports by the same teacher.
+	exists, err := s.repo.ExistsImport(ctx, teacherID, quizID)
+	if err != nil {
+		return nil, fmt.Errorf("quiz service copy check: %w", err)
+	}
+	if exists {
+		return nil, ErrAlreadyImported
+	}
+
 	// Deep-copy questions with new IDs.
 	questions := make([]models.Question, len(original.Questions))
 	for i, q := range original.Questions {
@@ -190,6 +202,7 @@ func (s *Service) CopyQuiz(ctx context.Context, quizID, teacherID primitive.Obje
 		Questions:   questions,
 		IsPublic:    false,
 		UsageCount:  0,
+		SourceID:    &quizID,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}

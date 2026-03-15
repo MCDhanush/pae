@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { useAuthStore } from '../../store/authStore'
-import { marketplaceAPI } from '../../lib/api'
+import { marketplaceAPI, quizAPI } from '../../lib/api'
 import type { Quiz } from '../../types'
 import PAELogo from '../../components/ui/PAELogo'
 
@@ -33,8 +33,9 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
-  const [copyingId, setCopyingId] = useState<string | null>(null)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [importingId, setImportingId] = useState<string | null>(null)
+  // Set of marketplace quiz IDs already imported by this teacher
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set())
   const [searchInput, setSearchInput] = useState('')
 
   const fetchQuizzes = useCallback(async (category: string, q: string) => {
@@ -62,6 +63,16 @@ export default function MarketplacePage() {
     return () => clearTimeout(timer)
   }, [searchInput])
 
+  // Load already-imported source IDs for this teacher
+  useEffect(() => {
+    if (user?.role !== 'teacher') return
+    quizAPI.list().then(list => {
+      const ids = new Set<string>()
+      list.forEach(q => { if (q.source_id) ids.add(q.source_id) })
+      setImportedIds(ids)
+    }).catch(() => {})
+  }, [user])
+
   // GSAP card entrance
   useEffect(() => {
     if (loading) return
@@ -73,20 +84,20 @@ export default function MarketplacePage() {
     return () => ctx.revert()
   }, [loading, quizzes.length])
 
-  const handleCopy = async (quiz: Quiz) => {
+  const handleImport = async (quiz: Quiz) => {
     if (!user || user.role !== 'teacher') {
       navigate('/login')
       return
     }
-    setCopyingId(quiz.id)
+    if (importedIds.has(quiz.id)) return
+    setImportingId(quiz.id)
     try {
-      await marketplaceAPI.copy(quiz.id)
-      setCopiedId(quiz.id)
-      setTimeout(() => setCopiedId(null), 2500)
+      await marketplaceAPI.import(quiz.id)
+      setImportedIds(prev => new Set(prev).add(quiz.id))
     } catch {
-      // ignore
+      // ignore (409 = already imported, handled via importedIds)
     } finally {
-      setCopyingId(null)
+      setImportingId(null)
     }
   }
 
@@ -137,7 +148,7 @@ export default function MarketplacePage() {
             Discover & Share Quizzes
           </h1>
           <p className="text-white/40 max-w-lg mx-auto text-sm">
-            Browse publicly shared quizzes from teachers worldwide. Copy any quiz to your library in one click.
+            Browse publicly shared quizzes from teachers worldwide. Import any quiz to your library in one click.
           </p>
         </div>
 
@@ -201,7 +212,7 @@ export default function MarketplacePage() {
               <p className="text-white/20 text-xs mt-1">
                 Be the first to{' '}
                 <Link to="/quiz/create" className="text-violet-400 hover:underline">create and publish</Link>{' '}
-                a quiz!
+                a quiz for others to import!
               </p>
             )}
           </div>
@@ -232,7 +243,7 @@ export default function MarketplacePage() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
-                        {quiz.usage_count} cop{quiz.usage_count !== 1 ? 'ies' : 'y'}
+                        {quiz.usage_count} import{quiz.usage_count !== 1 ? 's' : ''}
                       </div>
                     )}
                   </div>
@@ -258,39 +269,39 @@ export default function MarketplacePage() {
                   {/* CTA */}
                   {user?.role === 'teacher' ? (
                     <button
-                      onClick={() => handleCopy(quiz)}
-                      disabled={copyingId === quiz.id}
+                      onClick={() => handleImport(quiz)}
+                      disabled={importingId === quiz.id || importedIds.has(quiz.id)}
                       className={`w-full py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                        copiedId === quiz.id
-                          ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                          : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40'
-                      } disabled:opacity-60`}
+                        importedIds.has(quiz.id)
+                          ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 cursor-default'
+                          : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 disabled:opacity-60'
+                      }`}
                     >
-                      {copyingId === quiz.id ? (
+                      {importingId === quiz.id ? (
                         <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                      ) : copiedId === quiz.id ? (
+                      ) : importedIds.has(quiz.id) ? (
                         <>
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                           </svg>
-                          Copied to Library!
+                          Imported
                         </>
                       ) : (
                         <>
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
-                          Copy to My Library
+                          Import
                         </>
                       )}
                     </button>
                   ) : (
                     <div className="w-full py-2.5 rounded-2xl text-xs font-semibold text-center bg-white/5 border border-white/10 text-white/40">
-                      {user ? 'Teachers can copy this quiz' : (
-                        <Link to="/login" className="text-violet-400 hover:underline">Login to copy</Link>
+                      {user ? 'Teachers can import this quiz' : (
+                        <Link to="/login" className="text-violet-400 hover:underline">Login to import</Link>
                       )}
                     </div>
                   )}

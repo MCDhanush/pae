@@ -367,8 +367,10 @@ func (h *Handler) CopyMarketplaceQuiz(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusNotFound, "quiz not found")
 		case errors.Is(err, ErrUnauthorized):
 			writeError(w, http.StatusForbidden, "quiz is not public")
+		case errors.Is(err, ErrAlreadyImported):
+			writeError(w, http.StatusConflict, "quiz already imported")
 		default:
-			writeError(w, http.StatusInternalServerError, "failed to copy quiz")
+			writeError(w, http.StatusInternalServerError, "failed to import quiz")
 		}
 		return
 	}

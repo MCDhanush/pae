@@ -253,7 +253,7 @@ export const marketplaceAPI = {
     return data
   },
 
-  copy: async (quizId: string): Promise<Quiz> => {
+  import: async (quizId: string): Promise<Quiz> => {
     const { data } = await api.post<Quiz>(`/marketplace/${quizId}/copy`)
     return data
   },
