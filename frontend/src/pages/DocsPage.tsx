@@ -176,11 +176,10 @@ export default function DocsPage() {
             </button>
           </div>
         </div>
-      </header>
 
-      {/* Mobile section nav */}
-      {mobileNavOpen && (
-        <div className="lg:hidden relative z-10 bg-gray-900/95 border-b border-white/10 px-4 py-4">
+        {/* Mobile section nav — inside header so it stays sticky */}
+        {mobileNavOpen && (
+        <div className="lg:hidden border-t border-white/10 bg-gray-900/95 px-4 py-4">
           <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Sections</p>
           <div className="flex flex-wrap gap-2">
             {sections.map(s => (
@@ -199,7 +198,8 @@ export default function DocsPage() {
             ))}
           </div>
         </div>
-      )}
+        )}
+      </header>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-10 flex gap-10">
         {/* Sidebar — desktop */}
