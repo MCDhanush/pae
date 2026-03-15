@@ -16,6 +16,7 @@ import HostGamePage from './pages/game/HostGamePage'
 import JoinGamePage from './pages/game/JoinGamePage'
 import PlayGamePage from './pages/game/PlayGamePage'
 import ResultsPage from './pages/game/ResultsPage'
+import DocsPage from './pages/DocsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore()
@@ -92,6 +93,7 @@ function App() {
       <Route path="/join" element={<JoinGamePage />} />
       <Route path="/play/:pin" element={<PlayGamePage />} />
       <Route path="/results/:pin" element={<ResultsPage />} />
+      <Route path="/docs" element={<DocsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
