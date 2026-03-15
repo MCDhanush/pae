@@ -636,15 +636,18 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Admin and pro users have unlimited AI generations.
+	// quotaKey is set only when the counter was actually incremented so we can
+	// roll it back if Gemini fails — failed attempts must not consume quota.
+	var quotaKey string
 	if !middleware.IsUnrestrictedFromContext(r.Context()) {
 		extraAI := middleware.ExtraAIFromContext(r.Context())
 		effectiveLimit := int64(ai.FreeQuotaLimit + extraAI)
 		// Lifetime quota: FreeQuotaLimit + any purchased extra credits.
-		quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
-		usedCount, redisErr := h.redis.Client().Incr(r.Context(), quotaKey).Result()
+		qk := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
+		usedCount, redisErr := h.redis.Client().Incr(r.Context(), qk).Result()
 		if redisErr == nil && usedCount > effectiveLimit {
-			// Decrement back so the stored count stays accurate
-			_ = h.redis.Client().Decr(r.Context(), quotaKey)
+			// Over limit — roll back and reject
+			_ = h.redis.Client().Decr(r.Context(), qk)
 			writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
 				"error":            fmt.Sprintf("AI quota exhausted — you have used all %d generations", effectiveLimit),
 				"quota_used":       effectiveLimit,
@@ -653,7 +656,12 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		// Fail-open: if Redis is unavailable, allow the request through
+		if redisErr == nil {
+			// Counter was incremented successfully; remember the key so we can
+			// roll it back if Gemini fails below.
+			quotaKey = qk
+		}
+		// Fail-open: if Redis is unavailable (redisErr != nil), allow through
 	}
 
 	// Call Gemini
@@ -666,6 +674,10 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 		Context:    req.Context,
 	})
 	if err != nil {
+		// Roll back the quota increment — a failed attempt must not cost a credit.
+		if quotaKey != "" {
+			_ = h.redis.Client().Decr(r.Context(), quotaKey)
+		}
 		if errors.Is(err, ai.ErrNotConfigured) {
 			writeError(w, http.StatusServiceUnavailable, "AI service not configured")
 			return

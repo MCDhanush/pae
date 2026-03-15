@@ -41,6 +41,8 @@ export default function DashboardPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [upgradePendingQuizId, setUpgradePendingQuizId] = useState<string | null>(null)
   const [isUpgrading, setIsUpgrading] = useState(false)
+  const [showAIUpgradeModal, setShowAIUpgradeModal] = useState(false)
+  const [aiUsage, setAIUsage] = useState<{ used: number; limit: number; remaining: number; unlimited?: boolean } | null>(null)
 
   // Student attempts
   const [attempts, setAttempts] = useState<PlayerAttempt[]>([])
@@ -81,6 +83,7 @@ export default function DashboardPage() {
         setIsLoadingQuizzes(false)
         setIsLoadingSessions(false)
       }
+      quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
     } else {
       // Student: load attempts
       setIsLoadingAttempts(true)
@@ -205,6 +208,8 @@ export default function DashboardPage() {
               })
               localStorage.setItem('auth_token', result.token)
               await useAuthStore.getState().loadUser()
+              // Refresh AI usage after any purchase
+              quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
               resolve()
             } catch (e) {
               reject(e)
@@ -505,6 +510,85 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+
+            {/* Plan & Usage card — teachers only */}
+            {user?.role === 'teacher' && (() => {
+              const isPro = user.is_pro || user.is_admin
+              const sessionCap = isPro ? null : 30 + (user.extra_sessions ?? 0)
+              const sessionUsed = sessions.length
+              const sessionPct = sessionCap ? Math.min(100, Math.round((sessionUsed / sessionCap) * 100)) : 0
+              const aiUsed = aiUsage?.used ?? 0
+              const aiLimit = aiUsage?.limit ?? 3
+              const aiPct = aiUsage?.unlimited ? 0 : Math.min(100, Math.round((aiUsed / aiLimit) * 100))
+              return (
+                <div className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Plan & Usage</h3>
+                    {isPro ? (
+                      <span className="text-[11px] bg-violet-500/20 border border-violet-500/30 text-violet-300 px-2.5 py-1 rounded-full font-bold">PRO / ADMIN</span>
+                    ) : (
+                      <span className="text-[11px] bg-white/5 border border-white/10 text-white/40 px-2.5 py-1 rounded-full font-semibold">Free Plan</span>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    {/* Sessions */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs text-white/60 font-medium">Game Sessions</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-white/50">
+                            {isPro ? <span className="text-violet-300 font-semibold">Unlimited</span> : `${sessionUsed} / ${sessionCap}`}
+                          </span>
+                          {!isPro && (
+                            <button
+                              onClick={() => setShowUpgradeModal(true)}
+                              className="text-[11px] text-violet-400 hover:text-violet-300 font-bold transition-colors"
+                            >
+                              + Get more
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {!isPro && (
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${sessionPct >= 90 ? 'bg-rose-500' : sessionPct >= 70 ? 'bg-amber-500' : 'bg-violet-500'}`}
+                            style={{ width: `${sessionPct}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {/* AI Generations */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs text-white/60 font-medium">AI Generations</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-white/50">
+                            {aiUsage?.unlimited ? <span className="text-violet-300 font-semibold">Unlimited</span> : `${aiUsed} / ${aiLimit}`}
+                          </span>
+                          {!aiUsage?.unlimited && (
+                            <button
+                              onClick={() => setShowAIUpgradeModal(true)}
+                              className="text-[11px] text-violet-400 hover:text-violet-300 font-bold transition-colors"
+                            >
+                              + Get more
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {!aiUsage?.unlimited && (
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${aiPct >= 90 ? 'bg-rose-500' : aiPct >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                            style={{ width: `${aiPct}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* Chart - Teacher: Sessions | Student: Scores */}
             {user?.role === 'teacher' ? (
@@ -1106,6 +1190,81 @@ export default function DashboardPage() {
 
             <button
               onClick={() => { setShowUpgradeModal(false); setUpgradePendingQuizId(null) }}
+              className="w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-white/50 text-sm hover:bg-white/10 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AI Credits upgrade modal */}
+      {showAIUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAIUpgradeModal(false)} />
+          <div className="relative bg-gray-900 border border-violet-500/30 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="text-center mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-violet-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">Buy AI Generations</h3>
+              <p className="text-white/50 text-sm">
+                {aiUsage ? `${aiUsage.used} / ${aiUsage.limit} used` : 'Top up your AI question generation credits'}
+              </p>
+            </div>
+
+            <div className="space-y-2.5 mb-5">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 flex items-center justify-between hover:border-violet-500/40 transition-colors">
+                <div>
+                  <p className="text-white font-semibold text-sm">+10 Generations</p>
+                  <p className="text-white/40 text-xs mt-0.5">Generate up to 10 more AI question sets</p>
+                </div>
+                <button
+                  onClick={() => { setShowAIUpgradeModal(false); handleUpgrade('ai_10') }}
+                  disabled={isUpgrading}
+                  className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-white text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
+                >
+                  ₹49
+                </button>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 flex items-center justify-between hover:border-violet-500/40 transition-colors">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <p className="text-white font-semibold text-sm">+20 Generations</p>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">SAVE</span>
+                  </div>
+                  <p className="text-white/40 text-xs">₹3.95/gen vs ₹4.90 — better value</p>
+                </div>
+                <button
+                  onClick={() => { setShowAIUpgradeModal(false); handleUpgrade('ai_20') }}
+                  disabled={isUpgrading}
+                  className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-white text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
+                >
+                  ₹79
+                </button>
+              </div>
+              <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-3.5 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <p className="text-white font-semibold text-sm">Unlimited Plan</p>
+                    <span className="text-[10px] bg-violet-500/30 text-violet-300 px-1.5 py-0.5 rounded-full font-bold">BEST</span>
+                  </div>
+                  <p className="text-white/40 text-xs">Sessions + AI — both unlimited forever</p>
+                </div>
+                <button
+                  onClick={() => { setShowAIUpgradeModal(false); handleUpgrade('sessions_unlimited') }}
+                  disabled={isUpgrading}
+                  className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-white text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
+                >
+                  ₹299
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowAIUpgradeModal(false)}
               className="w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-white/50 text-sm hover:bg-white/10 transition-colors"
             >
               Cancel
