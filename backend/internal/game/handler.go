@@ -194,6 +194,28 @@ func (h *Handler) EndSession(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, session)
 }
 
+// GetCurrentQuestion handles GET /api/game/sessions/{pin}/current-question.
+// Public endpoint — returns the question currently being displayed in an active session.
+func (h *Handler) GetCurrentQuestion(w http.ResponseWriter, r *http.Request) {
+	pin := chi.URLParam(r, "pin")
+
+	resp, err := h.service.GetCurrentQuestion(r.Context(), pin)
+	if err != nil {
+		if errors.Is(err, ErrSessionNotFound) {
+			writeError(w, http.StatusNotFound, "session not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to get current question")
+		return
+	}
+	if resp == nil {
+		writeError(w, http.StatusNotFound, "no active question")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, resp)
+}
+
 // Leaderboard handles GET /api/game/sessions/{pin}/leaderboard.
 func (h *Handler) Leaderboard(w http.ResponseWriter, r *http.Request) {
 	pin := chi.URLParam(r, "pin")

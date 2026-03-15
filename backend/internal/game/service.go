@@ -225,6 +225,41 @@ func (s *Service) ListByTeacher(ctx context.Context, teacherID primitive.ObjectI
 	return s.repo.FindByTeacherID(ctx, teacherID)
 }
 
+// CurrentQuestionResponse holds the data returned by GetCurrentQuestion.
+type CurrentQuestionResponse struct {
+	QuestionIndex  int             `json:"question_index"`
+	TotalQuestions int             `json:"total_questions"`
+	Question       models.Question `json:"question"`
+	TimeLimit      int             `json:"time_limit"`
+}
+
+// GetCurrentQuestion returns the question currently being displayed in an active
+// session.  Returns nil if the session is not active or has no current question.
+func (s *Service) GetCurrentQuestion(ctx context.Context, pin string) (*CurrentQuestionResponse, error) {
+	session, err := s.GetByPIN(ctx, pin)
+	if err != nil {
+		return nil, err
+	}
+	if session.Status != models.StatusActive {
+		return nil, nil
+	}
+	quiz, err := s.quizRepo.FindByID(ctx, session.QuizID)
+	if err != nil {
+		return nil, fmt.Errorf("game service get current question: %w", err)
+	}
+	idx := session.CurrentQuestion
+	if idx >= len(quiz.Questions) {
+		return nil, nil
+	}
+	q := quiz.Questions[idx]
+	return &CurrentQuestionResponse{
+		QuestionIndex:  idx,
+		TotalQuestions: len(quiz.Questions),
+		Question:       q,
+		TimeLimit:      q.TimeLimit,
+	}, nil
+}
+
 // ─── Question flow ─────────────────────────────────────────────────────────────
 
 // pushQuestion loads question[idx] and broadcasts question_start + starts timer.

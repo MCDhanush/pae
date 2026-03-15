@@ -2,6 +2,7 @@ import axios from 'axios'
 import type {
   User,
   Quiz,
+  Question,
   QuizSession,
   Player,
   PlatformStats,
@@ -147,6 +148,20 @@ export const gameAPI = {
     return players
       .sort((a, b) => b.score - a.score)
       .map((p, i) => ({ player_id: p.id, nickname: p.nickname, score: p.score, rank: i + 1 }))
+  },
+
+  getCurrentQuestion: async (pin: string): Promise<{
+    question_index: number
+    total_questions: number
+    question: Question
+    time_limit: number
+  } | null> => {
+    try {
+      const { data } = await api.get(`/game/sessions/${pin}/current-question`)
+      return data
+    } catch {
+      return null
+    }
   },
 
   getResults: async (pin: string): Promise<{

@@ -194,6 +194,27 @@ export default function PlayGamePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin, myPlayerID])
 
+  // When game is detected as in-progress while student is still in lobby,
+  // fetch the current question so late-joining students don't get stuck.
+  useEffect(() => {
+    if (!gameInProgress || phase !== 'lobby' || !pin) return
+    let active = true
+    gameAPI.getCurrentQuestion(pin).then(qData => {
+      if (!active || !qData) return
+      setCurrentQuestion(qData.question)
+      setQuestionIndex(qData.question_index)
+      setTotalQuestions(qData.total_questions)
+      setHasAnswered(false)
+      setPhaseAndSave('question')
+      setAnswerStartTime(Date.now())
+      startTimer(qData.question.time_limit)
+      setGameInProgress(false)
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
+    }).catch(() => {})
+    return () => { active = false }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameInProgress, phase, pin])
+
   const handleAnswer = useCallback(async (answer: string) => {
     if (hasAnswered || !currentQuestion || !myPlayerID || !pin) return
     // Guard against duplicate submit after page reload (stale persisted question)

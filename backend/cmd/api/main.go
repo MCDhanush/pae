@@ -213,6 +213,7 @@ func main() {
 				r.Post("/", gameHandler.CreateSession)
 			})
 			r.Get("/{pin}", gameHandler.GetSessionByPIN)
+			r.Get("/{pin}/current-question", gameHandler.GetCurrentQuestion)
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireTeacher(cfg.JWTSecret))
 				r.Post("/{pin}/start", gameHandler.StartSession)
