@@ -4,7 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import gsap from 'gsap'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
-import { quizAPI, gameAPI, sessionAPI, studentAPI, playerAPI, paymentAPI } from '../../lib/api'
+import { quizAPI, gameAPI, sessionAPI, studentAPI, playerAPI, paymentAPI, type PlanType } from '../../lib/api'
 import type { Quiz, SessionWithQuiz, Player, PlayerAttempt } from '../../types'
 import type { UpdateProfilePayload } from '../../types'
 import PAELogo from '../../components/ui/PAELogo'
@@ -168,7 +168,7 @@ export default function DashboardPage() {
     }
   }
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (planType: PlanType) => {
     setIsUpgrading(true)
     try {
       // Load Razorpay script if not already loaded
@@ -183,7 +183,7 @@ export default function DashboardPage() {
       }
 
       // Create order on backend
-      const order = await paymentAPI.createOrder()
+      const order = await paymentAPI.createOrder(planType)
 
       // Open Razorpay checkout
       await new Promise<void>((resolve, reject) => {
@@ -193,14 +193,15 @@ export default function DashboardPage() {
           amount: order.amount,
           currency: order.currency,
           order_id: order.order_id,
-          name: 'PAE Pro Plan',
-          description: 'Unlimited sessions & AI generation',
+          name: 'PAE',
+          description: order.description,
           handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
             try {
               const result = await paymentAPI.verifyPayment({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
+                plan_type: planType,
               })
               localStorage.setItem('auth_token', result.token)
               await useAuthStore.getState().loadUser()
@@ -1035,61 +1036,80 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Upgrade to Pro modal */}
+      {/* Upgrade modal — tiered session plans */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowUpgradeModal(false); setUpgradePendingQuizId(null) }} />
           <div className="relative bg-gray-900 border border-violet-500/30 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
             <div className="text-center mb-5">
-              <div className="w-14 h-14 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center mx-auto mb-3">
-                <svg className="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">Upgrade to Pro</h3>
-              <p className="text-white/50 text-sm">You've reached the 30-session limit on the free plan. Upgrade once for unlimited sessions.</p>
+              <h3 className="text-lg font-bold text-white mb-1">Get More Sessions</h3>
+              <p className="text-white/50 text-sm">You've hit your session limit. Pick a plan to continue.</p>
             </div>
-            <div className="bg-white/5 rounded-xl p-4 mb-5 border border-white/10">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-white/70 text-sm font-medium">Pro Plan</span>
-                <span className="text-2xl font-bold text-white">₹499</span>
+
+            <div className="space-y-2.5 mb-5">
+              {/* +50 sessions */}
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 flex items-center justify-between hover:border-violet-500/40 transition-colors">
+                <div>
+                  <p className="text-white font-semibold text-sm">+50 Sessions</p>
+                  <p className="text-white/40 text-xs mt-0.5">Cap becomes 80 sessions</p>
+                </div>
+                <button
+                  onClick={() => handleUpgrade('sessions_50')}
+                  disabled={isUpgrading}
+                  className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                >
+                  {isUpgrading && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                  ₹99
+                </button>
               </div>
-              <ul className="space-y-1.5 text-sm text-white/60">
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Unlimited game sessions
-                </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Unlimited AI question generation
-                </li>
-              </ul>
+
+              {/* +100 sessions */}
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 flex items-center justify-between hover:border-violet-500/40 transition-colors">
+                <div>
+                  <p className="text-white font-semibold text-sm">+100 Sessions</p>
+                  <p className="text-white/40 text-xs mt-0.5">Cap becomes 130 sessions</p>
+                </div>
+                <button
+                  onClick={() => handleUpgrade('sessions_100')}
+                  disabled={isUpgrading}
+                  className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                >
+                  {isUpgrading && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                  ₹179
+                </button>
+              </div>
+
+              {/* Unlimited */}
+              <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-3.5 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <p className="text-white font-semibold text-sm">Unlimited</p>
+                    <span className="text-[10px] bg-violet-500/30 text-violet-300 px-1.5 py-0.5 rounded-full font-bold">BEST</span>
+                  </div>
+                  <p className="text-white/40 text-xs">Sessions + AI — forever</p>
+                </div>
+                <button
+                  onClick={() => handleUpgrade('sessions_unlimited')}
+                  disabled={isUpgrading}
+                  className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                >
+                  {isUpgrading && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                  ₹299
+                </button>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setShowUpgradeModal(false); setUpgradePendingQuizId(null) }}
-                className="flex-1 py-2.5 bg-white/10 border border-white/15 rounded-xl text-white/70 text-sm font-semibold hover:bg-white/15 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpgrade}
-                disabled={isUpgrading}
-                className="flex-1 py-2.5 bg-violet-600 rounded-xl text-white text-sm font-bold hover:bg-violet-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isUpgrading && (
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                )}
-                {isUpgrading ? 'Processing...' : 'Upgrade — ₹499'}
-              </button>
-            </div>
+
+            <button
+              onClick={() => { setShowUpgradeModal(false); setUpgradePendingQuizId(null) }}
+              className="w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-white/50 text-sm hover:bg-white/10 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

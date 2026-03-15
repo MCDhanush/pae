@@ -94,7 +94,8 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isUnrestricted := middleware.IsUnrestrictedFromContext(r.Context())
-	session, err := h.service.CreateSession(r.Context(), quizID, teacherID, isUnrestricted)
+	extraSessions := middleware.ExtraSessionsFromContext(r.Context())
+	session, err := h.service.CreateSession(r.Context(), quizID, teacherID, isUnrestricted, extraSessions)
 	if err != nil {
 		if strings.Contains(err.Error(), "session limit reached") {
 			writeError(w, http.StatusPaymentRequired, err.Error())

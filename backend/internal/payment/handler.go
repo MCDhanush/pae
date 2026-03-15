@@ -1,4 +1,4 @@
-// Package payment provides Razorpay payment integration for pro plan upgrades.
+// Package payment provides Razorpay payment integration for tiered plan upgrades.
 package payment
 
 import (
@@ -16,15 +16,38 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const razorpayOrdersURL = "https://api.razorpay.com/v1/orders"
+
+// Plan types for the tiered pricing model.
 const (
-	razorpayOrdersURL = "https://api.razorpay.com/v1/orders"
-	// ProUpgradeAmount is ₹499 in paise (smallest Razorpay unit).
-	ProUpgradeAmount = 49900
+	PlanSessions50        = "sessions_50"        // +50 session cap
+	PlanSessions100       = "sessions_100"        // +100 session cap
+	PlanSessionsUnlimited = "sessions_unlimited"  // unlimited sessions + AI
+	PlanAI10              = "ai_10"               // +10 AI generation credits
+	PlanAI20              = "ai_20"               // +20 AI generation credits
 )
+
+// planDetails holds the amount (paise) and human description for each plan.
+type planDetail struct {
+	Amount      int64  // in paise (1 INR = 100 paise)
+	Description string
+}
+
+// plans maps plan_type → price + description. All prices in INR paise.
+// ₹99  = 9900   ₹179 = 17900   ₹299 = 29900   ₹49 = 4900   ₹79 = 7900
+var plans = map[string]planDetail{
+	PlanSessions50:        {9900, "50 extra game sessions"},
+	PlanSessions100:       {17900, "100 extra game sessions"},
+	PlanSessionsUnlimited: {29900, "Unlimited sessions & AI generation"},
+	PlanAI10:              {4900, "10 extra AI question generations"},
+	PlanAI20:              {7900, "20 extra AI question generations"},
+}
 
 // AuthService is the subset of auth.Service methods the payment handler needs.
 type AuthService interface {
 	SetPro(ctx context.Context, userID primitive.ObjectID) error
+	AddSessionCredits(ctx context.Context, userID primitive.ObjectID, credits int) error
+	AddAICredits(ctx context.Context, userID primitive.ObjectID, credits int) error
 	GetByID(ctx context.Context, id primitive.ObjectID) (*models.User, error)
 	GenerateToken(user *models.User) (string, error)
 }
@@ -46,7 +69,6 @@ func (h *Handler) IsConfigured() bool {
 	return h.keyID != "" && h.keySecret != ""
 }
 
-// helper: JSON response
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -58,8 +80,8 @@ func writeError(w http.ResponseWriter, status int, message string) {
 }
 
 // CreateOrder handles POST /api/payments/create-order.
-// Creates a Razorpay order for the pro plan upgrade and returns the order
-// details the frontend needs to open the Razorpay checkout dialog.
+// Body: { "plan_type": "sessions_50" | "sessions_100" | "sessions_unlimited" | "ai_10" | "ai_20" }
+// Returns: { order_id, amount, currency, key_id, plan_type, description }
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	if !h.IsConfigured() {
 		writeError(w, http.StatusServiceUnavailable, "payments not configured")
@@ -72,10 +94,28 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var body struct {
+		PlanType string `json:"plan_type"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.PlanType == "" {
+		writeError(w, http.StatusBadRequest, "plan_type is required")
+		return
+	}
+
+	plan, ok := plans[body.PlanType]
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid plan_type")
+		return
+	}
+
 	orderBody := map[string]interface{}{
-		"amount":   ProUpgradeAmount,
+		"amount":   plan.Amount,
 		"currency": "INR",
-		"receipt":  fmt.Sprintf("pae_pro_%s", userIDStr),
+		"receipt":  fmt.Sprintf("pae_%s_%s", body.PlanType, userIDStr),
+		"notes": map[string]string{
+			"plan_type": body.PlanType,
+			"user_id":   userIDStr,
+		},
 	}
 	bodyBytes, _ := json.Marshal(orderBody)
 
@@ -99,23 +139,24 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to parse Razorpay response")
 		return
 	}
-
 	if resp.StatusCode != http.StatusOK {
 		writeError(w, http.StatusInternalServerError, "Razorpay order creation failed")
 		return
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"order_id": rzpOrder["id"],
-		"amount":   ProUpgradeAmount,
-		"currency": "INR",
-		"key_id":   h.keyID,
+		"order_id":    rzpOrder["id"],
+		"amount":      plan.Amount,
+		"currency":    "INR",
+		"key_id":      h.keyID,
+		"plan_type":   body.PlanType,
+		"description": plan.Description,
 	})
 }
 
 // VerifyPayment handles POST /api/payments/verify.
-// Validates the Razorpay payment signature, upgrades the teacher to pro, and
-// returns a fresh JWT with is_pro: true so the frontend can update its token.
+// Validates the Razorpay signature, applies the purchased plan, and returns a
+// fresh JWT so the frontend can update its token immediately.
 func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	if !h.IsConfigured() {
 		writeError(w, http.StatusServiceUnavailable, "payments not configured")
@@ -132,13 +173,18 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 		PaymentID string `json:"razorpay_payment_id"`
 		OrderID   string `json:"razorpay_order_id"`
 		Signature string `json:"razorpay_signature"`
+		PlanType  string `json:"plan_type"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+	if _, ok := plans[req.PlanType]; !ok {
+		writeError(w, http.StatusBadRequest, "invalid plan_type")
+		return
+	}
 
-	// Verify HMAC-SHA256 signature: sign(order_id + "|" + payment_id)
+	// Verify HMAC-SHA256: sign(order_id + "|" + payment_id)
 	mac := hmac.New(sha256.New, []byte(h.keySecret))
 	mac.Write([]byte(req.OrderID + "|" + req.PaymentID))
 	expected := hex.EncodeToString(mac.Sum(nil))
@@ -153,18 +199,43 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authService.SetPro(r.Context(), userID); err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to upgrade account")
+	// Apply the purchased plan
+	switch req.PlanType {
+	case PlanSessions50:
+		err = h.authService.AddSessionCredits(r.Context(), userID, 50)
+	case PlanSessions100:
+		err = h.authService.AddSessionCredits(r.Context(), userID, 100)
+	case PlanSessionsUnlimited:
+		err = h.authService.SetPro(r.Context(), userID)
+	case PlanAI10:
+		err = h.authService.AddAICredits(r.Context(), userID, 10)
+	case PlanAI20:
+		err = h.authService.AddAICredits(r.Context(), userID, 20)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to apply plan")
 		return
 	}
 
-	// Fetch the updated user and issue a new JWT with is_pro: true
+	// Fetch updated user and issue a new JWT with updated credits/flags
 	user, err := h.authService.GetByID(r.Context(), userID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to fetch user")
 		return
 	}
-	user.IsPro = true // ensure flag is set even if DB propagation lags
+	// Ensure in-memory values reflect the DB update for the new token
+	switch req.PlanType {
+	case PlanSessions50:
+		user.ExtraSessions += 50
+	case PlanSessions100:
+		user.ExtraSessions += 100
+	case PlanSessionsUnlimited:
+		user.IsPro = true
+	case PlanAI10:
+		user.ExtraAI += 10
+	case PlanAI20:
+		user.ExtraAI += 20
+	}
 
 	token, err := h.authService.GenerateToken(user)
 	if err != nil {
@@ -173,8 +244,9 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"token":   token,
-		"message": "Account upgraded to Pro — session limit removed",
+		"success":   true,
+		"token":     token,
+		"plan_type": req.PlanType,
+		"message":   fmt.Sprintf("Plan activated: %s", plans[req.PlanType].Description),
 	})
 }

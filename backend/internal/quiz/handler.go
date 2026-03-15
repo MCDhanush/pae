@@ -562,6 +562,9 @@ func (h *Handler) GetAIUsage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	extraAI := middleware.ExtraAIFromContext(r.Context())
+	effectiveLimit := int64(ai.FreeQuotaLimit + extraAI)
+
 	quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
 	usedCount, err := h.redis.Client().Get(r.Context(), quotaKey).Int64()
 	if err != nil {
@@ -569,14 +572,14 @@ func (h *Handler) GetAIUsage(w http.ResponseWriter, r *http.Request) {
 		usedCount = 0
 	}
 
-	remaining := int64(ai.FreeQuotaLimit) - usedCount
+	remaining := effectiveLimit - usedCount
 	if remaining < 0 {
 		remaining = 0
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"used":      usedCount,
-		"limit":     ai.FreeQuotaLimit,
+		"limit":     effectiveLimit,
 		"remaining": remaining,
 		"unlimited": false,
 	})
@@ -634,16 +637,18 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 
 	// Admin and pro users have unlimited AI generations.
 	if !middleware.IsUnrestrictedFromContext(r.Context()) {
-		// Lifetime free quota: max FreeQuotaLimit total AI generation requests per teacher.
+		extraAI := middleware.ExtraAIFromContext(r.Context())
+		effectiveLimit := int64(ai.FreeQuotaLimit + extraAI)
+		// Lifetime quota: FreeQuotaLimit + any purchased extra credits.
 		quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
 		usedCount, redisErr := h.redis.Client().Incr(r.Context(), quotaKey).Result()
-		if redisErr == nil && usedCount > int64(ai.FreeQuotaLimit) {
+		if redisErr == nil && usedCount > effectiveLimit {
 			// Decrement back so the stored count stays accurate
 			_ = h.redis.Client().Decr(r.Context(), quotaKey)
 			writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
-				"error":            fmt.Sprintf("free AI quota exhausted — you have used all %d free generations", ai.FreeQuotaLimit),
-				"quota_used":       ai.FreeQuotaLimit,
-				"quota_limit":      ai.FreeQuotaLimit,
+				"error":            fmt.Sprintf("AI quota exhausted — you have used all %d generations", effectiveLimit),
+				"quota_used":       effectiveLimit,
+				"quota_limit":      effectiveLimit,
 				"upgrade_required": true,
 			})
 			return

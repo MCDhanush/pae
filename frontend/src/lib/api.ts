@@ -300,9 +300,27 @@ export const marketplaceAPI = {
 }
 
 // Payment API
+export type PlanType = 'sessions_50' | 'sessions_100' | 'sessions_unlimited' | 'ai_10' | 'ai_20'
+
+export const PLAN_LABELS: Record<PlanType, string> = {
+  sessions_50: '+50 Sessions',
+  sessions_100: '+100 Sessions',
+  sessions_unlimited: 'Unlimited Everything',
+  ai_10: '+10 AI Generations',
+  ai_20: '+20 AI Generations',
+}
+
+export const PLAN_PRICES: Record<PlanType, number> = {
+  sessions_50: 99,
+  sessions_100: 179,
+  sessions_unlimited: 299,
+  ai_10: 49,
+  ai_20: 79,
+}
+
 export const paymentAPI = {
-  createOrder: async (): Promise<{ order_id: string; amount: number; currency: string; key_id: string }> => {
-    const { data } = await api.post('/payments/create-order')
+  createOrder: async (planType: PlanType): Promise<{ order_id: string; amount: number; currency: string; key_id: string; plan_type: string; description: string }> => {
+    const { data } = await api.post('/payments/create-order', { plan_type: planType })
     return data
   },
 
@@ -310,7 +328,8 @@ export const paymentAPI = {
     razorpay_payment_id: string
     razorpay_order_id: string
     razorpay_signature: string
-  }): Promise<{ success: boolean; token: string; message: string }> => {
+    plan_type: PlanType
+  }): Promise<{ success: boolean; token: string; message: string; plan_type: string }> => {
     const { data } = await api.post('/payments/verify', payload)
     return data
   },

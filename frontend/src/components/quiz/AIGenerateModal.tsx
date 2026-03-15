@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Question } from '../../types'
-import { quizAPI } from '../../lib/api'
+import { quizAPI, paymentAPI, type PlanType } from '../../lib/api'
+import { useAuthStore } from '../../store/authStore'
 import clsx from 'clsx'
 
 type Phase = 'form' | 'loading' | 'preview'
@@ -297,10 +298,61 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
   // AI quota state
   const [aiUsage, setAIUsage] = useState<{ used: number; limit: number; remaining: number } | null>(null)
   const [upgradeRequired, setUpgradeRequired] = useState(false)
+  const [isUpgradingAI, setIsUpgradingAI] = useState(false)
 
   useEffect(() => {
     quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
   }, [])
+
+  const handleAIUpgrade = async (planType: PlanType) => {
+    setIsUpgradingAI(true)
+    try {
+      if (!(window as unknown as { Razorpay?: unknown }).Razorpay) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+          script.onload = () => resolve()
+          script.onerror = () => reject(new Error('Failed to load Razorpay SDK'))
+          document.head.appendChild(script)
+        })
+      }
+      const order = await paymentAPI.createOrder(planType)
+      await new Promise<void>((resolve, reject) => {
+        const RazorpayConstructor = (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay
+        const rzp = new RazorpayConstructor({
+          key: order.key_id,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.order_id,
+          name: 'PAE',
+          description: order.description,
+          handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
+            try {
+              const result = await paymentAPI.verifyPayment({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                plan_type: planType,
+              })
+              localStorage.setItem('auth_token', result.token)
+              await useAuthStore.getState().loadUser()
+              // Refresh usage count
+              quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+              setUpgradeRequired(false)
+              resolve()
+            } catch (e) { reject(e) }
+          },
+          modal: { ondismiss: () => reject(new Error('cancelled')) },
+          theme: { color: '#7c3aed' },
+        })
+        rzp.open()
+      })
+    } catch (err: unknown) {
+      if ((err as Error).message !== 'cancelled') console.error('AI upgrade failed:', err)
+    } finally {
+      setIsUpgradingAI(false)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -555,27 +607,26 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 shrink-0">
           {phase === 'form' && (upgradeRequired || (aiUsage !== null && aiUsage.remaining === 0)) ? (
-            <div className="space-y-2.5">
-              <div className="flex items-start gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
-                <svg className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <div>
-                  <p className="text-amber-200 text-xs font-bold">Free quota exhausted</p>
-                  <p className="text-amber-200/60 text-[11px] mt-0.5">
-                    You've used all {aiUsage?.limit ?? 5} free AI generations. Upgrade your plan to generate more questions.
-                  </p>
-                </div>
+            <div className="space-y-2">
+              <p className="text-xs text-white/40 text-center mb-1">AI quota exhausted — buy more generations</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleAIUpgrade('ai_10')}
+                  disabled={isUpgradingAI}
+                  className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                >
+                  {isUpgradingAI && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                  +10 gens — ₹49
+                </button>
+                <button
+                  onClick={() => handleAIUpgrade('ai_20')}
+                  disabled={isUpgradingAI}
+                  className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                >
+                  {isUpgradingAI && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                  +20 gens — ₹79
+                </button>
               </div>
-              <button
-                disabled
-                className="w-full py-3.5 bg-white/5 border border-white/10 text-white/25 font-black rounded-2xl text-sm cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Upgrade Required
-              </button>
             </div>
           ) : phase === 'form' ? (
             <button

@@ -54,11 +54,29 @@ func (r *Repository) FindByID(ctx context.Context, id primitive.ObjectID) (*mode
 	return &user, nil
 }
 
-// SetPro marks the user as a pro subscriber.
+// SetPro marks the user as a pro subscriber (unlimited sessions + AI).
 func (r *Repository) SetPro(ctx context.Context, id primitive.ObjectID) error {
 	_, err := r.col.UpdateOne(ctx,
 		bson.M{"_id": id},
 		bson.M{"$set": bson.M{"is_pro": true}},
+	)
+	return err
+}
+
+// AddSessionCredits increments the user's extra_sessions counter by credits.
+func (r *Repository) AddSessionCredits(ctx context.Context, id primitive.ObjectID, credits int) error {
+	_, err := r.col.UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$inc": bson.M{"extra_sessions": credits}},
+	)
+	return err
+}
+
+// AddAICredits increments the user's extra_ai counter by credits.
+func (r *Repository) AddAICredits(ctx context.Context, id primitive.ObjectID, credits int) error {
+	_, err := r.col.UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$inc": bson.M{"extra_ai": credits}},
 	)
 	return err
 }

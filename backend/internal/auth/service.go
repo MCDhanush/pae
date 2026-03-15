@@ -109,9 +109,19 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, *m
 	return token, user, nil
 }
 
-// SetPro upgrades the user to the pro plan.
+// SetPro upgrades the user to the unlimited plan.
 func (s *Service) SetPro(ctx context.Context, userID primitive.ObjectID) error {
 	return s.repo.SetPro(ctx, userID)
+}
+
+// AddSessionCredits adds extra session cap credits for a user.
+func (s *Service) AddSessionCredits(ctx context.Context, userID primitive.ObjectID, credits int) error {
+	return s.repo.AddSessionCredits(ctx, userID, credits)
+}
+
+// AddAICredits adds extra AI generation credits for a user.
+func (s *Service) AddAICredits(ctx context.Context, userID primitive.ObjectID, credits int) error {
+	return s.repo.AddAICredits(ctx, userID, credits)
 }
 
 // UpdateProfile updates a user's profile data and optionally changes password.
@@ -156,10 +166,12 @@ func (s *Service) UpdateProfile(ctx context.Context, userID primitive.ObjectID, 
 // extra DB lookups.
 func (s *Service) GenerateToken(user *models.User) (string, error) {
 	claims := middleware.Claims{
-		UserID:  user.ID.Hex(),
-		Role:    user.Role,
-		IsPro:   user.IsPro,
-		IsAdmin: user.IsAdmin,
+		UserID:        user.ID.Hex(),
+		Role:          user.Role,
+		IsPro:         user.IsPro,
+		IsAdmin:       user.IsAdmin,
+		ExtraSessions: user.ExtraSessions,
+		ExtraAI:       user.ExtraAI,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
