@@ -349,6 +349,9 @@ useEffect(() => {
               <Link to="/join" className="text-sm font-medium text-gray-500 hover:text-violet-600 transition-colors">
                 Join Game
               </Link>
+              <Link to="/docs" className="text-sm font-medium text-gray-500 hover:text-violet-600 transition-colors">
+                Docs
+              </Link>
               {token ? (
                 <button
                   onClick={() => navigate('/dashboard')}
@@ -402,6 +405,10 @@ useEffect(() => {
             <Link to="/join" onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-sm font-medium text-gray-600 hover:text-violet-600">
               Join Game
+            </Link>
+            <Link to="/docs" onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-gray-600 hover:text-violet-600">
+              Docs
             </Link>
             {token ? (
               <button onClick={() => { setMobileMenuOpen(false); navigate('/dashboard') }}
@@ -715,6 +722,7 @@ useEffect(() => {
               <Link to="/join" className="hover:text-gray-200 transition-colors">Join Game</Link>
               <Link to="/login" className="hover:text-gray-200 transition-colors">Sign In</Link>
               <Link to="/register" className="hover:text-gray-200 transition-colors">Register</Link>
+              <Link to="/docs" className="hover:text-gray-200 transition-colors">Docs</Link>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-gray-800 text-center">
