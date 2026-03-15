@@ -4,8 +4,9 @@ import gsap from 'gsap'
 import clsx from 'clsx'
 import type { Quiz, Question } from '../../types'
 import PAELogo from '../../components/ui/PAELogo'
+import { useAuthStore } from '../../store/authStore'
 
-const PREVIEW_LIMIT = 4
+const STUDENT_PREVIEW_LIMIT = 4
 
 const CATEGORY_COLORS: Record<string, string> = {
   Science: 'from-emerald-500 to-teal-600',
@@ -108,13 +109,13 @@ export default function QuizPreviewPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuthStore()
 
   // Quiz is passed via navigation state from MarketplacePage
   const quiz = location.state?.quiz as Quiz | undefined
 
   useEffect(() => {
     if (!quiz) {
-      // No quiz in state — go back to marketplace
       navigate('/marketplace', { replace: true })
       return
     }
@@ -128,8 +129,10 @@ export default function QuizPreviewPage() {
 
   if (!quiz) return null
 
-  const previewQuestions = quiz.questions.slice(0, PREVIEW_LIMIT)
-  const hiddenCount = Math.max(0, quiz.questions.length - PREVIEW_LIMIT)
+  const isTeacher = user?.role === 'teacher'
+  // Teachers see all questions; students/guests see only the first STUDENT_PREVIEW_LIMIT
+  const previewQuestions = isTeacher ? quiz.questions : quiz.questions.slice(0, STUDENT_PREVIEW_LIMIT)
+  const hiddenCount = isTeacher ? 0 : Math.max(0, quiz.questions.length - STUDENT_PREVIEW_LIMIT)
   const gradient = getCategoryGradient(quiz.category)
 
   return (
@@ -192,29 +195,41 @@ export default function QuizPreviewPage() {
           </div>
         </div>
 
-        {/* Preview banner + Play Now CTA */}
-        <div className="preview-item flex items-center justify-between gap-3 px-4 py-3 bg-amber-400/10 border border-amber-400/20 rounded-2xl">
-          <div className="flex items-center gap-2 min-w-0">
-            <svg className="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        {/* Access banner */}
+        {isTeacher ? (
+          <div className="preview-item flex items-center gap-3 px-4 py-3 bg-emerald-400/10 border border-emerald-400/20 rounded-2xl">
+            <svg className="w-4 h-4 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <p className="text-amber-200/80 text-xs">
-              Showing <span className="font-bold text-amber-300">{previewQuestions.length}</span> of{' '}
-              <span className="font-bold text-amber-300">{quiz.questions.length}</span> questions.
+            <p className="text-emerald-200/80 text-xs">
+              <span className="font-bold text-emerald-300">Teacher access</span> — viewing all{' '}
+              <span className="font-bold text-emerald-300">{quiz.questions.length}</span> questions.
             </p>
           </div>
-          <button
-            onClick={() => navigate(`/marketplace/${quiz.id}/play`, { state: { quiz } })}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-[0.97] transition-all shadow-lg shadow-violet-500/20"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Play Now
-          </button>
-        </div>
+        ) : (
+          <div className="preview-item flex items-center justify-between gap-3 px-4 py-3 bg-amber-400/10 border border-amber-400/20 rounded-2xl">
+            <div className="flex items-center gap-2 min-w-0">
+              <svg className="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <p className="text-amber-200/80 text-xs">
+                Showing <span className="font-bold text-amber-300">{previewQuestions.length}</span> of{' '}
+                <span className="font-bold text-amber-300">{quiz.questions.length}</span> questions.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/marketplace/${quiz.id}/play`, { state: { quiz } })}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-[0.97] transition-all shadow-lg shadow-violet-500/20"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Play Now
+            </button>
+          </div>
+        )}
 
         {/* Visible questions */}
         {previewQuestions.map((q, i) => (
@@ -235,7 +250,7 @@ export default function QuizPreviewPage() {
               >
                 <div className="flex items-center gap-2">
                   <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs font-black text-white/40">
-                    {PREVIEW_LIMIT + i + 1}
+                    {STUDENT_PREVIEW_LIMIT + i + 1}
                   </span>
                   <div className="w-40 h-3 bg-white/10 rounded-full" />
                 </div>
@@ -270,8 +285,8 @@ export default function QuizPreviewPage() {
           </div>
         )}
 
-        {/* Bottom CTA if all questions are visible (≤ PREVIEW_LIMIT) */}
-        {hiddenCount === 0 && (
+        {/* Bottom CTA — students only, shown when all preview questions are visible */}
+        {hiddenCount === 0 && !isTeacher && (
           <div className="preview-item bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
             <p className="text-white/40 text-sm mb-3">
               Practise all questions solo — no PIN needed!
