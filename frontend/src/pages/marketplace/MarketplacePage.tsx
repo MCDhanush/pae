@@ -226,7 +226,11 @@ export default function MarketplacePage() {
                 {/* Gradient top bar */}
                 <div className={`h-1.5 bg-gradient-to-r ${getCategoryGradient(quiz.category)}`} />
 
-                <div className="p-5">
+                {/* Clickable content area → preview page */}
+                <button
+                  onClick={() => navigate(`/marketplace/${quiz.id}`, { state: { quiz } })}
+                  className="w-full text-left p-5 pb-3 block"
+                >
                   {/* Category + usage */}
                   <div className="flex items-center justify-between mb-3">
                     {quiz.category ? (
@@ -249,7 +253,7 @@ export default function MarketplacePage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-bold text-white text-base leading-snug mb-1 line-clamp-2">
+                  <h3 className="font-bold text-white text-base leading-snug mb-1 line-clamp-2 group-hover:text-violet-200 transition-colors">
                     {quiz.title}
                   </h3>
 
@@ -261,17 +265,32 @@ export default function MarketplacePage() {
                   )}
 
                   {/* Meta row */}
-                  <div className="flex items-center justify-between text-[10px] text-white/30 mb-4">
+                  <div className="flex items-center justify-between text-[10px] text-white/30">
                     <span>{quiz.questions.length} question{quiz.questions.length !== 1 ? 's' : ''}</span>
                     {quiz.teacher_name && <span>by {quiz.teacher_name}</span>}
                   </div>
+                </button>
 
-                  {/* CTA */}
-                  {user?.role === 'teacher' ? (
+                {/* CTA row */}
+                <div className="px-5 pb-5 pt-2 flex gap-2">
+                  {/* Preview button – always visible */}
+                  <button
+                    onClick={() => navigate(`/marketplace/${quiz.id}`, { state: { quiz } })}
+                    className="flex-1 py-2.5 rounded-2xl text-xs font-semibold bg-white/8 border border-white/12 text-white/60 hover:bg-white/12 hover:text-white/80 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Preview
+                  </button>
+
+                  {/* Import – teachers only */}
+                  {user?.role === 'teacher' && (
                     <button
                       onClick={() => handleImport(quiz)}
                       disabled={importingId === quiz.id || importedIds.has(quiz.id)}
-                      className={`w-full py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      className={`flex-1 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                         importedIds.has(quiz.id)
                           ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 cursor-default'
                           : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 disabled:opacity-60'
@@ -298,12 +317,6 @@ export default function MarketplacePage() {
                         </>
                       )}
                     </button>
-                  ) : (
-                    <div className="w-full py-2.5 rounded-2xl text-xs font-semibold text-center bg-white/5 border border-white/10 text-white/40">
-                      {user ? 'Teachers can import this quiz' : (
-                        <Link to="/login" className="text-violet-400 hover:underline">Login to import</Link>
-                      )}
-                    </div>
                   )}
                 </div>
               </div>
