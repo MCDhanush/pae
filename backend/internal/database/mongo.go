@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -50,6 +51,45 @@ func NewDatabase(ctx context.Context, mongoURI string) (*Database, error) {
 // Close disconnects from MongoDB.
 func (d *Database) Close(ctx context.Context) error {
 	return d.client.Disconnect(ctx)
+}
+
+// EnsureIndexes creates all indexes required for the application. It is
+// idempotent — MongoDB silently ignores indexes that already exist.
+func (d *Database) EnsureIndexes(ctx context.Context) error {
+	type indexSpec struct {
+		collection string
+		keys       bson.D
+		unique     bool
+	}
+
+	specs := []indexSpec{
+		// users — fast login / auth lookup
+		{collUsers, bson.D{{Key: "email", Value: 1}}, true},
+
+		// quizzes — teacher dashboard & marketplace queries
+		{collQuizzes, bson.D{{Key: "teacher_id", Value: 1}}, false},
+		{collQuizzes, bson.D{{Key: "is_public", Value: 1}, {Key: "category", Value: 1}}, false},
+
+		// quiz_sessions — join by PIN, teacher history, quiz analytics
+		{collQuizSessions, bson.D{{Key: "pin", Value: 1}}, true},
+		{collQuizSessions, bson.D{{Key: "teacher_id", Value: 1}}, false},
+		{collQuizSessions, bson.D{{Key: "quiz_id", Value: 1}}, false},
+
+		// players — per-session leaderboard & answer lookup
+		{collPlayers, bson.D{{Key: "session_id", Value: 1}}, false},
+		{collPlayers, bson.D{{Key: "user_id", Value: 1}}, false},
+	}
+
+	for _, s := range specs {
+		idxModel := mongo.IndexModel{
+			Keys: s.keys,
+			Options: options.Index().SetUnique(s.unique).SetBackground(true),
+		}
+		if _, err := d.db.Collection(s.collection).Indexes().CreateOne(ctx, idxModel); err != nil {
+			return fmt.Errorf("ensure index on %s: %w", s.collection, err)
+		}
+	}
+	return nil
 }
 
 // Client returns the underlying mongo.Client.

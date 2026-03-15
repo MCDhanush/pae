@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pae/backend/internal/database"
 	"github.com/pae/backend/internal/events"
 	"github.com/pae/backend/internal/models"
 	"github.com/pae/backend/internal/utils"
@@ -41,6 +42,7 @@ type Service struct {
 	quizRepo     QuizFinder
 	playerFinder PlayerFinder // for building leaderboards
 	publisher    events.Publisher
+	redis        *database.RedisClient
 	logger       *zap.Logger
 
 	// Per-room question timer cancellation functions.
@@ -54,6 +56,7 @@ func NewService(
 	quizRepo QuizFinder,
 	playerFinder PlayerFinder,
 	publisher events.Publisher,
+	redis *database.RedisClient,
 	logger *zap.Logger,
 ) *Service {
 	return &Service{
@@ -61,6 +64,7 @@ func NewService(
 		quizRepo:     quizRepo,
 		playerFinder: playerFinder,
 		publisher:    publisher,
+		redis:        redis,
 		logger:       logger,
 		roomTimers:   make(map[string]context.CancelFunc),
 	}
@@ -356,6 +360,37 @@ func (s *Service) cancelRoomTimer(pin string) {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 func (s *Service) broadcastLeaderboard(ctx context.Context, pin string, sessionID primitive.ObjectID) {
+	// Try the Redis sorted set first (written by player.Service on every answer).
+	// This avoids a MongoDB read on every question-end event.
+	if s.redis != nil {
+		scoresKey := fmt.Sprintf("room:%s:scores", pin)
+		zEntries, err := s.redis.ZRevRangeWithScores(ctx, scoresKey, 100)
+		if err == nil && len(zEntries) > 0 {
+			entries := make([]events.LeaderboardEntry, len(zEntries))
+			for i, z := range zEntries {
+				// Member format: "playerID:nickname"
+				member := z.Member.(string)
+				var playerID, nickname string
+				if idx := strings.Index(member, ":"); idx >= 0 {
+					playerID = member[:idx]
+					nickname = member[idx+1:]
+				} else {
+					playerID = member
+				}
+				entries[i] = events.LeaderboardEntry{
+					PlayerID: playerID,
+					Nickname: nickname,
+					Score:    int(z.Score),
+					Rank:     i + 1,
+				}
+			}
+			_ = s.publisher.Publish(ctx, events.BroadcastTopic(pin), events.EventLeaderboard,
+				events.LeaderboardPayload{Entries: entries})
+			return
+		}
+	}
+
+	// Fallback: fetch from MongoDB (e.g. Redis unavailable or no entries yet).
 	players, err := s.playerFinder.FindBySessionID(ctx, sessionID)
 	if err != nil {
 		s.logger.Error("broadcastLeaderboard: fetch failed", zap.Error(err))

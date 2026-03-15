@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -543,6 +542,34 @@ func evalAnswer(q *models.Question, answer string) (bool, string) {
 	return false, ""
 }
 
+// GetAIUsage handles GET /api/quizzes/ai/usage.
+// Returns how many of the free AI generation quota the teacher has used.
+func (h *Handler) GetAIUsage(w http.ResponseWriter, r *http.Request) {
+	teacherID, ok := teacherIDFromContext(r)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
+	usedCount, err := h.redis.Client().Get(r.Context(), quotaKey).Int64()
+	if err != nil {
+		// Key doesn't exist yet — no uses consumed
+		usedCount = 0
+	}
+
+	remaining := int64(ai.FreeQuotaLimit) - usedCount
+	if remaining < 0 {
+		remaining = 0
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"used":      usedCount,
+		"limit":     ai.FreeQuotaLimit,
+		"remaining": remaining,
+	})
+}
+
 // GenerateQuestions handles POST /api/quizzes/ai/generate.
 // Teacher-only. Calls Gemini 1.5 Flash to generate quiz questions and returns
 // them for review — questions are NOT saved until the teacher saves the quiz.
@@ -593,20 +620,20 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 		req.Count = ai.MaxQuestionsPerRequest
 	}
 
-	// Rate limit: max DailyRequestLimit requests per teacher per day
-	rateLimitKey := fmt.Sprintf("ai:ratelimit:%s", teacherID.Hex())
-	dateField := time.Now().Format("2006-01-02")
-	dayCount, err := h.redis.HIncrBy(r.Context(), rateLimitKey, dateField, 1)
-	if err == nil {
-		if dayCount == 1 {
-			// First hit today — set TTL so the key expires automatically
-			_ = h.redis.Client().Expire(r.Context(), rateLimitKey, 25*time.Hour)
-		}
-		if dayCount > int64(ai.DailyRequestLimit) {
-			writeError(w, http.StatusTooManyRequests,
-				fmt.Sprintf("daily AI generation limit reached (%d/day)", ai.DailyRequestLimit))
-			return
-		}
+	// Lifetime free quota: max FreeQuotaLimit total AI generation requests per teacher.
+	// Uses a persistent Redis counter — no expiry, so it tracks cumulative lifetime usage.
+	quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
+	usedCount, redisErr := h.redis.Client().Incr(r.Context(), quotaKey).Result()
+	if redisErr == nil && usedCount > int64(ai.FreeQuotaLimit) {
+		// Decrement back so the stored count stays accurate (this request was not served)
+		_ = h.redis.Client().Decr(r.Context(), quotaKey)
+		writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
+			"error":            fmt.Sprintf("free AI quota exhausted — you have used all %d free generations", ai.FreeQuotaLimit),
+			"quota_used":       ai.FreeQuotaLimit,
+			"quota_limit":      ai.FreeQuotaLimit,
+			"upgrade_required": true,
+		})
+		return
 	}
 	// Fail-open: if Redis is unavailable, allow the request through
 

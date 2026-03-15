@@ -58,6 +58,12 @@ func main() {
 	defer db.Close(context.Background()) //nolint:errcheck
 	logger.Info("connected to MongoDB")
 
+	if err := db.EnsureIndexes(ctx); err != nil {
+		logger.Warn("failed to ensure MongoDB indexes", zap.Error(err))
+	} else {
+		logger.Info("MongoDB indexes ensured")
+	}
+
 	redisClient, err := database.NewRedisClient(ctx, cfg.RedisURL, cfg.RedisToken)
 	if err != nil {
 		logger.Fatal("failed to connect to Redis", zap.Error(err))
@@ -109,7 +115,7 @@ func main() {
 	// -------------------------------------------------------------------------
 	authService := auth.NewService(authRepo, cfg.JWTSecret)
 	quizService := quiz.NewService(quizRepo)
-	gameService := game.NewService(gameRepo, quizRepo, playerRepo, mqttPublisher, logger)
+	gameService := game.NewService(gameRepo, quizRepo, playerRepo, mqttPublisher, redisClient, logger)
 	playerService := player.NewService(playerRepo, gameService, quizRepo, mqttPublisher, redisClient)
 	playerService.WithSessionByIDFinder(gameRepo)
 
@@ -186,6 +192,7 @@ func main() {
 				r.Get("/", quizHandler.ListQuizzes)
 				// Fixed-path routes must be before /{id} pattern
 				r.Post("/images", quizHandler.UploadImageGeneral)
+				r.Get("/ai/usage", quizHandler.GetAIUsage)
 				r.Post("/ai/generate", quizHandler.GenerateQuestions)
 			})
 			r.Get("/{id}", quizHandler.GetQuiz)

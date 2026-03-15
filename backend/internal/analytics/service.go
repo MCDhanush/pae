@@ -249,25 +249,29 @@ func (s *Service) GetQuizAnalytics(ctx context.Context, quizIDHex, teacherIDHex 
 		qAccumMap[q.ID] = &qAccum{}
 	}
 
-	for _, sess := range allSessions {
-		// Fetch players for this session.
-		pCursor, pErr := s.players.Find(ctx, bson.M{"session_id": sess.ID})
-		if pErr != nil {
-			continue
-		}
-		var sessionPlayers []models.Player
-		_ = pCursor.All(ctx, &sessionPlayers)
-		pCursor.Close(ctx)
+	// Collect all session IDs and bulk-fetch all players in one query.
+	sessionIDs := make([]primitive.ObjectID, len(allSessions))
+	for i, sess := range allSessions {
+		sessionIDs[i] = sess.ID
+	}
 
-		totalPlayers += len(sessionPlayers)
-		for _, p := range sessionPlayers {
-			totalScoreSum += float64(p.Score)
-			for _, a := range p.Answers {
-				if acc, ok := qAccumMap[a.QuestionID]; ok {
-					acc.total++
-					if a.IsCorrect {
-						acc.correct++
-					}
+	var allPlayers []models.Player
+	if len(sessionIDs) > 0 {
+		pCursor, pErr := s.players.Find(ctx, bson.M{"session_id": bson.M{"$in": sessionIDs}})
+		if pErr == nil {
+			_ = pCursor.All(ctx, &allPlayers)
+			pCursor.Close(ctx)
+		}
+	}
+
+	for _, p := range allPlayers {
+		totalPlayers++
+		totalScoreSum += float64(p.Score)
+		for _, a := range p.Answers {
+			if acc, ok := qAccumMap[a.QuestionID]; ok {
+				acc.total++
+				if a.IsCorrect {
+					acc.correct++
 				}
 			}
 		}
@@ -316,13 +320,7 @@ func (s *Service) GetOverview(ctx context.Context, teacherIDHex string) (*Overvi
 		return nil, fmt.Errorf("count quizzes: %w", err)
 	}
 
-	// Count teacher's sessions.
-	totalSessions, err := s.sessions.CountDocuments(ctx, bson.M{"teacher_id": teacherOID})
-	if err != nil {
-		return nil, fmt.Errorf("count sessions: %w", err)
-	}
-
-	// Find all sessions to compute students and avg score.
+	// Find all sessions — derive the count from the slice to avoid a redundant CountDocuments.
 	sessionsCursor, err := s.sessions.Find(ctx, bson.M{"teacher_id": teacherOID})
 	if err != nil {
 		return nil, fmt.Errorf("sessions query: %w", err)
@@ -333,6 +331,7 @@ func (s *Service) GetOverview(ctx context.Context, teacherIDHex string) (*Overvi
 	if err := sessionsCursor.All(ctx, &allSessions); err != nil {
 		return nil, fmt.Errorf("decode sessions: %w", err)
 	}
+	totalSessions := int64(len(allSessions))
 
 	var totalStudents int64
 	var totalScoreSum float64
@@ -346,28 +345,29 @@ func (s *Service) GetOverview(ctx context.Context, teacherIDHex string) (*Overvi
 		monthlyMap[label] = 0
 	}
 
+	// Bucket sessions into monthly map in a single pass.
 	for _, sess := range allSessions {
-		// Count players.
-		pCount, pErr := s.players.CountDocuments(ctx, bson.M{"session_id": sess.ID})
-		if pErr == nil {
-			totalStudents += pCount
-		}
-
-		// Sum scores.
-		pCursor, pErr := s.players.Find(ctx, bson.M{"session_id": sess.ID})
-		if pErr == nil {
-			var sessionPlayers []models.Player
-			_ = pCursor.All(ctx, &sessionPlayers)
-			pCursor.Close(ctx)
-			for _, p := range sessionPlayers {
-				totalScoreSum += float64(p.Score)
-			}
-		}
-
-		// Monthly bucket.
 		label := sess.CreatedAt.UTC().Format("2006-01")
 		if _, ok := monthlyMap[label]; ok {
 			monthlyMap[label]++
+		}
+	}
+
+	// Bulk-fetch all players for all sessions in one query instead of 2N queries.
+	overviewSessionIDs := make([]primitive.ObjectID, len(allSessions))
+	for i, sess := range allSessions {
+		overviewSessionIDs[i] = sess.ID
+	}
+	if len(overviewSessionIDs) > 0 {
+		pCursor, pErr := s.players.Find(ctx, bson.M{"session_id": bson.M{"$in": overviewSessionIDs}})
+		if pErr == nil {
+			var allPlayers []models.Player
+			_ = pCursor.All(ctx, &allPlayers)
+			pCursor.Close(ctx)
+			totalStudents = int64(len(allPlayers))
+			for _, p := range allPlayers {
+				totalScoreSum += float64(p.Score)
+			}
 		}
 	}
 

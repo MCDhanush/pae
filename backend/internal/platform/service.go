@@ -43,8 +43,10 @@ func NewService(
 	}
 }
 
+const statsTTL = 5 * time.Minute
+
 // GetStats returns the latest platform statistics. If no stats document
-// exists, it computes them from the source collections and upserts one.
+// exists, or the cached one is older than statsTTL, it recomputes and upserts.
 func (s *Service) GetStats(ctx context.Context) (*models.PlatformStats, error) {
 	// Try cached document first.
 	var stats models.PlatformStats
@@ -53,7 +55,12 @@ func (s *Service) GetStats(ctx context.Context) (*models.PlatformStats, error) {
 		return nil, fmt.Errorf("platform stats find: %w", err)
 	}
 
-	// Recompute regardless to keep things fresh.
+	// Return cached value if it is still fresh.
+	if err == nil && time.Since(stats.UpdatedAt) < statsTTL {
+		return &stats, nil
+	}
+
+	// Recompute from source collections.
 	totalQuizzes, err := s.quizRepo.Count(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("platform stats count quizzes: %w", err)

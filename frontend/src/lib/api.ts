@@ -123,6 +123,11 @@ export const quizAPI = {
     const { data } = await api.post<Question[]>('/quizzes/ai/generate', payload)
     return data
   },
+
+  getAIUsage: async (): Promise<{ used: number; limit: number; remaining: number }> => {
+    const { data } = await api.get<{ used: number; limit: number; remaining: number }>('/quizzes/ai/usage')
+    return data
+  },
 }
 
 // Game / Session API
