@@ -299,7 +299,7 @@ func (s *Service) pushQuestion(ctx context.Context, pin string, idx int) {
 		events.QuestionStartPayload{
 			QuestionIndex:  idx,
 			TotalQuestions: len(quiz.Questions),
-			Question:       q,
+			Question:       q.Sanitize(), // strip correct-answer data from broadcast
 			TimeLimit:      q.TimeLimit,
 		})
 

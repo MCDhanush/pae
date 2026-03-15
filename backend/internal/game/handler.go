@@ -213,6 +213,8 @@ func (h *Handler) GetCurrentQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Strip correct-answer data before sending to students/players
+	resp.Question = resp.Question.Sanitize()
 	writeJSON(w, http.StatusOK, resp)
 }
 

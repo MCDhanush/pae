@@ -276,6 +276,11 @@ export const marketplaceAPI = {
   publish: async (quizId: string, isPublic: boolean): Promise<void> => {
     await api.put(`/quizzes/${quizId}/publish`, { is_public: isPublic })
   },
+
+  checkAnswer: async (quizId: string, questionId: string, answer: string): Promise<{ is_correct: boolean; correct_answer: string; points: number }> => {
+    const { data } = await api.post(`/marketplace/${quizId}/check-answer`, { question_id: questionId, answer })
+    return data
+  },
 }
 
 export default api

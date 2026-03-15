@@ -200,6 +200,7 @@ func main() {
 		// Marketplace – public browse, auth required for copy
 		r.Route("/marketplace", func(r chi.Router) {
 			r.Get("/", quizHandler.ListMarketplace)
+			r.Post("/{id}/check-answer", quizHandler.SoloCheckAnswer)
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireTeacher(cfg.JWTSecret))
 				r.Post("/{id}/copy", quizHandler.CopyMarketplaceQuiz)

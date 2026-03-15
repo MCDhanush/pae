@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import clsx from 'clsx'
 import type { Quiz, Question } from '../../types'
+import { marketplaceAPI } from '../../lib/api'
 
 type Phase = 'intro' | 'question' | 'revealed' | 'finished'
 
@@ -36,18 +37,8 @@ const ANSWER_COLORS = [
   },
 ]
 
-function checkAnswer(q: Question, answer: string): boolean {
-  if (q.type === 'multiple_choice' || q.type === 'image_based' || q.type === 'true_false') {
-    return q.options?.find(o => o.id === answer)?.is_right ?? false
-  }
-  if (q.type === 'fill_blank') {
-    return answer.trim().toLowerCase() === (q.answer ?? '').trim().toLowerCase()
-  }
-  return false
-}
-
 export default function SoloPlayPage() {
-  const { id: _id } = useParams<{ id: string }>()
+  const { id: quizId } = useParams<{ id: string }>()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -62,7 +53,9 @@ export default function SoloPlayPage() {
   const [score, setScore] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [timeRemaining, setTimeRemaining] = useState(0)
+  const [correctAnswerID, setCorrectAnswerID] = useState<string>('')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeRemainingRef = useRef(0)
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
@@ -75,41 +68,50 @@ export default function SoloPlayPage() {
 
   const currentQ: Question | undefined = quiz?.questions[qIndex]
 
-  const handleReveal = useCallback((answer: string, timeLeft: number) => {
+  const revealWithAPI = useCallback(async (q: Question, answer: string, timeLeft: number) => {
     stopTimer()
-    const q = quiz!.questions[qIndex]
-    const correct = checkAnswer(q, answer)
-    const pts = correct ? Math.max(50, Math.round(q.points * (timeLeft / q.time_limit))) : 0
-    setIsCorrect(correct)
-    setPointsEarned(pts)
-    if (correct) {
-      setScore(s => s + pts)
-      setCorrectCount(c => c + 1)
+    try {
+      const result = await marketplaceAPI.checkAnswer(quizId!, q.id, answer)
+      const pts = result.is_correct ? Math.max(50, Math.round(result.points * (timeLeft / q.time_limit))) : 0
+      setIsCorrect(result.is_correct)
+      setPointsEarned(pts)
+      setCorrectAnswerID(result.correct_answer)
+      if (result.is_correct) {
+        setScore(s => s + pts)
+        setCorrectCount(c => c + 1)
+      }
+    } catch {
+      setIsCorrect(false)
+      setPointsEarned(0)
+      setCorrectAnswerID('')
     }
     setPhase('revealed')
-  }, [quiz, qIndex, stopTimer])
+  }, [quizId, stopTimer])
+
+  const handleReveal = useCallback((answer: string, timeLeft: number) => {
+    const q = quiz!.questions[qIndex]
+    void revealWithAPI(q, answer, timeLeft)
+  }, [quiz, qIndex, revealWithAPI])
 
   const startQuestion = useCallback((idx: number) => {
     const q = quiz!.questions[idx]
     setSelected(null)
     setFillInput('')
+    setCorrectAnswerID('')
     setTimeRemaining(q.time_limit)
+    timeRemainingRef.current = q.time_limit
     setPhase('question')
     timerRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          // Time's up — auto-reveal with no answer
-          clearInterval(timerRef.current!)
-          timerRef.current = null
-          setIsCorrect(false)
-          setPointsEarned(0)
-          setPhase('revealed')
-          return 0
-        }
-        return prev - 1
-      })
+      timeRemainingRef.current -= 1
+      setTimeRemaining(timeRemainingRef.current)
+      if (timeRemainingRef.current <= 0) {
+        clearInterval(timerRef.current!)
+        timerRef.current = null
+        // Time's up — reveal with empty answer to get correct_answer from backend
+        void revealWithAPI(q, '', 0)
+      }
     }, 1000)
-  }, [quiz])
+  }, [quiz, revealWithAPI])
 
   const handleNext = useCallback(() => {
     const total = quiz!.questions.length
@@ -124,12 +126,12 @@ export default function SoloPlayPage() {
   const handleSelectOption = (optId: string) => {
     if (phase !== 'question' || selected) return
     setSelected(optId)
-    handleReveal(optId, timeRemaining)
+    handleReveal(optId, timeRemainingRef.current)
   }
 
   const handleSubmitFill = () => {
     if (phase !== 'question' || !fillInput.trim()) return
-    handleReveal(fillInput.trim(), timeRemaining)
+    handleReveal(fillInput.trim(), timeRemainingRef.current)
   }
 
   const handleRestart = () => {
@@ -139,6 +141,7 @@ export default function SoloPlayPage() {
     setCorrectCount(0)
     setSelected(null)
     setFillInput('')
+    setCorrectAnswerID('')
     setPhase('intro')
   }
 
@@ -338,7 +341,12 @@ export default function SoloPlayPage() {
                       ))}
                     </div>
                     <button
-                      onClick={() => { stopTimer(); setIsCorrect(true); setPointsEarned(currentQ.points); setScore(s => s + currentQ.points); setCorrectCount(c => c + 1); setPhase('revealed') }}
+                      onClick={() => {
+                        stopTimer()
+                        // Build the expected answer and verify via API
+                        const expectedAnswer = currentQ.match_pairs?.map(p => p.right).join('|') ?? ''
+                        void revealWithAPI(currentQ, expectedAnswer, timeRemainingRef.current)
+                      }}
                       className="w-full py-3 bg-white/10 border border-white/20 rounded-2xl text-sm font-semibold text-white/70 hover:bg-white/15 transition-colors"
                     >
                       Got it — Next →
@@ -381,7 +389,7 @@ export default function SoloPlayPage() {
                   <div className={clsx('grid gap-1.5', currentQ.type === 'true_false' ? 'grid-cols-2' : 'grid-cols-2')}>
                     {currentQ.options.map((opt, i) => {
                       const c = ANSWER_COLORS[i % ANSWER_COLORS.length]
-                      const isRight = opt.is_right
+                      const isRight = opt.id === correctAnswerID
                       const wasSelected = selected === opt.id
                       return (
                         <div
@@ -410,10 +418,10 @@ export default function SoloPlayPage() {
               )}
 
               {/* Correct answer for fill blank */}
-              {currentQ.type === 'fill_blank' && !isCorrect && currentQ.answer && (
+              {currentQ.type === 'fill_blank' && !isCorrect && correctAnswerID && (
                 <div className="bg-emerald-500/10 border border-emerald-400/20 rounded-2xl px-4 py-3">
                   <p className="text-xs text-white/40 mb-1">Correct answer</p>
-                  <p className="text-emerald-300 font-bold">{currentQ.answer}</p>
+                  <p className="text-emerald-300 font-bold">{correctAnswerID}</p>
                 </div>
               )}
 

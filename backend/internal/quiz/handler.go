@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -307,6 +308,12 @@ func (h *Handler) ListMarketplace(w http.ResponseWriter, r *http.Request) {
 	if quizzes == nil {
 		quizzes = []models.Quiz{}
 	}
+	// Strip correct-answer data before sending to public consumers
+	for i := range quizzes {
+		for j := range quizzes[i].Questions {
+			quizzes[i].Questions[j] = quizzes[i].Questions[j].Sanitize()
+		}
+	}
 	writeJSON(w, http.StatusOK, quizzes)
 }
 
@@ -440,4 +447,80 @@ func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"url": url})
+}
+
+// SoloCheckAnswer handles POST /api/marketplace/{id}/check-answer.
+// Public endpoint — evaluates a student's answer server-side without exposing correct-answer data.
+func (h *Handler) SoloCheckAnswer(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	quizID, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid quiz id")
+		return
+	}
+
+	var req struct {
+		QuestionID string `json:"question_id"`
+		Answer     string `json:"answer"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	quiz, err := h.service.GetByID(r.Context(), quizID)
+	if err != nil {
+		if errors.Is(err, ErrQuizNotFound) {
+			writeError(w, http.StatusNotFound, "quiz not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to get quiz")
+		return
+	}
+	if !quiz.IsPublic {
+		writeError(w, http.StatusForbidden, "quiz is not public")
+		return
+	}
+
+	var target *models.Question
+	for i := range quiz.Questions {
+		if quiz.Questions[i].ID == req.QuestionID {
+			target = &quiz.Questions[i]
+			break
+		}
+	}
+	if target == nil {
+		writeError(w, http.StatusNotFound, "question not found")
+		return
+	}
+
+	isCorrect, correctAnswer := evalAnswer(target, req.Answer)
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"is_correct":     isCorrect,
+		"correct_answer": correctAnswer,
+		"points":         target.Points,
+	})
+}
+
+func evalAnswer(q *models.Question, answer string) (bool, string) {
+	switch q.Type {
+	case models.MultipleChoice, models.ImageBased, models.TrueFalse:
+		for _, opt := range q.Options {
+			if opt.IsRight {
+				return opt.ID == answer, opt.ID
+			}
+		}
+	case models.FillBlank:
+		correct := strings.TrimSpace(strings.ToLower(q.Answer))
+		given := strings.TrimSpace(strings.ToLower(answer))
+		return given == correct, q.Answer
+	case models.MatchPair:
+		rights := make([]string, len(q.MatchPairs))
+		for i, pair := range q.MatchPairs {
+			rights[i] = pair.Right
+		}
+		expected := strings.Join(rights, "|")
+		return answer == expected, expected
+	}
+	return false, ""
 }

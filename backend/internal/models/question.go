@@ -24,6 +24,22 @@ type MatchPairItem struct {
 	Right string `bson:"right" json:"right"`
 }
 
+// Sanitize returns a copy of the Question with correct-answer data removed.
+// Use this whenever sending questions to students / players so they cannot
+// read the answers from the API or MQTT response.
+func (q Question) Sanitize() Question {
+	s := q
+	s.Answer = "" // strip fill_blank answer
+	if len(q.Options) > 0 {
+		opts := make([]Option, len(q.Options))
+		for i, o := range q.Options {
+			opts[i] = Option{ID: o.ID, Text: o.Text} // IsRight intentionally omitted
+		}
+		s.Options = opts
+	}
+	return s
+}
+
 // Question is a single question within a Quiz.
 type Question struct {
 	ID         string          `bson:"id" json:"id"`
