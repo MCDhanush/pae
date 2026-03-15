@@ -75,7 +75,8 @@ func NewService(
 const maxSessionsPerTeacher = 30
 
 // CreateSession generates a PIN and persists a new waiting session.
-func (s *Service) CreateSession(ctx context.Context, quizID, teacherID primitive.ObjectID) (*models.QuizSession, error) {
+// Pass isUnrestricted=true for admin or pro users to skip the free-plan cap.
+func (s *Service) CreateSession(ctx context.Context, quizID, teacherID primitive.ObjectID, isUnrestricted bool) (*models.QuizSession, error) {
 	if _, err := s.quizRepo.FindByID(ctx, quizID); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("quiz not found")
@@ -83,10 +84,12 @@ func (s *Service) CreateSession(ctx context.Context, quizID, teacherID primitive
 		return nil, fmt.Errorf("game service create session quiz lookup: %w", err)
 	}
 
-	// Enforce free-tier session cap.
-	sessionCount, err := s.repo.CountByTeacherID(ctx, teacherID)
-	if err == nil && sessionCount >= maxSessionsPerTeacher {
-		return nil, fmt.Errorf("session limit reached: free plan allows %d sessions", maxSessionsPerTeacher)
+	// Enforce free-tier session cap (skipped for admin / pro).
+	if !isUnrestricted {
+		sessionCount, err := s.repo.CountByTeacherID(ctx, teacherID)
+		if err == nil && sessionCount >= maxSessionsPerTeacher {
+			return nil, fmt.Errorf("session limit reached: free plan allows %d sessions", maxSessionsPerTeacher)
+		}
 	}
 
 	pin := utils.GeneratePIN()

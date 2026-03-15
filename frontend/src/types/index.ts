@@ -2,12 +2,14 @@ export interface User {
   id: string
   name: string
   email: string
-  role: 'teacher' | 'student'
+  role: 'teacher' | 'student' | 'admin'
   institution?: string
   institution_type?: string
   location?: string
   years_of_exp?: number
   bio?: string
+  is_pro?: boolean
+  is_admin?: boolean
   created_at: string
 }
 

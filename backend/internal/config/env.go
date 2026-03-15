@@ -25,6 +25,10 @@ type Config struct {
 
 	// AI / Gemini
 	GeminiAPIKey string // GEMINI_API_KEY – optional; AI generation disabled when empty
+
+	// Razorpay
+	RazorpayKeyID     string // RAZORPAY_KEY_ID     – optional; payments disabled when empty
+	RazorpayKeySecret string // RAZORPAY_KEY_SECRET – optional
 }
 
 // Load reads environment variables from the .env file (if present) and returns
@@ -51,6 +55,9 @@ func Load() *Config {
 		HiveMQPassword:  getEnv("HIVEMQ_PASSWORD", ""),
 
 		GeminiAPIKey: getEnv("GEMINI_API_KEY", ""),
+
+		RazorpayKeyID:     getEnv("RAZORPAY_KEY_ID", ""),
+		RazorpayKeySecret: getEnv("RAZORPAY_KEY_SECRET", ""),
 	}
 
 	return cfg

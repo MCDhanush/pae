@@ -101,12 +101,17 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, *m
 		return "", nil, ErrInvalidCredentials
 	}
 
-	token, err := s.GenerateToken(user.ID, user.Role)
+	token, err := s.GenerateToken(user)
 	if err != nil {
 		return "", nil, err
 	}
 
 	return token, user, nil
+}
+
+// SetPro upgrades the user to the pro plan.
+func (s *Service) SetPro(ctx context.Context, userID primitive.ObjectID) error {
+	return s.repo.SetPro(ctx, userID)
 }
 
 // UpdateProfile updates a user's profile data and optionally changes password.
@@ -146,11 +151,15 @@ func (s *Service) UpdateProfile(ctx context.Context, userID primitive.ObjectID, 
 	return user, nil
 }
 
-// GenerateToken creates and signs a JWT token for the given user ID and role.
-func (s *Service) GenerateToken(userID primitive.ObjectID, role string) (string, error) {
+// GenerateToken creates and signs a JWT token for the given user, embedding
+// IsPro and IsAdmin flags so handlers can bypass free-plan limits without
+// extra DB lookups.
+func (s *Service) GenerateToken(user *models.User) (string, error) {
 	claims := middleware.Claims{
-		UserID: userID.Hex(),
-		Role:   role,
+		UserID:  user.ID.Hex(),
+		Role:    user.Role,
+		IsPro:   user.IsPro,
+		IsAdmin: user.IsAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

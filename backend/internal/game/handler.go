@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+
 // PlayerFinder is the interface used to retrieve players for a leaderboard.
 type PlayerFinder interface {
 	FindBySessionID(ctx context.Context, sessionID primitive.ObjectID) ([]models.Player, error)
@@ -92,7 +93,8 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.service.CreateSession(r.Context(), quizID, teacherID)
+	isUnrestricted := middleware.IsUnrestrictedFromContext(r.Context())
+	session, err := h.service.CreateSession(r.Context(), quizID, teacherID, isUnrestricted)
 	if err != nil {
 		if strings.Contains(err.Error(), "session limit reached") {
 			writeError(w, http.StatusPaymentRequired, err.Error())

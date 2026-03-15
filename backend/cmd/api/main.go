@@ -21,6 +21,7 @@ import (
 	"github.com/pae/backend/internal/events"
 	"github.com/pae/backend/internal/game"
 	"github.com/pae/backend/internal/middleware"
+	"github.com/pae/backend/internal/payment"
 	"github.com/pae/backend/internal/platform"
 	"github.com/pae/backend/internal/player"
 	"github.com/pae/backend/internal/quiz"
@@ -136,6 +137,7 @@ func main() {
 	// -------------------------------------------------------------------------
 	authHandler := auth.NewHandler(authService)
 	quizHandler := quiz.NewHandler(quizService, gcsClient, redisClient, cfg.GeminiAPIKey)
+	paymentHandler := payment.NewHandler(authService, cfg.RazorpayKeyID, cfg.RazorpayKeySecret)
 	gameHandler := game.NewHandler(gameService, playerRepo)
 	playerHandler := player.NewHandlerWithSecret(playerService, cfg.JWTSecret)
 	sessionHandler := session.NewHandler(sessionService)
@@ -248,6 +250,13 @@ func main() {
 			r.Get("/", sessionHandler.ListSessions)
 			r.Get("/{id}", sessionHandler.GetSession)
 			r.Get("/{id}/players", sessionHandler.GetPlayers)
+		})
+
+		// Payment – teacher auth required
+		r.Route("/payments", func(r chi.Router) {
+			r.Use(middleware.RequireAuth(cfg.JWTSecret))
+			r.Post("/create-order", paymentHandler.CreateOrder)
+			r.Post("/verify", paymentHandler.VerifyPayment)
 		})
 
 		// Platform stats – public

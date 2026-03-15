@@ -551,6 +551,17 @@ func (h *Handler) GetAIUsage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Admin and pro users have unlimited generations — return a synthetic unlimited response.
+	if middleware.IsUnrestrictedFromContext(r.Context()) {
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"used":      0,
+			"limit":     -1, // -1 signals unlimited
+			"remaining": -1,
+			"unlimited": true,
+		})
+		return
+	}
+
 	quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
 	usedCount, err := h.redis.Client().Get(r.Context(), quotaKey).Int64()
 	if err != nil {
@@ -567,6 +578,7 @@ func (h *Handler) GetAIUsage(w http.ResponseWriter, r *http.Request) {
 		"used":      usedCount,
 		"limit":     ai.FreeQuotaLimit,
 		"remaining": remaining,
+		"unlimited": false,
 	})
 }
 
@@ -620,22 +632,24 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 		req.Count = ai.MaxQuestionsPerRequest
 	}
 
-	// Lifetime free quota: max FreeQuotaLimit total AI generation requests per teacher.
-	// Uses a persistent Redis counter — no expiry, so it tracks cumulative lifetime usage.
-	quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
-	usedCount, redisErr := h.redis.Client().Incr(r.Context(), quotaKey).Result()
-	if redisErr == nil && usedCount > int64(ai.FreeQuotaLimit) {
-		// Decrement back so the stored count stays accurate (this request was not served)
-		_ = h.redis.Client().Decr(r.Context(), quotaKey)
-		writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
-			"error":            fmt.Sprintf("free AI quota exhausted — you have used all %d free generations", ai.FreeQuotaLimit),
-			"quota_used":       ai.FreeQuotaLimit,
-			"quota_limit":      ai.FreeQuotaLimit,
-			"upgrade_required": true,
-		})
-		return
+	// Admin and pro users have unlimited AI generations.
+	if !middleware.IsUnrestrictedFromContext(r.Context()) {
+		// Lifetime free quota: max FreeQuotaLimit total AI generation requests per teacher.
+		quotaKey := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
+		usedCount, redisErr := h.redis.Client().Incr(r.Context(), quotaKey).Result()
+		if redisErr == nil && usedCount > int64(ai.FreeQuotaLimit) {
+			// Decrement back so the stored count stays accurate
+			_ = h.redis.Client().Decr(r.Context(), quotaKey)
+			writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
+				"error":            fmt.Sprintf("free AI quota exhausted — you have used all %d free generations", ai.FreeQuotaLimit),
+				"quota_used":       ai.FreeQuotaLimit,
+				"quota_limit":      ai.FreeQuotaLimit,
+				"upgrade_required": true,
+			})
+			return
+		}
+		// Fail-open: if Redis is unavailable, allow the request through
 	}
-	// Fail-open: if Redis is unavailable, allow the request through
 
 	// Call Gemini
 	client := ai.NewClient(h.geminiKey)

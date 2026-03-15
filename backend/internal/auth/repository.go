@@ -54,6 +54,15 @@ func (r *Repository) FindByID(ctx context.Context, id primitive.ObjectID) (*mode
 	return &user, nil
 }
 
+// SetPro marks the user as a pro subscriber.
+func (r *Repository) SetPro(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.col.UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{"is_pro": true}},
+	)
+	return err
+}
+
 // Update saves all fields of the user document.
 func (r *Repository) Update(ctx context.Context, user *models.User) error {
 	filter := bson.M{"_id": user.ID}

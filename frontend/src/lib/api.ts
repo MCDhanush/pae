@@ -299,4 +299,21 @@ export const marketplaceAPI = {
   },
 }
 
+// Payment API
+export const paymentAPI = {
+  createOrder: async (): Promise<{ order_id: string; amount: number; currency: string; key_id: string }> => {
+    const { data } = await api.post('/payments/create-order')
+    return data
+  },
+
+  verifyPayment: async (payload: {
+    razorpay_payment_id: string
+    razorpay_order_id: string
+    razorpay_signature: string
+  }): Promise<{ success: boolean; token: string; message: string }> => {
+    const { data } = await api.post('/payments/verify', payload)
+    return data
+  },
+}
+
 export default api

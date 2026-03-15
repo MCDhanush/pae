@@ -106,7 +106,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.GenerateToken(user.ID, user.Role)
+	token, err := h.service.GenerateToken(user)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "token generation failed")
 		return

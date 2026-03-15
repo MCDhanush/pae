@@ -15,12 +15,18 @@ const (
 	ContextKeyUserID contextKey = "user_id"
 	// ContextKeyRole is the context key under which the authenticated user role is stored.
 	ContextKeyRole contextKey = "role"
+	// ContextKeyIsPro tracks whether the user has a pro plan.
+	ContextKeyIsPro contextKey = "is_pro"
+	// ContextKeyIsAdmin tracks whether the user is a platform admin.
+	ContextKeyIsAdmin contextKey = "is_admin"
 )
 
 // Claims defines the JWT payload shape.
 type Claims struct {
-	UserID string `json:"user_id"`
-	Role   string `json:"role"`
+	UserID  string `json:"user_id"`
+	Role    string `json:"role"`
+	IsPro   bool   `json:"is_pro,omitempty"`
+	IsAdmin bool   `json:"is_admin,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -43,13 +49,15 @@ func RequireAuth(jwtSecret string) func(http.Handler) http.Handler {
 
 			ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
 			ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
+			ctx = context.WithValue(ctx, ContextKeyIsPro, claims.IsPro)
+			ctx = context.WithValue(ctx, ContextKeyIsAdmin, claims.IsAdmin)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
 // RequireTeacher builds on RequireAuth and additionally enforces that the
-// authenticated user has the "teacher" role.
+// authenticated user has the "teacher" or "admin" role.
 func RequireTeacher(jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,13 +73,15 @@ func RequireTeacher(jwtSecret string) func(http.Handler) http.Handler {
 				return
 			}
 
-			if claims.Role != "teacher" {
+			if claims.Role != "teacher" && claims.Role != "admin" {
 				http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 				return
 			}
 
 			ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
 			ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
+			ctx = context.WithValue(ctx, ContextKeyIsPro, claims.IsPro)
+			ctx = context.WithValue(ctx, ContextKeyIsAdmin, claims.IsAdmin)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -87,6 +97,24 @@ func UserIDFromContext(ctx context.Context) (string, bool) {
 func RoleFromContext(ctx context.Context) (string, bool) {
 	role, ok := ctx.Value(ContextKeyRole).(string)
 	return role, ok
+}
+
+// IsProFromContext returns whether the user has a pro plan.
+func IsProFromContext(ctx context.Context) bool {
+	v, _ := ctx.Value(ContextKeyIsPro).(bool)
+	return v
+}
+
+// IsAdminFromContext returns whether the user is a platform admin.
+func IsAdminFromContext(ctx context.Context) bool {
+	v, _ := ctx.Value(ContextKeyIsAdmin).(bool)
+	return v
+}
+
+// IsUnrestrictedFromContext returns true if the user is admin or pro —
+// both bypass free-plan limits.
+func IsUnrestrictedFromContext(ctx context.Context) bool {
+	return IsAdminFromContext(ctx) || IsProFromContext(ctx)
 }
 
 // extractAndValidateToken parses the Bearer token from the Authorization header
