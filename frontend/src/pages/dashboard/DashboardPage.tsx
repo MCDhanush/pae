@@ -371,6 +371,17 @@ export default function DashboardPage() {
                 Analytics
               </Link>
             )}
+            {user?.role === 'teacher' && !(user.is_pro || user.is_admin) && (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:text-violet-200 bg-violet-500/15 hover:bg-violet-500/25 rounded-xl transition-colors border border-violet-500/30 hover:border-violet-500/50"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Upgrade
+              </button>
+            )}
             <div className="hidden sm:flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl px-3 py-1.5">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-xs">
                 {user?.name?.charAt(0).toUpperCase()}
@@ -427,6 +438,17 @@ export default function DashboardPage() {
                 </svg>
                 Analytics
               </Link>
+            )}
+            {user?.role === 'teacher' && !(user.is_pro || user.is_admin) && (
+              <button
+                onClick={() => { setShowUpgradeModal(true); setMobileMenuOpen(false) }}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-violet-300 hover:text-violet-200 hover:bg-violet-500/10 rounded-lg transition-colors w-full"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Upgrade Plan
+              </button>
             )}
             <div className="border-t border-white/10 pt-3 mt-3 space-y-3">
               <div className="flex items-center gap-2 px-3 py-2">
@@ -833,6 +855,26 @@ export default function DashboardPage() {
               <h2 className="text-lg font-bold text-white">All Sessions</h2>
               <span className="text-sm text-white/40">{sessions.length} total</span>
             </div>
+
+            {/* Session limit banner */}
+            {!(user.is_pro || user.is_admin) && sessions.length >= 30 + (user.extra_sessions ?? 0) && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <p className="text-sm text-amber-300 font-medium">
+                    You've reached your {30 + (user.extra_sessions ?? 0)}-session limit. Upgrade to create more.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-lg hover:bg-amber-500/30 transition-colors shrink-0"
+                >
+                  Upgrade
+                </button>
+              </div>
+            )}
 
             {isLoadingSessions ? (
               <div className="space-y-3">
