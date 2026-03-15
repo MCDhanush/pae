@@ -9,6 +9,7 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import AnalyticsPage from './pages/dashboard/AnalyticsPage'
 import MarketplacePage from './pages/marketplace/MarketplacePage'
 import QuizPreviewPage from './pages/marketplace/QuizPreviewPage'
+import SoloPlayPage from './pages/marketplace/SoloPlayPage'
 import CreateQuizPage from './pages/quiz/CreateQuizPage'
 import EditQuizPage from './pages/quiz/EditQuizPage'
 import HostGamePage from './pages/game/HostGamePage'
@@ -87,6 +88,7 @@ function App() {
       />
       <Route path="/marketplace" element={<MarketplacePage />} />
       <Route path="/marketplace/:id" element={<QuizPreviewPage />} />
+      <Route path="/marketplace/:id/play" element={<SoloPlayPage />} />
       <Route path="/join" element={<JoinGamePage />} />
       <Route path="/play/:pin" element={<PlayGamePage />} />
       <Route path="/results/:pin" element={<ResultsPage />} />

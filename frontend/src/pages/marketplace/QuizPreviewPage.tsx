@@ -192,17 +192,28 @@ export default function QuizPreviewPage() {
           </div>
         </div>
 
-        {/* Preview banner */}
-        <div className="preview-item flex items-center gap-3 px-4 py-3 bg-amber-400/10 border border-amber-400/20 rounded-2xl">
-          <svg className="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <p className="text-amber-200/80 text-xs">
-            Showing <span className="font-bold text-amber-300">{previewQuestions.length}</span> of{' '}
-            <span className="font-bold text-amber-300">{quiz.questions.length}</span> questions.
-            {hiddenCount > 0 && ' Join a live game to answer them all!'}
-          </p>
+        {/* Preview banner + Play Now CTA */}
+        <div className="preview-item flex items-center justify-between gap-3 px-4 py-3 bg-amber-400/10 border border-amber-400/20 rounded-2xl">
+          <div className="flex items-center gap-2 min-w-0">
+            <svg className="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <p className="text-amber-200/80 text-xs">
+              Showing <span className="font-bold text-amber-300">{previewQuestions.length}</span> of{' '}
+              <span className="font-bold text-amber-300">{quiz.questions.length}</span> questions.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(`/marketplace/${quiz.id}/play`, { state: { quiz } })}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-[0.97] transition-all shadow-lg shadow-violet-500/20"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Play Now
+          </button>
         </div>
 
         {/* Visible questions */}
@@ -243,16 +254,17 @@ export default function QuizPreviewPage() {
                 +{hiddenCount} more question{hiddenCount !== 1 ? 's' : ''} locked
               </p>
               <p className="text-white/35 text-xs mb-4">
-                Ask your teacher to host a game session. Enter the PIN to play and answer all questions!
+                Play all {quiz.questions.length} questions in practice mode — no PIN needed!
               </p>
               <button
-                onClick={() => navigate('/join')}
+                onClick={() => navigate(`/marketplace/${quiz.id}/play`, { state: { quiz } })}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-violet-500/25"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Join a Game
+                Play Now
               </button>
             </div>
           </div>
@@ -262,16 +274,17 @@ export default function QuizPreviewPage() {
         {hiddenCount === 0 && (
           <div className="preview-item bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
             <p className="text-white/40 text-sm mb-3">
-              Ready to answer? Ask your teacher to start a game session!
+              Practise all questions solo — no PIN needed!
             </p>
             <button
-              onClick={() => navigate('/join')}
+              onClick={() => navigate(`/marketplace/${quiz.id}/play`, { state: { quiz } })}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-violet-500/25"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Join a Game
+              Play Now
             </button>
           </div>
         )}
