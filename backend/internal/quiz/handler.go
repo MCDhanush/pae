@@ -163,6 +163,16 @@ func (h *Handler) GetQuiz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Strip correct-answer data unless the requester is the quiz owner.
+	// teacherIDFromContext returns NilObjectID when the caller is not a teacher,
+	// which will never equal a real TeacherID, so non-owners always get sanitized data.
+	requesterID, _ := teacherIDFromContext(r)
+	if requesterID != quiz.TeacherID {
+		for i := range quiz.Questions {
+			quiz.Questions[i] = quiz.Questions[i].Sanitize()
+		}
+	}
+
 	writeJSON(w, http.StatusOK, quiz)
 }
 
