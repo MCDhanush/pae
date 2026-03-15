@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-
+	geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 	// MaxQuestionsPerRequest caps how many questions can be generated in one call.
 	MaxQuestionsPerRequest = 20
 
-	// DailyRequestLimit is the maximum number of generation requests per teacher per day.
-	DailyRequestLimit = 10
+	// FreeQuotaLimit is the total number of AI generation requests a teacher gets for free.
+	// Once exhausted, the teacher must upgrade to continue.
+	FreeQuotaLimit = 5
 )
 
 // ErrNotConfigured is returned when no API key has been set.
@@ -79,8 +79,8 @@ type geminiPart struct {
 }
 
 type geminiRequest struct {
-	Contents         []geminiContent  `json:"contents"`
-	GenerationConfig geminiGenConfig  `json:"generationConfig"`
+	Contents         []geminiContent `json:"contents"`
+	GenerationConfig geminiGenConfig `json:"generationConfig"`
 }
 
 type geminiGenConfig struct {

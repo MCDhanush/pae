@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Question } from '../../types'
 import { quizAPI } from '../../lib/api'
 import clsx from 'clsx'
@@ -294,6 +294,14 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
   // Preview state
   const [questions, setQuestions] = useState<Question[]>([])
 
+  // AI quota state
+  const [aiUsage, setAIUsage] = useState<{ used: number; limit: number; remaining: number } | null>(null)
+  const [upgradeRequired, setUpgradeRequired] = useState(false)
+
+  useEffect(() => {
+    quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+  }, [])
+
   const handleGenerate = async () => {
     if (!topic.trim()) {
       setError('Please enter a topic.')
@@ -311,7 +319,16 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
       })
       setQuestions(result)
       setPhase('preview')
+      // Refresh quota count after a successful generation
+      quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
     } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status
+      if (status === 402) {
+        setUpgradeRequired(true)
+        setAIUsage(prev => prev ? { ...prev, remaining: 0, used: prev.limit } : null)
+        setPhase('form')
+        return
+      }
       const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error
       setError(msg ?? 'Generation failed. Check your API key or try again.')
       setPhase('form')
@@ -388,9 +405,9 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                     onChange={e => setDifficulty(e.target.value as Difficulty)}
                     className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-2xl text-white text-sm focus:outline-none focus:border-violet-500/50 transition-all appearance-none"
                   >
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
+                    <option className="bg-gray-900" value="easy">Easy</option>
+                    <option className="bg-gray-900" value="medium">Medium</option>
+                    <option className="bg-gray-900" value="hard">Hard</option>
                   </select>
                 </div>
                 <div>
@@ -401,7 +418,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                     className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-2xl text-white text-sm focus:outline-none focus:border-violet-500/50 transition-all appearance-none"
                   >
                     {(Object.entries(TYPE_LABELS) as [AIType, string][]).map(([v, l]) => (
-                      <option key={v} value={v}>{l}</option>
+                      <option className="bg-gray-900" key={v} value={v}>{l}</option>
                     ))}
                   </select>
                 </div>
@@ -446,6 +463,35 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                 <p className="text-rose-300 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">
                   {error}
                 </p>
+              )}
+
+              {/* AI usage indicator */}
+              {aiUsage !== null && (
+                <div className={clsx(
+                  'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-xs font-semibold',
+                  aiUsage.remaining > 0
+                    ? 'bg-violet-500/10 border-violet-500/20 text-violet-300'
+                    : 'bg-rose-500/10 border-rose-500/20 text-rose-300',
+                )}>
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  {aiUsage.remaining > 0
+                    ? <span>{aiUsage.remaining} of {aiUsage.limit} free generation{aiUsage.remaining !== 1 ? 's' : ''} remaining</span>
+                    : <span>Free quota exhausted — upgrade to generate more</span>
+                  }
+                  <div className="ml-auto flex gap-1">
+                    {Array.from({ length: aiUsage.limit }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={clsx(
+                          'w-2 h-2 rounded-full',
+                          i < aiUsage.used ? 'bg-current opacity-80' : 'bg-white/15',
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -508,7 +554,30 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 shrink-0">
-          {phase === 'form' && (
+          {phase === 'form' && (upgradeRequired || (aiUsage !== null && aiUsage.remaining === 0)) ? (
+            <div className="space-y-2.5">
+              <div className="flex items-start gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                <svg className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="text-amber-200 text-xs font-bold">Free quota exhausted</p>
+                  <p className="text-amber-200/60 text-[11px] mt-0.5">
+                    You've used all {aiUsage?.limit ?? 5} free AI generations. Upgrade your plan to generate more questions.
+                  </p>
+                </div>
+              </div>
+              <button
+                disabled
+                className="w-full py-3.5 bg-white/5 border border-white/10 text-white/25 font-black rounded-2xl text-sm cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Upgrade Required
+              </button>
+            </div>
+          ) : phase === 'form' ? (
             <button
               onClick={handleGenerate}
               disabled={!topic.trim()}
@@ -519,7 +588,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
               </svg>
               Generate {count} Question{count !== 1 ? 's' : ''}
             </button>
-          )}
+          ) : null}
           {phase === 'preview' && (
             <button
               onClick={() => { if (questions.length > 0) { onAdd(questions); onClose() } }}

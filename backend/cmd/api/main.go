@@ -186,6 +186,7 @@ func main() {
 				r.Get("/", quizHandler.ListQuizzes)
 				// Fixed-path routes must be before /{id} pattern
 				r.Post("/images", quizHandler.UploadImageGeneral)
+				r.Get("/ai/usage", quizHandler.GetAIUsage)
 				r.Post("/ai/generate", quizHandler.GenerateQuestions)
 			})
 			r.Get("/{id}", quizHandler.GetQuiz)
