@@ -290,7 +290,7 @@ export default function DocsPage() {
           {/* ── INTRODUCTION ── */}
           <Section id="introduction" title="What is PAE?">
             <p className="text-lg text-white/80 leading-relaxed">
-              PAE is a <strong className="text-white">real-time multiplayer quiz platform, built for educators who want more control. Teachers create rich quiz content, share a 6-character PIN, and students join instantly from any device. No app installation required.
+              PAE is a <strong className="text-white">real-time multiplayer quiz platform</strong>, built for educators who want more control. Teachers create rich quiz content, share a 6-character PIN, and students join instantly from any device. No app installation required.
             </p>
             <div className="grid sm:grid-cols-3 gap-4 mt-6">
               <Card
