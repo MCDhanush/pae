@@ -25,6 +25,7 @@ const (
 	PlanSessionsUnlimited = "sessions_unlimited"  // unlimited sessions only
 	PlanAI10              = "ai_10"               // +10 AI generation credits
 	PlanAI20              = "ai_20"               // +20 AI generation credits
+	PlanAI50              = "ai_50"               // +50 AI generation credits
 )
 
 // planDetails holds the amount (paise) and human description for each plan.
@@ -34,13 +35,14 @@ type planDetail struct {
 }
 
 // plans maps plan_type → price + description. All prices in INR paise.
-// ₹99  = 9900   ₹179 = 17900   ₹299 = 29900   ₹49 = 4900   ₹79 = 7900
+// ₹45 = 4500   ₹80 = 8000   ₹399 = 39900   ₹10 = 1000   ₹20 = 2000   ₹45 = 4500
 var plans = map[string]planDetail{
-	PlanSessions50:        {9900, "50 extra game sessions"},
-	PlanSessions100:       {17900, "100 extra game sessions"},
-	PlanSessionsUnlimited: {29900, "Unlimited game sessions"},
-	PlanAI10:              {4900, "10 extra AI question generations"},
-	PlanAI20:              {7900, "20 extra AI question generations"},
+	PlanSessions50:        {4500, "50 extra game sessions"},
+	PlanSessions100:       {8000, "100 extra game sessions"},
+	PlanSessionsUnlimited: {39900, "Unlimited game sessions"},
+	PlanAI10:              {1000, "10 extra AI question generations"},
+	PlanAI20:              {2000, "20 extra AI question generations"},
+	PlanAI50:              {4500, "50 extra AI question generations"},
 }
 
 // AuthService is the subset of auth.Service methods the payment handler needs.
@@ -212,6 +214,8 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 		err = h.authService.AddAICredits(r.Context(), userID, 10)
 	case PlanAI20:
 		err = h.authService.AddAICredits(r.Context(), userID, 20)
+	case PlanAI50:
+		err = h.authService.AddAICredits(r.Context(), userID, 50)
 	}
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to apply plan")
@@ -236,6 +240,8 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 		user.ExtraAI += 10
 	case PlanAI20:
 		user.ExtraAI += 20
+	case PlanAI50:
+		user.ExtraAI += 50
 	}
 
 	token, err := h.authService.GenerateToken(user)
