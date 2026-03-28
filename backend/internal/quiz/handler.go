@@ -1,9 +1,11 @@
 package quiz
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -641,10 +643,14 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 		effectiveLimit := int64(ai.FreeQuotaLimit + extraAI)
 		// Lifetime quota: FreeQuotaLimit + any purchased extra credits.
 		qk := fmt.Sprintf("ai:quota:%s", teacherID.Hex())
-		usedCount, redisErr := h.redis.Client().Incr(r.Context(), qk).Result()
+		usedCount, redisErr := h.redis.Client().Incr(context.Background(), qk).Result()
 		if redisErr == nil && usedCount > effectiveLimit {
-			// Over limit — roll back and reject
-			_ = h.redis.Client().Decr(r.Context(), qk)
+			// Over limit — roll back and reject.
+			// Use context.Background() so a cancelled request context doesn't
+			// silently prevent the rollback from executing.
+			if decrErr := h.redis.Client().Decr(context.Background(), qk).Err(); decrErr != nil {
+				log.Printf("[WARN] ai quota: failed to roll back over-limit Incr for teacher %s: %v", teacherID.Hex(), decrErr)
+			}
 			writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
 				"error":            fmt.Sprintf("AI quota exhausted — you have used all %d generations", effectiveLimit),
 				"quota_used":       effectiveLimit,
@@ -672,8 +678,13 @@ func (h *Handler) GenerateQuestions(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		// Roll back the quota increment — a failed attempt must not cost a credit.
+		// Use context.Background() instead of r.Context() because the request
+		// context may already be cancelled (e.g. Gemini timeout), which would
+		// silently prevent the Decr from executing and wrongly consume a credit.
 		if quotaKey != "" {
-			_ = h.redis.Client().Decr(r.Context(), quotaKey)
+			if decrErr := h.redis.Client().Decr(context.Background(), quotaKey).Err(); decrErr != nil {
+				log.Printf("[WARN] ai quota: failed to roll back failed-generation Incr for teacher %s: %v", teacherID.Hex(), decrErr)
+			}
 		}
 		if errors.Is(err, ai.ErrNotConfigured) {
 			writeError(w, http.StatusServiceUnavailable, "AI service not configured")
