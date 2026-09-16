@@ -1,5 +1,5 @@
 // Package ai provides a lightweight client for generating quiz questions
-// using the Gemini 1.5 Flash REST API. No additional Go module is required —
+// using the Gemini REST API. No additional Go module is required —
 // all communication is done via the standard net/http package.
 package ai
 
@@ -9,13 +9,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
 )
 
 const (
-	geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+	geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
+	defaultModels  = "gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash,gemini-2.0-flash-lite"
 	// MaxQuestionsPerRequest caps how many questions can be generated in one call.
 	// Keeping this at 10 prevents Gemini from truncating large JSON responses.
 	MaxQuestionsPerRequest = 10
@@ -28,16 +30,18 @@ const (
 // ErrNotConfigured is returned when no API key has been set.
 var ErrNotConfigured = errors.New("AI service not configured: GEMINI_API_KEY is not set")
 
-// Client calls the Gemini 1.5 Flash REST API.
+// Client calls Gemini models through the REST API.
 type Client struct {
-	apiKey string
-	http   *http.Client
+	apiKey  string
+	models  []string
+	http    *http.Client
 }
 
 // NewClient returns a Client. If apiKey is empty, Generate will return ErrNotConfigured.
 func NewClient(apiKey string) *Client {
 	return &Client{
 		apiKey: apiKey,
+		models: parseModels(defaultModels),
 		http:   &http.Client{Timeout: 45 * time.Second},
 	}
 }
@@ -95,7 +99,7 @@ type geminiResponse struct {
 	} `json:"candidates"`
 }
 
-// Generate calls Gemini 1.5 Flash and returns parsed, validated questions.
+// Generate tries configured Gemini models in order and returns parsed, validated questions.
 func (c *Client) Generate(ctx context.Context, req GenerateRequest) ([]GeneratedQuestion, error) {
 	if c.apiKey == "" {
 		return nil, ErrNotConfigured
@@ -118,35 +122,101 @@ func (c *Client) Generate(ctx context.Context, req GenerateRequest) ([]Generated
 		return nil, fmt.Errorf("marshal request: %w", err)
 	}
 
-	url := fmt.Sprintf("%s?key=%s", geminiEndpoint, c.apiKey)
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
+	var lastErr error
+	for _, model := range c.models {
+		rawJSON, err := c.generateWithModel(ctx, model, bodyBytes)
+		if err == nil {
+			return parseGeneratedQuestions(rawJSON, req.Type)
+		}
+		if !isQuotaError(err) {
+			return nil, err
+		}
+		lastErr = err
+	}
+	if lastErr != nil {
+		return nil, fmt.Errorf("all configured Gemini models are out of quota: %w", lastErr)
+	}
+	return nil, errors.New("no Gemini models configured")
+}
+
+func (c *Client) generateWithModel(ctx context.Context, model string, body []byte) (string, error) {
+	url := fmt.Sprintf(geminiEndpoint+"?key=%s", model, c.apiKey)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		return nil, fmt.Errorf("build request: %w", err)
+		return "", fmt.Errorf("build request for %s: %w", model, err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.http.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("call gemini: %w", err)
+		return "", fmt.Errorf("call Gemini model %s: %w", model, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		var errBody map[string]interface{}
-		_ = json.NewDecoder(resp.Body).Decode(&errBody)
-		return nil, fmt.Errorf("gemini returned %d: %v", resp.StatusCode, errBody)
+		responseBody, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return "", fmt.Errorf("Gemini model %s returned %d and response could not be read: %w", model, resp.StatusCode, readErr)
+		}
+		return "", &modelError{model: model, statusCode: resp.StatusCode, body: string(responseBody)}
 	}
 
 	var gemResp geminiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&gemResp); err != nil {
-		return nil, fmt.Errorf("decode gemini response: %w", err)
+		return "", fmt.Errorf("decode Gemini model %s response: %w", model, err)
 	}
 
 	if len(gemResp.Candidates) == 0 || len(gemResp.Candidates[0].Content.Parts) == 0 {
-		return nil, errors.New("gemini returned no content")
+		return "", errors.New("Gemini returned no content")
 	}
+	return gemResp.Candidates[0].Content.Parts[0].Text, nil
+}
 
-	rawJSON := gemResp.Candidates[0].Content.Parts[0].Text
+type modelError struct {
+	model      string
+	statusCode int
+	body       string
+}
+
+func (e *modelError) Error() string {
+	return fmt.Sprintf("Gemini model %s returned %d: %s", e.model, e.statusCode, strings.TrimSpace(e.body))
+}
+
+func isQuotaError(err error) bool {
+	var modelErr *modelError
+	if !errors.As(err, &modelErr) {
+		return false
+	}
+	body := strings.ToLower(modelErr.body)
+	return modelErr.statusCode == http.StatusTooManyRequests ||
+		(modelErr.statusCode == http.StatusForbidden &&
+			(strings.Contains(body, "quota") ||
+				strings.Contains(body, "rate limit") ||
+				strings.Contains(body, "resource_exhausted")))
+}
+
+func parseModels(value string) []string {
+	var models []string
+	for _, model := range strings.Split(value, ",") {
+		model = strings.TrimSpace(model)
+		if model == "" {
+			continue
+		}
+		duplicate := false
+		for _, configured := range models {
+			if configured == model {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			models = append(models, model)
+		}
+	}
+	return models
+}
+
+func parseGeneratedQuestions(rawJSON, questionType string) ([]GeneratedQuestion, error) {
 
 	// Gemini sometimes wraps JSON in markdown fences — strip them
 	rawJSON = strings.TrimSpace(rawJSON)
@@ -162,7 +232,7 @@ func (c *Client) Generate(ctx context.Context, req GenerateRequest) ([]Generated
 		return nil, fmt.Errorf("parse questions JSON: %w", err)
 	}
 
-	valid := validateQuestions(wrapper.Questions, req.Type)
+	valid := validateQuestions(wrapper.Questions, questionType)
 	if len(valid) == 0 {
 		return nil, errors.New("AI returned no valid questions")
 	}
