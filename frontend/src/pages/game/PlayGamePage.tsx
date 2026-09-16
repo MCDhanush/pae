@@ -242,7 +242,7 @@ export default function PlayGamePage() {
   const myRank = leaderboard.find((e) => e.player_id === myPlayerID)?.rank ?? null
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-violet-800 via-purple-900 to-indigo-950 text-white flex flex-col">
+    <div className="min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white flex flex-col">
       {/* Animated bg blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />
@@ -448,7 +448,7 @@ export default function PlayGamePage() {
               <div className="flex flex-col gap-3 pt-2">
                 <button
                   onClick={() => navigate(`/results/${pin}`)}
-                  className="w-full py-4 bg-white text-violet-700 font-bold rounded-2xl hover:bg-gray-50 active:scale-[0.98] transition-all shadow-xl shadow-black/20 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-[#d9f1ef] text-[#0b5262] border border-[#8bcac8] font-bold rounded-2xl hover:bg-[#c4e8e5] active:scale-[0.98] transition-all shadow-lg shadow-[#062f3c]/20 flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />

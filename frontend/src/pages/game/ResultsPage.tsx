@@ -77,7 +77,7 @@ export default function ResultsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center">
         <div className="text-center">
           <div className="w-14 h-14 rounded-full border-2 border-violet-500/50 border-t-violet-500 animate-spin mx-auto mb-4" />
           <p className="text-white/40 text-sm">Loading results…</p>
@@ -88,7 +88,7 @@ export default function ResultsPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center p-4">
         <div className="text-center space-y-4 max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-red-500/15 border border-red-500/25 flex items-center justify-center mx-auto">
             <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +116,7 @@ export default function ResultsPage() {
     : 0
 
   return (
-    <div ref={containerRef} className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white">
+    <div ref={containerRef} className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white">
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-violet-700/15 blur-3xl" />

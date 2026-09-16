@@ -24,12 +24,12 @@ export default function PAELogo({ variant = 'dark', size = 'md', className = '' 
         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
           <defs>
             <linearGradient id="pae-grad-dark" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7C3AED" />
-              <stop offset="100%" stopColor="#6D28D9" />
+              <stop offset="0%" stopColor="#0f6b78" />
+              <stop offset="100%" stopColor="#062f3c" />
             </linearGradient>
             <linearGradient id="pae-grad-light" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#8B5CF6" />
-              <stop offset="100%" stopColor="#7C3AED" />
+              <stop offset="0%" stopColor="#218fc0" />
+              <stop offset="100%" stopColor="#0f6b78" />
             </linearGradient>
           </defs>
           {/* Background */}

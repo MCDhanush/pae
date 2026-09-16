@@ -138,7 +138,7 @@ export default function QuizPreviewPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white"
+      className="min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white"
     >
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

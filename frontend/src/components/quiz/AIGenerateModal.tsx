@@ -343,7 +343,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
             } catch (e) { reject(e) }
           },
           modal: { ondismiss: () => reject(new Error('cancelled')) },
-          theme: { color: '#7c3aed' },
+          theme: { color: '#0f6b78' },
         })
         rzp.open()
       })

@@ -12,7 +12,7 @@ import PAELogo from '../../components/ui/PAELogo'
 
 type AnalyticsView = 'overview' | 'session'
 
-const ACCURACY_COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#3B82F6']
+const ACCURACY_COLORS = ['#10B981', '#e5a92f', '#EF4444', '#218fc0', '#307bad']
 
 function AccuracyBadge({ pct }: { pct: number }) {
   const cls = pct >= 70 ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-950 to-indigo-950 text-white"
+      className="min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white"
     >
       {/* Blob bg */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
                         <Tooltip
                           contentStyle={{ background: 'rgba(15,15,30,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
                         />
-                        <Line type="monotone" dataKey="count" name="Sessions" stroke="#7C3AED" strokeWidth={2.5} dot={{ fill: '#7C3AED', r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="count" name="Sessions" stroke="#0f6b78" strokeWidth={2.5} dot={{ fill: '#0f6b78', r: 4 }} activeDot={{ r: 6 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
                             <BarChart data={sessionAnalytics.question_stats.map((q, i) => ({
                               name: `Q${i + 1}`,
                               accuracy: parseFloat(q.accuracy_pct.toFixed(1)),
-                              fill: q.accuracy_pct >= 70 ? '#10B981' : q.accuracy_pct >= 40 ? '#F59E0B' : '#EF4444',
+                              fill: q.accuracy_pct >= 70 ? '#10B981' : q.accuracy_pct >= 40 ? '#e5a92f' : '#EF4444',
                             }))} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                               <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.4)' }} axisLine={false} tickLine={false} />
@@ -320,7 +320,7 @@ export default function AnalyticsPage() {
                               />
                               <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
                                 {sessionAnalytics.question_stats.map((q, i) => (
-                                  <Cell key={i} fill={q.accuracy_pct >= 70 ? '#10B981' : q.accuracy_pct >= 40 ? '#F59E0B' : '#EF4444'} />
+                                  <Cell key={i} fill={q.accuracy_pct >= 70 ? '#10B981' : q.accuracy_pct >= 40 ? '#e5a92f' : '#EF4444'} />
                                 ))}
                               </Bar>
                             </BarChart>
@@ -349,7 +349,7 @@ export default function AnalyticsPage() {
                                       className="h-full rounded-full transition-all duration-700"
                                       style={{
                                         width: `${q.accuracy_pct}%`,
-                                        background: q.accuracy_pct >= 70 ? '#10B981' : q.accuracy_pct >= 40 ? '#F59E0B' : '#EF4444',
+                                        background: q.accuracy_pct >= 70 ? '#10B981' : q.accuracy_pct >= 40 ? '#e5a92f' : '#EF4444',
                                       }}
                                     />
                                   </div>

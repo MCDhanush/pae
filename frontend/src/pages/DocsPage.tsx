@@ -20,7 +20,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
   return (
     <section id={id} className="mb-16 scroll-mt-24">
       <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
-        <span className="w-1 h-7 rounded-full bg-gradient-to-b from-violet-400 to-indigo-500 inline-block shrink-0" />
+        <span className="inline-block h-7 w-1 shrink-0 rounded-full bg-gradient-to-b from-[#e5a92f] to-[#0f8f7c]" />
         {title}
       </h2>
       <div className="space-y-4 text-white/70 leading-relaxed">{children}</div>
@@ -138,15 +138,15 @@ export default function DocsPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white">
       {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-600/20 blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-3xl" />
+        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[#5db8b3]/[0.06] blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-[#6fa8c2]/[0.06] blur-3xl" />
       </div>
 
       {/* Header */}
-      <header className="relative z-20 bg-white/5 backdrop-blur-xl sticky top-0 border-b border-white/10">
+      <header className="relative z-20 bg-[#102f3b]/85 backdrop-blur-xl sticky top-0 border-b border-[#d9b15c]/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/"><PAELogo variant="dark" size="sm" /></Link>
@@ -679,13 +679,13 @@ export default function DocsPage() {
           </Section>
 
           {/* Footer CTA */}
-          <div className="mt-8 bg-gradient-to-br from-violet-500/15 to-indigo-500/15 border border-violet-500/20 rounded-3xl p-8 text-center">
+          <div className="mt-8 rounded-3xl border border-[#6bc7bf]/20 bg-gradient-to-br from-[#0f8f7c]/15 to-[#2874d0]/15 p-8 text-center">
             <h2 className="text-2xl font-black text-white mb-2">Ready to get started?</h2>
             <p className="text-white/50 text-sm mb-6">Create your free account and run your first quiz in minutes.</p>
             <div className="flex items-center justify-center gap-4">
               <Link
                 to="/register"
-                className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl text-white font-bold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="rounded-2xl bg-[#d9f1ef] px-6 py-3 text-sm font-bold text-[#0b5262] shadow-lg shadow-[#0f8f7c]/20 transition-all hover:scale-[1.02] hover:bg-[#c4e8e5] hover:shadow-[#0f8f7c]/30 active:scale-[0.98]"
               >
                 Create Free Account
               </Link>

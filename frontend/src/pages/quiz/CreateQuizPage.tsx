@@ -393,7 +393,7 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white" ref={containerRef}>
+    <div className="min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white" ref={containerRef}>
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-violet-700/15 blur-3xl" />

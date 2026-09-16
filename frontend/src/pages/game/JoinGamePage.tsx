@@ -3,20 +3,12 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { playerAPI } from '../../lib/api'
 import { useGameStore } from '../../store/gameStore'
+import PAELogo from '../../components/ui/PAELogo'
 
 interface JoinFormData {
   pin: string
   nickname: string
 }
-
-const FLOATING_SHAPES = [
-  { size: 'w-16 h-16', color: 'bg-violet-400/20', delay: 'delay-0', duration: 'animate-floatSlow', pos: 'top-[10%] left-[5%]' },
-  { size: 'w-10 h-10', color: 'bg-amber-400/20', delay: 'delay-200', duration: 'animate-float', pos: 'top-[20%] right-[8%]' },
-  { size: 'w-20 h-20', color: 'bg-indigo-400/15', delay: 'delay-400', duration: 'animate-floatSlow', pos: 'bottom-[15%] left-[10%]' },
-  { size: 'w-12 h-12', color: 'bg-purple-300/20', delay: 'delay-300', duration: 'animate-float', pos: 'top-[50%] right-[5%]' },
-  { size: 'w-8 h-8', color: 'bg-pink-400/20', delay: 'delay-500', duration: 'animate-floatSlow', pos: 'bottom-[30%] right-[15%]' },
-  { size: 'w-6 h-6', color: 'bg-cyan-400/20', delay: 'delay-100', duration: 'animate-float', pos: 'top-[35%] left-[15%]' },
-]
 
 export default function JoinGamePage() {
   const navigate = useNavigate()
@@ -62,21 +54,13 @@ export default function JoinGamePage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-violet-700 via-purple-800 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center p-4">
       {/* Animated blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-violet-600/30 blur-3xl" />
-        <div className="animate-blobFloat2 absolute bottom-[-15%] right-[-5%] w-[450px] h-[450px] rounded-full bg-indigo-500/30 blur-3xl" />
-        <div className="animate-blobFloat absolute top-[40%] right-[20%] w-[300px] h-[300px] rounded-full bg-purple-500/20 blur-3xl" />
+        <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-[#5db8b3]/[0.07] blur-3xl" />
+        <div className="absolute bottom-[-15%] right-[-5%] w-[450px] h-[450px] rounded-full bg-[#6fa8c2]/[0.07] blur-3xl" />
+        <div className="absolute top-0 right-0 h-px w-2/5 bg-gradient-to-l from-[#e5a92f]/70 to-transparent" />
       </div>
-
-      {/* Floating geometric shapes */}
-      {FLOATING_SHAPES.map((shape, i) => (
-        <div
-          key={i}
-          className={`absolute ${shape.pos} ${shape.size} ${shape.color} ${shape.duration} ${shape.delay} rounded-2xl rotate-12 pointer-events-none`}
-        />
-      ))}
 
       {/* Dot grid */}
       <div
@@ -89,7 +73,7 @@ export default function JoinGamePage() {
       {/* Back to home */}
       <Link
         to="/"
-        className="animate-fadeInLeft fixed top-5 left-5 flex items-center gap-2 text-white/70 hover:text-white transition-all text-sm font-medium group z-10"
+        className="fixed top-5 left-5 flex items-center gap-2 text-white/70 hover:text-white transition-all text-sm font-medium group z-10"
       >
         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,23 +85,18 @@ export default function JoinGamePage() {
 
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
-        <div className="animate-fadeInDown text-center mb-8">
-          <div className="relative inline-flex mb-5">
-            <div className="w-24 h-24 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-2xl animate-float">
-              <span className="text-5xl font-black text-white">P</span>
-            </div>
-            {/* Pulse rings */}
-            <div className="absolute inset-0 rounded-3xl border-2 border-white/20 animate-pulseRing" />
-            <div className="absolute inset-0 rounded-3xl border-2 border-white/10 animate-pulseRing delay-500" />
+        <div className="text-center mb-8">
+          <div className="relative inline-flex mb-5 rounded-[1.4rem] border border-[#d9b15c]/40 bg-[#0b3442]/80 p-3 shadow-[0_14px_35px_rgba(5,35,46,0.28)]">
+            <PAELogo variant="dark" size="lg" />
           </div>
           <h1 className="text-4xl font-black text-white tracking-tight">Join Game</h1>
           <p className="text-white/60 mt-2 text-sm">Enter the PIN from your teacher</p>
         </div>
 
         {/* Card */}
-        <div className="animate-slideUpFade bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl p-7">
+        <div className="bg-white/[0.13] backdrop-blur-xl rounded-3xl border border-[#d9b15c]/25 shadow-2xl p-7">
           {joinError && (
-            <div className="animate-scaleIn mb-5 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl flex items-start gap-3 text-white text-sm">
+            <div className="mb-5 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl flex items-start gap-3 text-white text-sm">
               <svg className="w-5 h-5 shrink-0 text-red-300 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -127,7 +106,7 @@ export default function JoinGamePage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* PIN */}
-            <div className="animate-fadeInUp delay-100">
+            <div>
               <label className="text-white/80 text-sm font-semibold block mb-3 text-center">Game PIN</label>
               <input
                 type="text"
@@ -154,7 +133,7 @@ export default function JoinGamePage() {
             </div>
 
             {/* Nickname */}
-            <div className="animate-fadeInUp delay-200">
+            <div>
               <label className="text-white/80 text-sm font-semibold block mb-2">Your Nickname</label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
@@ -185,11 +164,11 @@ export default function JoinGamePage() {
               )}
             </div>
 
-            <div className="animate-fadeInUp delay-300 pt-1">
+            <div className="pt-1">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-white text-violet-700 font-black rounded-2xl hover:bg-gray-50 active:scale-[0.98] transition-all shadow-xl shadow-black/20 text-base disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#d9f1ef] text-[#0b5262] border border-[#8bcac8] font-black rounded-2xl hover:bg-[#c4e8e5] active:scale-[0.98] transition-all shadow-lg shadow-[#062f3c]/20 text-base disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -214,7 +193,7 @@ export default function JoinGamePage() {
             </div>
           </form>
 
-          <div className="animate-fadeIn delay-400 mt-5 text-center">
+          <div className="mt-5 text-center">
             <p className="text-white/35 text-xs">
               Are you a teacher?{' '}
               <Link to="/login" className="text-white/60 hover:text-white transition-colors font-medium">
@@ -224,7 +203,7 @@ export default function JoinGamePage() {
           </div>
         </div>
 
-        <p className="animate-fadeIn delay-500 text-center text-white/25 text-xs mt-5">
+        <p className="text-center text-white/25 text-xs mt-5">
           PAE — Real-time Quiz Platform
         </p>
       </div>

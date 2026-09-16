@@ -68,12 +68,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-violet-700 via-purple-800 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center p-4">
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="animate-blobFloat absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full bg-violet-500/25 blur-3xl" />
-        <div className="animate-blobFloat2 absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full bg-indigo-500/25 blur-3xl" />
-        <div className="animate-blobFloat absolute top-[50%] left-[20%] w-64 h-64 rounded-full bg-purple-400/10 blur-3xl" />
+        <div className="absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full bg-[#0f8f7c]/20 blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full bg-[#2874d0]/20 blur-3xl" />
+        <div className="absolute top-[50%] left-[20%] w-64 h-64 rounded-full bg-[#e5a92f]/10 blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="w-full py-4 bg-white text-violet-700 font-bold rounded-2xl hover:bg-gray-50 active:scale-[0.98] transition-all shadow-xl shadow-black/20 text-sm flex items-center justify-center gap-2 mt-2"
+                    className="w-full py-4 bg-[#d9f1ef] text-[#0b5262] border border-[#8bcac8] font-bold rounded-2xl hover:bg-[#c4e8e5] active:scale-[0.98] transition-all shadow-lg shadow-[#062f3c]/20 text-sm flex items-center justify-center gap-2 mt-2"
                   >
                     Continue
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -282,7 +282,7 @@ export default function RegisterPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 bg-white text-violet-700 font-bold rounded-2xl hover:bg-gray-50 active:scale-[0.98] transition-all shadow-xl shadow-black/20 text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                    className="w-full py-4 bg-[#d9f1ef] text-[#0b5262] border border-[#8bcac8] font-bold rounded-2xl hover:bg-[#c4e8e5] active:scale-[0.98] transition-all shadow-lg shadow-[#062f3c]/20 text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                   >
                     {isLoading ? (
                       <><svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Creating account...</>

@@ -216,7 +216,7 @@ export default function DashboardPage() {
             }
           },
           modal: { ondismiss: () => reject(new Error('cancelled')) },
-          theme: { color: '#7c3aed' },
+          theme: { color: '#0f6b78' },
         })
         rzp.open()
       })
@@ -333,7 +333,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950 text-white" ref={containerRef}>
+    <div className="min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white" ref={containerRef}>
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[700px] h-[700px] rounded-full bg-violet-600/35 blur-3xl" />
@@ -647,7 +647,7 @@ export default function DashboardPage() {
                       contentStyle={{ background: 'rgba(15,15,30,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
                       cursor={{ stroke: 'rgba(255,255,255,0.1)' }}
                     />
-                    <Line type="monotone" dataKey="sessions" stroke="#7C3AED" strokeWidth={2} dot={{ fill: '#7C3AED', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="sessions" stroke="#0f6b78" strokeWidth={2} dot={{ fill: '#0f6b78', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
