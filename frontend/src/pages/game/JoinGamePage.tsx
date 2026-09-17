@@ -54,7 +54,7 @@ export default function JoinGamePage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center p-4">
+    <div className="route-light min-h-screen relative overflow-hidden bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7] flex items-center justify-center p-4">
       {/* Animated blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-[#5db8b3]/[0.07] blur-3xl" />
@@ -73,9 +73,9 @@ export default function JoinGamePage() {
       {/* Back to home */}
       <Link
         to="/"
-        className="fixed top-5 left-5 flex items-center gap-2 text-white/70 hover:text-white transition-all text-sm font-medium group z-10"
+        className="fixed top-5 left-5 z-10 flex items-center gap-2 text-sm font-medium text-[#486375] transition-all hover:text-[#0f6b78] group"
       >
-        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#c9dadd] bg-white/80 transition-colors group-hover:bg-[#d9f1ef]">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -86,15 +86,15 @@ export default function JoinGamePage() {
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="relative inline-flex mb-5 rounded-[1.4rem] border border-[#d9b15c]/40 bg-[#0b3442]/80 p-3 shadow-[0_14px_35px_rgba(5,35,46,0.28)]">
-            <PAELogo variant="dark" size="lg" />
+          <div className="relative inline-flex mb-5 rounded-[1.4rem] border border-[#e5a92f]/45 bg-white/90 p-3 shadow-[0_14px_35px_rgba(24,50,71,0.14)]">
+            <PAELogo variant="light" size="lg" />
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">Join Game</h1>
-          <p className="text-white/60 mt-2 text-sm">Enter the PIN from your teacher</p>
+          <h1 className="text-4xl font-black tracking-tight text-[#183247]">Join Game</h1>
+          <p className="mt-2 text-sm text-[#60778a]">Enter the PIN from your teacher</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white/[0.13] backdrop-blur-xl rounded-3xl border border-[#d9b15c]/25 shadow-2xl p-7">
+        <div className="rounded-3xl border border-[#c9dadd] bg-white/90 p-7 shadow-[0_18px_45px_rgba(24,50,71,0.12)] backdrop-blur-xl">
           {joinError && (
             <div className="mb-5 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl flex items-start gap-3 text-white text-sm">
               <svg className="w-5 h-5 shrink-0 text-red-300 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,13 +107,13 @@ export default function JoinGamePage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* PIN */}
             <div>
-              <label className="text-white/80 text-sm font-semibold block mb-3 text-center">Game PIN</label>
+              <label className="mb-3 block text-center text-sm font-semibold text-[#183247]">Game PIN</label>
               <input
                 type="text"
                 placeholder="_ _ _ _ _ _"
                 maxLength={6}
                 onFocus={() => setFocused('pin')}
-                className={`w-full text-center text-4xl font-black tracking-[0.4em] py-5 px-4 bg-white/10 border-2 rounded-2xl text-white placeholder-white/20 focus:outline-none transition-all ${
+                className={`w-full rounded-2xl border-2 bg-white py-5 px-4 text-center text-4xl font-black tracking-[0.4em] text-[#183247] placeholder-[#9aadb5] focus:outline-none transition-all ${
                   focused === 'pin'
                     ? 'border-white/60 bg-white/15 shadow-lg shadow-white/10'
                     : 'border-white/20'
@@ -134,9 +134,9 @@ export default function JoinGamePage() {
 
             {/* Nickname */}
             <div>
-              <label className="text-white/80 text-sm font-semibold block mb-2">Your Nickname</label>
+              <label className="mb-2 block text-sm font-semibold text-[#183247]">Your Nickname</label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
+                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#78909c]">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -146,7 +146,7 @@ export default function JoinGamePage() {
                   type="text"
                   placeholder="e.g. QuizMaster99"
                   onFocus={() => setFocused('nick')}
-                  className={`w-full pl-12 pr-4 py-4 bg-white/10 border-2 rounded-2xl text-white placeholder-white/30 focus:outline-none transition-all text-sm font-medium ${
+                  className={`w-full rounded-2xl border-2 bg-white py-4 pl-12 pr-4 text-sm font-medium text-[#183247] placeholder-[#9aadb5] focus:outline-none transition-all ${
                     focused === 'nick'
                       ? 'border-white/60 bg-white/15 shadow-lg shadow-white/10'
                       : 'border-white/20'
@@ -194,16 +194,16 @@ export default function JoinGamePage() {
           </form>
 
           <div className="mt-5 text-center">
-            <p className="text-white/35 text-xs">
+            <p className="text-xs text-[#78909c]">
               Are you a teacher?{' '}
-              <Link to="/login" className="text-white/60 hover:text-white transition-colors font-medium">
+              <Link to="/login" className="font-medium text-[#0f6b78] transition-colors hover:text-[#0b5262]">
                 Sign in here
               </Link>
             </p>
           </div>
         </div>
 
-        <p className="text-center text-white/25 text-xs mt-5">
+        <p className="mt-5 text-center text-xs text-[#78909c]">
           PAE — Real-time Quiz Platform
         </p>
       </div>

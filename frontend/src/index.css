@@ -73,6 +73,156 @@
 }
 
 @layer utilities {
+  .route-light {
+    position: relative;
+    isolation: isolate;
+    color: #183247;
+  }
+
+  .route-light::before,
+  .route-light::after {
+    position: absolute;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+    border-radius: 9999px;
+    filter: blur(3px);
+    opacity: 0.7;
+    animation: routeOrbFloat 14s ease-in-out infinite alternate;
+  }
+
+  .route-light::before {
+    top: 8%;
+    left: -8rem;
+    width: 24rem;
+    height: 24rem;
+    background:
+      radial-gradient(circle at 72% 28%, rgba(229, 169, 47, 0.22), rgba(229, 169, 47, 0) 22%),
+      radial-gradient(circle, rgba(15, 143, 124, 0.2), rgba(15, 143, 124, 0));
+  }
+
+  .route-light::after {
+    right: -7rem;
+    bottom: 5%;
+    width: 28rem;
+    height: 28rem;
+    background:
+      radial-gradient(circle at 35% 60%, rgba(229, 169, 47, 0.16), rgba(229, 169, 47, 0) 20%),
+      radial-gradient(circle, rgba(40, 116, 208, 0.18), rgba(40, 116, 208, 0));
+    animation-delay: -6s;
+  }
+
+  .route-light .text-white {
+    color: #183247 !important;
+  }
+
+  .route-light [class*="text-white/"] {
+    color: #60778a !important;
+  }
+
+  .route-light [class*="bg-white/"] {
+    background-color: rgba(255, 255, 255, 0.86) !important;
+  }
+
+  .route-light [class*="border-white/"] {
+    border-color: #c9dadd;
+  }
+
+  .route-light input,
+  .route-light textarea,
+  .route-light select {
+    color: #183247 !important;
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-color: #c9dadd !important;
+    caret-color: #0f6b78;
+  }
+
+  .route-light input::placeholder,
+  .route-light textarea::placeholder {
+    color: #8aa0aa !important;
+    opacity: 1;
+  }
+
+  .route-light input:focus,
+  .route-light textarea:focus,
+  .route-light select:focus {
+    background-color: #ffffff !important;
+    border-color: #0f8f7c !important;
+    box-shadow: 0 0 0 3px rgba(15, 143, 124, 0.14);
+    outline: none;
+  }
+
+  .route-light input[type="radio"],
+  .route-light input[type="checkbox"] {
+    accent-color: #0f6b78;
+  }
+
+  .route-light header {
+    background-color: rgba(255, 255, 255, 0.94) !important;
+    border-color: #dbe7e8 !important;
+    box-shadow: 0 4px 18px rgba(24, 50, 71, 0.08);
+  }
+
+  @keyframes routeOrbFloat {
+    0% { transform: translate3d(-1rem, 0, 0) scale(1); }
+    50% { transform: translate3d(2rem, 1.5rem, 0) scale(1.08); }
+    100% { transform: translate3d(0, -1rem, 0) scale(0.96); }
+  }
+
+  .route-light header .text-white,
+  .route-light header [class*="text-white/"] {
+    color: #486375 !important;
+  }
+
+  .route-light header .font-black {
+    color: #183247 !important;
+  }
+
+  .route-light header a:hover,
+  .route-light header button:hover {
+    color: #0f6b78 !important;
+  }
+
+  .route-light header [class*="text-violet"],
+  .route-light header [class*="text-indigo"] {
+    color: #0f6b78 !important;
+  }
+
+  .route-light header [class*="bg-violet"],
+  .route-light header [class*="bg-indigo"] {
+    background-color: #d9f1ef !important;
+    border-color: #8bcac8 !important;
+  }
+
+  .route-light header [class*="bg-black/"],
+  .route-light header [class*="bg-gray-950"] {
+    background-color: #f8fbfa !important;
+  }
+
+  .route-light header .lg\:hidden,
+  .route-light header .sm\:hidden {
+    color: #486375 !important;
+  }
+
+  .route-light header .lg\:hidden a,
+  .route-light header .lg\:hidden button,
+  .route-light header .sm\:hidden a,
+  .route-light header .sm\:hidden button {
+    color: #486375 !important;
+  }
+
+  .route-light header .lg\:hidden a:hover,
+  .route-light header .lg\:hidden button:hover,
+  .route-light header .sm\:hidden a:hover,
+  .route-light header .sm\:hidden button:hover {
+    color: #0f6b78 !important;
+    background-color: #e6f3f1 !important;
+  }
+
+  .route-light [class*="bg-gradient-to-r"][class*="text-white"] {
+    color: #ffffff;
+  }
+
   .text-gradient {
     @apply bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent;
   }

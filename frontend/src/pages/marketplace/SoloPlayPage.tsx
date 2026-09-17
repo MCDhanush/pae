@@ -154,7 +154,7 @@ export default function SoloPlayPage() {
   const pct = total > 0 ? Math.round((correctCount / total) * 100) : 0
 
   return (
-    <div className="min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white flex flex-col">
+    <div className="route-light min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7] flex flex-col">
       {/* Ambient blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />

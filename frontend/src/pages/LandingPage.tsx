@@ -523,16 +523,16 @@ useEffect(() => {
       </section>
 
       {/* ── Platform Stats ────────────────────────────────────────────── */}
-      <section className="gsap-stats-section bg-gray-50 py-16 sm:py-20">
+      <section className="gsap-stats-section bg-gradient-to-br from-[#f8fbfa] via-[#f4faf9] to-[#eaf4f7] py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Heading */}
           <div className="text-center mb-12">
-            <span className="inline-block px-3 py-1 bg-violet-100 text-violet-700 text-xs font-bold rounded-full uppercase tracking-wider mb-3">
+            <span className="mb-3 inline-block rounded-full border border-[#b8d9d8] bg-[#d9f1ef] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#0b5262]">
               By the numbers
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900">Platform at a Glance</h2>
-            <p className="text-gray-500 mt-3 text-base max-w-md mx-auto">
+            <h2 className="text-3xl font-black text-[#183247] sm:text-4xl">Platform at a Glance</h2>
+            <p className="mx-auto mt-3 max-w-md text-base text-[#60778a]">
               Real numbers from our growing community of educators and students.
             </p>
           </div>

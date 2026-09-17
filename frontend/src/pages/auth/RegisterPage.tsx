@@ -68,7 +68,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center p-4">
+    <div className="route-light min-h-screen relative overflow-hidden bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7] flex items-center justify-center p-4">
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full bg-[#0f8f7c]/20 blur-3xl" />
@@ -98,7 +98,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo + step indicator */}
         <div className="animate-fadeInDown text-center mb-7">
-          <Link to="/"><PAELogo variant="dark" size="lg" className="mx-auto mb-6" /></Link>
+          <Link to="/"><PAELogo variant="light" size="lg" className="mx-auto mb-6" /></Link>
           <h1 className="text-2xl font-black text-white">Create your account</h1>
           <p className="text-white/50 mt-1.5 text-sm">Join PAE — it's free</p>
           {/* Step indicator */}

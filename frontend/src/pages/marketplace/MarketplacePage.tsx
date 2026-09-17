@@ -103,7 +103,7 @@ export default function MarketplacePage() {
 
   return (
     <div
-      className="min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white"
+      className="route-light min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]"
       ref={containerRef}
     >
       {/* Background blobs */}
@@ -115,7 +115,7 @@ export default function MarketplacePage() {
       {/* Header */}
       <header className="relative z-20 sticky top-0 border-b border-white/10 bg-[#102f3b]/90 shadow-[0_4px_18px_rgba(6,47,60,0.25)] backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <Link to="/" className="rounded-xl px-2 py-1"><PAELogo variant="dark" size="sm" /></Link>
+          <Link to="/" className="rounded-xl px-2 py-1"><PAELogo variant="light" size="sm" /></Link>
           <div className="flex items-center gap-3">
             <Link
               to="/dashboard"
@@ -138,7 +138,7 @@ export default function MarketplacePage() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Hero */}
         <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#6bc7bf]/30 bg-[#0f8f7c]/15 px-3 py-1 text-xs font-semibold text-[#b8eee7] shadow-sm">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#9ecbc9] bg-[#d9f1ef] px-3 py-1 text-xs font-semibold text-[#0b5262] shadow-sm">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
@@ -253,7 +253,7 @@ export default function MarketplacePage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="mb-1 line-clamp-2 text-base font-bold leading-snug text-white transition-colors group-hover:text-[#b8eee7]">
+                  <h3 className="mb-1 line-clamp-2 text-base font-bold leading-snug text-white transition-colors group-hover:text-[#0f6b78]">
                     {quiz.title}
                   </h3>
 

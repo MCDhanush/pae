@@ -38,7 +38,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] flex items-center justify-center p-4">
+    <div className="route-light min-h-screen relative overflow-hidden bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7] flex items-center justify-center p-4">
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-96 h-96 rounded-full bg-[#5db8b3]/[0.07] blur-3xl" />
@@ -68,7 +68,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="animate-fadeInDown text-center mb-8">
-          <Link to="/"><PAELogo variant="dark" size="lg" className="mx-auto mb-6" /></Link>
+          <Link to="/"><PAELogo variant="light" size="lg" className="mx-auto mb-6" /></Link>
           <h1 className="text-3xl font-black text-white tracking-tight">Welcome back</h1>
           <p className="text-white/60 mt-2 text-sm">Sign in to your PAE account</p>
         </div>

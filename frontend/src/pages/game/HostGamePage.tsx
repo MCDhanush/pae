@@ -207,7 +207,7 @@ export default function HostGamePage() {
   const timerColor = timerPct > 50 ? '#22c55e' : timerPct > 25 ? '#e5a92f' : '#ef4444'
 
   return (
-    <div className="min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white">
+    <div className="route-light min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]">
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-700/15 blur-3xl" />

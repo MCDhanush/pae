@@ -333,7 +333,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white" ref={containerRef}>
+    <div className="route-light min-h-screen relative overflow-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]" ref={containerRef}>
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-blobFloat absolute top-[-10%] left-[-5%] w-[700px] h-[700px] rounded-full bg-violet-600/35 blur-3xl" />
@@ -347,7 +347,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="relative z-20 bg-white/5 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/"><PAELogo variant="dark" size="sm" /></Link>
+          <Link to="/"><PAELogo variant="light" size="sm" /></Link>
 
           <div className="flex items-center gap-3">
             {/* Desktop menu */}

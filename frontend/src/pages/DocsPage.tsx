@@ -138,7 +138,7 @@ export default function DocsPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white">
+    <div className="route-light min-h-screen bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]">
       {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[#5db8b3]/[0.06] blur-3xl" />
@@ -149,7 +149,7 @@ export default function DocsPage() {
       <header className="relative z-20 bg-[#102f3b]/85 backdrop-blur-xl sticky top-0 border-b border-[#d9b15c]/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/"><PAELogo variant="dark" size="sm" /></Link>
+            <Link to="/"><PAELogo variant="light" size="sm" /></Link>
             <span className="hidden sm:block text-white/20">|</span>
             <span className="hidden sm:block text-sm font-semibold text-white/50">Documentation</span>
           </div>
@@ -262,8 +262,8 @@ export default function DocsPage() {
                   href={`#${s.id}`}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeSection === s.id
-                      ? 'bg-violet-500/15 text-violet-300 border-l-2 border-violet-400'
-                      : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                      ? 'border-l-2 border-[#0f8f7c] bg-[#d9f1ef] text-[#0b5262]'
+                      : 'text-[#60778a] hover:bg-[#e6f3f1] hover:text-[#0f6b78]'
                   }`}
                 >
                   {s.label}

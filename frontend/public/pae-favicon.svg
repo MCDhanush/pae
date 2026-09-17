@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="pae-favicon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#218fc0"/>
+      <stop offset="100%" stop-color="#0f6b78"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="10" fill="url(#pae-favicon)"/>
+  <rect x="9" y="9" width="3.5" height="22" rx="1.75" fill="#fff"/>
+  <path d="M12.5 9H19q7 0 7 6.5T19 22h-6.5" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="30" cy="30" r="4" fill="#e5a92f"/>
+  <circle cx="30" cy="30" r="2" fill="#fff"/>
+</svg>

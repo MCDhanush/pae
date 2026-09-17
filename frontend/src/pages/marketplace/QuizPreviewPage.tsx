@@ -44,7 +44,7 @@ function QuestionPreview({ q, index }: { q: Question; index: number }) {
           <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs font-black text-white/60">
             {index + 1}
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/40 text-[10px] font-semibold">
+          <span className="rounded-full border border-[#b8d9d8] bg-[#d9f1ef] px-2 py-0.5 text-[10px] font-semibold text-[#0b5262]">
             {type}
           </span>
         </div>
@@ -138,7 +138,7 @@ export default function QuizPreviewPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#102f3b] via-[#174957] to-[#183a50] text-white"
+      className="route-light min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]"
     >
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -158,7 +158,7 @@ export default function QuizPreviewPage() {
             </svg>
           </button>
           <Link to="/marketplace">
-            <PAELogo variant="dark" size="sm" />
+            <PAELogo variant="light" size="sm" />
           </Link>
           <span className="text-white/30 text-sm hidden sm:block">/ Quiz Preview</span>
         </div>

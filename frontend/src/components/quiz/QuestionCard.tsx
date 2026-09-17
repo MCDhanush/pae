@@ -23,38 +23,38 @@ import { CSS } from '@dnd-kit/utilities'
 const ANSWER_COLORS = [
   {
     label: 'A',
-    badge: 'bg-rose-500',
-    idle: 'bg-rose-500/10 border border-rose-500/35 hover:bg-rose-500/18 hover:border-rose-500/55',
-    selected: 'bg-rose-500/20 border-2 border-rose-400/80',
-    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
-    wrong: 'bg-rose-500/15 border border-rose-400/40 opacity-60',
+    badge: 'bg-[#f4c7c3] text-[#8d3f49]',
+    idle: 'bg-[#fff1ef] border border-[#edb7b1] hover:bg-[#ffe7e3] hover:border-[#d98983]',
+    selected: 'bg-[#ffe0dc] border-2 border-[#d98983]',
+    correct: 'bg-[#d9f1ef] border-2 border-[#8bcac8] shadow-[#0f8f7c]/20',
+    wrong: 'bg-[#ffe7e3] border border-[#d98983] opacity-70',
     faded: 'bg-white/5 border border-white/10 opacity-50',
   },
   {
     label: 'B',
-    badge: 'bg-blue-500',
-    idle: 'bg-blue-500/10 border border-blue-500/35 hover:bg-blue-500/18 hover:border-blue-500/55',
-    selected: 'bg-blue-500/20 border-2 border-blue-400/80',
-    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
-    wrong: 'bg-blue-500/15 border border-blue-400/40 opacity-60',
+    badge: 'bg-[#c9e3f0] text-[#23638f]',
+    idle: 'bg-[#edf7fb] border border-[#a9cfe0] hover:bg-[#dfeff6] hover:border-[#72abc4]',
+    selected: 'bg-[#dbeaf6] border-2 border-[#72abc4]',
+    correct: 'bg-[#d9f1ef] border-2 border-[#8bcac8] shadow-[#0f8f7c]/20',
+    wrong: 'bg-[#dfeff6] border border-[#72abc4] opacity-70',
     faded: 'bg-white/5 border border-white/10 opacity-50',
   },
   {
     label: 'C',
-    badge: 'bg-amber-500',
-    idle: 'bg-amber-500/10 border border-amber-500/35 hover:bg-amber-500/18 hover:border-amber-500/55',
-    selected: 'bg-amber-500/20 border-2 border-amber-400/80',
-    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
-    wrong: 'bg-amber-500/15 border border-amber-400/40 opacity-60',
+    badge: 'bg-[#f6dfaa] text-[#7a5b13]',
+    idle: 'bg-[#fff8e6] border border-[#e5c878] hover:bg-[#fff1c7] hover:border-[#d6af4d]',
+    selected: 'bg-[#fff1c7] border-2 border-[#d6af4d]',
+    correct: 'bg-[#d9f1ef] border-2 border-[#8bcac8] shadow-[#0f8f7c]/20',
+    wrong: 'bg-[#fff1c7] border border-[#d6af4d] opacity-70',
     faded: 'bg-white/5 border border-white/10 opacity-50',
   },
   {
     label: 'D',
-    badge: 'bg-emerald-500',
-    idle: 'bg-emerald-500/10 border border-emerald-500/35 hover:bg-emerald-500/18 hover:border-emerald-500/55',
-    selected: 'bg-emerald-500/20 border-2 border-emerald-400/80',
-    correct: 'bg-emerald-500/20 border-2 border-emerald-400 shadow-emerald-500/20',
-    wrong: 'bg-emerald-500/15 border border-emerald-400/40 opacity-60',
+    badge: 'bg-[#bfe4df] text-[#0b5262]',
+    idle: 'bg-[#e8f7f4] border border-[#9ecbc9] hover:bg-[#d9f1ef] hover:border-[#5db8b3]',
+    selected: 'bg-[#d9f1ef] border-2 border-[#5db8b3]',
+    correct: 'bg-[#d9f1ef] border-2 border-[#8bcac8] shadow-[#0f8f7c]/20',
+    wrong: 'bg-[#d9f1ef] border border-[#5db8b3] opacity-70',
     faded: 'bg-white/5 border border-white/10 opacity-50',
   },
 ]
@@ -161,7 +161,7 @@ export default function QuestionCard({
             const isCorrect = correctAnswer === option.id
 
             let cls = clsx(
-              'relative flex items-center gap-3 p-4 rounded-2xl text-white font-semibold',
+              'relative flex items-center gap-3 rounded-2xl p-4 font-semibold text-[#183247]',
               'transition-all duration-200 text-left',
               mode === 'play' && !disabled ? 'cursor-pointer active:scale-[0.97] hover:scale-[1.01]' : 'cursor-default',
             )
@@ -184,10 +184,10 @@ export default function QuestionCard({
                 disabled={disabled}
                 className={cls}
               >
-                <span className={clsx('w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 text-white', c.badge)}>
+                <span className={clsx('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-black', c.badge)}>
                   {c.label}
                 </span>
-                <span className="flex-1 text-sm sm:text-base leading-snug text-white/90">{option.text}</span>
+                <span className="flex-1 text-sm leading-snug text-[#183247] sm:text-base">{option.text}</span>
                 {showResult && isCorrect && (
                   <svg className="w-5 h-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
