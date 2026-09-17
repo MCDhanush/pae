@@ -42,7 +42,7 @@ const FEATURES = [
       </svg>
     ),
     title: 'Real-time Gameplay',
-    description: 'Powered by HiveMQ MQTT — scores update instantly as every answer comes in.',
+    description: 'Scores update instantly as every answer comes in, keeping everyone in sync.',
     gradient: 'from-amber-400 to-orange-500',
     bg: 'bg-amber-50',
     text: 'text-amber-600',

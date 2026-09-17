@@ -492,7 +492,7 @@ export default function DocsPage() {
 
           {/* ── LIVE SESSIONS ── */}
           <Section id="live-sessions" title="Live Sessions">
-            <p>A <strong className="text-white">Session</strong> is one live instance of a quiz being played with real students. Sessions are real-time — every event (player join, question start, answer, leaderboard) is delivered instantly via MQTT.</p>
+            <p>A <strong className="text-white">Session</strong> is one live instance of a quiz being played with real students. Sessions are real-time — player joins, questions, answers, and leaderboard updates appear instantly for everyone.</p>
 
             <h3 className="text-white font-semibold mt-6 mb-3">Session Lifecycle</h3>
             <div className="space-y-3">
@@ -631,7 +631,7 @@ export default function DocsPage() {
               },
               {
                 q: 'How many students can join a single session?',
-                a: "There is no hard cap on player count per session. The platform has been tested with up to 60 concurrent players. Performance depends on HiveMQ's public broker capacity.",
+                a: "There is no hard cap on player count per session. The platform has been tested with up to 60 concurrent players. Performance may vary depending on network conditions and the number of active players.",
               },
               {
                 q: 'Can I edit a quiz after it has been used in a session?',
