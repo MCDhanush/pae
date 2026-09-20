@@ -16,10 +16,18 @@ function formatDate(dateStr: string) {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  waiting: 'bg-blue-500/20 border-blue-500/30 text-blue-300',
-  active: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300',
-  finished: 'bg-green-500/90 border-white/20 text-white/90',
+  waiting: 'bg-[#dbeaf6] border-[#a9cfe0] text-[#23638f]',
+  active: 'bg-[#d9f1ef] border-[#8bcac8] text-[#0b5262]',
+  finished: 'bg-[#e5edf0] border-[#c2d2d7] text-[#526b78]',
 }
+
+const INSTITUTION_TYPES = [
+  { value: '', label: 'Select type' },
+  { value: 'school', label: 'School' },
+  { value: 'college', label: 'College' },
+  { value: 'university', label: 'University' },
+  { value: 'other', label: 'Other' },
+]
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -38,6 +46,7 @@ export default function DashboardPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isStartingGame, setIsStartingGame] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [institutionTypeOpen, setInstitutionTypeOpen] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [upgradePendingQuizId, setUpgradePendingQuizId] = useState<string | null>(null)
   const [isUpgrading, setIsUpgrading] = useState(false)
@@ -314,16 +323,16 @@ export default function DashboardPage() {
 
   const stats = user?.role === 'teacher'
     ? [
-        { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-violet-500 to-purple-600' },
-        { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-indigo-500 to-blue-600' },
-        { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-rose-500 to-pink-600' },
-        { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-amber-500 to-orange-600' },
+        { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-[#d9f1ef] to-[#bfe4df]' },
+        { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#dbeaf6] to-[#c9e3f0]' },
+        { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-[#ffe7e3] to-[#f4c7c3]' },
+        { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#f6dfaa] to-[#ecd28b]' },
       ]
     : [
-        { label: 'Quiz Attempts', value: attempts.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-violet-500 to-purple-600' },
-        { label: 'Total Score', value: attempts.reduce((a, att) => a + att.score, 0), iconPath: 'M13 10V3L4 14h7v7l9-11h-7z', color: 'from-indigo-500 to-blue-600' },
-        { label: 'Avg Score', value: attempts.length > 0 ? Math.round(attempts.reduce((a, att) => a + att.score, 0) / attempts.length) : 0, iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: 'from-emerald-500 to-teal-600' },
-        { label: 'Accuracy', value: attempts.length > 0 ? Math.round((attempts.reduce((a, att) => a + att.correct_answers, 0) / attempts.reduce((a, att) => a + att.total_questions, 0)) * 100) : 0, iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-rose-500 to-pink-600' },
+        { label: 'Quiz Attempts', value: attempts.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-[#d9f1ef] to-[#bfe4df]' },
+        { label: 'Total Score', value: attempts.reduce((a, att) => a + att.score, 0), iconPath: 'M13 10V3L4 14h7v7l9-11h-7z', color: 'from-[#dbeaf6] to-[#c9e3f0]' },
+        { label: 'Avg Score', value: attempts.length > 0 ? Math.round(attempts.reduce((a, att) => a + att.score, 0) / attempts.length) : 0, iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: 'from-[#bfe4df] to-[#9ecbc9]' },
+        { label: 'Accuracy', value: attempts.length > 0 ? Math.round((attempts.reduce((a, att) => a + att.correct_answers, 0) / attempts.reduce((a, att) => a + att.total_questions, 0)) * 100) : 0, iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#ffe7e3] to-[#f4c7c3]' },
       ]
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -392,7 +401,7 @@ export default function DashboardPage() {
               </button>
             )}
             <div className="hidden sm:flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl px-3 py-1.5">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] border border-[#8bcac8] text-[#0b5262] flex items-center justify-center font-bold text-xs">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <span className="text-sm font-medium text-white/80">{user?.name}</span>
@@ -471,7 +480,7 @@ export default function DashboardPage() {
             )}
             <div className="border-t border-white/10 pt-3 mt-3 space-y-3">
               <div className="flex items-center gap-2 px-3 py-2">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-xs">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] border border-[#8bcac8] text-[#0b5262] flex items-center justify-center font-bold text-xs">
                   {user?.name?.charAt(0).toUpperCase()}
                 </div>
                 <span className="text-sm font-medium text-white/80">{user?.name}</span>
@@ -918,8 +927,8 @@ export default function DashboardPage() {
                     className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left"
                     onClick={() => handleExpandSession(session.id)}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                      <span className="text-indigo-300 font-bold text-xs">{session.pin}</span>
+                    <div className="flex h-10 min-w-[4.5rem] items-center justify-center rounded-xl border border-[#a9cfe0] bg-[#dbeaf6] px-2 shrink-0">
+                      <span className="text-center text-[11px] font-bold tracking-wide text-[#23638f]">{session.pin}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-white/90 text-sm truncate">{session.quiz_title ?? 'Quiz Session'}</p>
@@ -934,12 +943,12 @@ export default function DashboardPage() {
                       {session.status !== 'finished' && (
                         <button
                           onClick={e => { e.stopPropagation(); navigate(`/game/host/${session.pin}`) }}
-                          className="px-3 py-1 bg-violet-500/20 border border-violet-500/30 text-violet-300 rounded-lg text-xs font-semibold hover:bg-violet-500/30 transition-colors"
+                          className="px-3 py-1 bg-[#d9f1ef] border border-[#8bcac8] text-[#0b5262] rounded-lg text-xs font-semibold hover:bg-[#c4e8e5] transition-colors"
                         >
                           Resume
                         </button>
                       )}
-                      <svg className={`w-4 h-4 text-white/30 transition-transform ${expandedSessionId === session.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className={`w-4 h-4 text-[#78909c] transition-transform ${expandedSessionId === session.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
@@ -959,7 +968,7 @@ export default function DashboardPage() {
                         <div className="flex flex-wrap gap-2">
                           {(sessionPlayers[session.id] ?? []).map(p => (
                             <div key={p.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-[9px] font-bold">
+                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#dbeaf6] to-[#c9e3f0] border border-[#a9cfe0] text-[#23638f] flex items-center justify-center text-[9px] font-bold">
                                 {p.nickname.charAt(0).toUpperCase()}
                               </div>
                               <span className="text-xs text-white/70 font-medium">{p.nickname}</span>
@@ -1029,19 +1038,43 @@ export default function DashboardPage() {
                       className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-xl text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/40 focus:bg-white/10 transition-all"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <label className="text-xs text-white/50 font-medium block mb-1.5">Institution Type</label>
-                    <select
-                      value={profileForm.institution_type}
-                      onChange={e => setProfileForm(f => ({ ...f, institution_type: e.target.value }))}
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-xl text-white text-sm focus:outline-none focus:border-white/40 focus:bg-white/10 transition-all"
+                    <button
+                      type="button"
+                      onClick={() => setInstitutionTypeOpen(open => !open)}
+                      className="flex w-full items-center justify-between rounded-xl border border-[#c9dadd] bg-white/90 px-3 py-2.5 text-left text-sm text-[#183247] transition-all hover:border-[#8bcac8] focus:border-[#5db8b3] focus:outline-none focus:ring-2 focus:ring-[#d9f1ef]"
+                      aria-haspopup="listbox"
+                      aria-expanded={institutionTypeOpen}
                     >
-                      <option value="" className="bg-gray-900">Select type</option>
-                      <option value="school" className="bg-gray-900">School</option>
-                      <option value="college" className="bg-gray-900">College</option>
-                      <option value="university" className="bg-gray-900">University</option>
-                      <option value="other" className="bg-gray-900">Other</option>
-                    </select>
+                      <span>{INSTITUTION_TYPES.find(option => option.value === profileForm.institution_type)?.label}</span>
+                      <svg className={`h-4 w-4 text-[#60778a] transition-transform ${institutionTypeOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                    {institutionTypeOpen && (
+                      <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-[#c9dadd] bg-[#fffdf8] p-1.5 shadow-xl shadow-[#183247]/10" role="listbox">
+                        {INSTITUTION_TYPES.map(option => (
+                          <button
+                            key={option.value || 'empty'}
+                            type="button"
+                            role="option"
+                            aria-selected={profileForm.institution_type === option.value}
+                            onClick={() => {
+                              setProfileForm(form => ({ ...form, institution_type: option.value }))
+                              setInstitutionTypeOpen(false)
+                            }}
+                            className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                              profileForm.institution_type === option.value
+                                ? 'bg-[#d9f1ef] font-semibold text-[#0b5262]'
+                                : 'text-[#183247] hover:bg-[#edf7fb] hover:text-[#0f6b78]'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-white/50 font-medium block mb-1.5">Location</label>

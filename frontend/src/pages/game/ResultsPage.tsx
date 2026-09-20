@@ -186,7 +186,7 @@ export default function ResultsPage() {
                 const rankIdx = podiumRankIndex[pos]
                 return (
                   <div key={entry.player_id} className="gsap-podium-col flex flex-col items-center gap-2 flex-1 max-w-[120px]">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-sm`}>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#dbeaf6] to-[#c9e3f0] border border-[#a9cfe0] text-[#23638f] flex items-center justify-center font-bold text-sm">
                       {entry.nickname.charAt(0).toUpperCase()}
                     </div>
                     <RankIcon rank={rankIdx} />
@@ -251,7 +251,7 @@ export default function ResultsPage() {
                           </td>
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] border border-[#8bcac8] text-[#0b5262] flex items-center justify-center text-xs font-bold shrink-0">
                                 {entry.nickname.charAt(0).toUpperCase()}
                               </div>
                               <span className={`font-semibold text-sm ${inTop3 ? RANK_COLORS[i] : 'text-white/90'} ${isMe ? 'text-violet-300' : ''}`}>

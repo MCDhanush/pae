@@ -490,32 +490,32 @@ useEffect(() => {
               </Link>
             </div>
 
-            <div className="animate-fadeInUp delay-300 mt-12 flex flex-col items-center justify-center gap-4 text-sm font-semibold text-[#183247] sm:flex-row sm:gap-6">
-              <span className="flex min-w-[150px] items-center justify-center gap-2 text-center">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#d9f1ef] text-[#0f6b78]">
+            <div className="animate-fadeInUp delay-300 mt-12 flex flex-col items-center justify-center gap-4 text-sm font-bold text-[#29495b] sm:flex-row sm:gap-6">
+              <span className="flex w-full max-w-[220px] items-center justify-start gap-3 text-left sm:w-auto sm:min-w-[150px] sm:justify-center sm:gap-2 sm:text-center">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#8bcac8] bg-[#e8f7f4] text-[#087487]">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7Z" />
                   </svg>
                 </span>
-                <span>Real-time<br className="sm:hidden" /> Play</span>
+                <span className="whitespace-nowrap text-[#60778a]">Real-time Play</span>
               </span>
               <span className="hidden h-10 w-px bg-[#a9c2c9] sm:block" aria-hidden="true" />
-              <span className="flex min-w-[150px] items-center justify-center gap-2 text-center">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#d9edf5] text-[#1975ad]">
+              <span className="flex w-full max-w-[220px] items-center justify-start gap-3 text-left sm:w-auto sm:min-w-[150px] sm:justify-center sm:gap-2 sm:text-center">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#a9cfe0] bg-[#edf7fb] text-[#176d9f]">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m8-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 8v-2a4 4 0 0 0-3-3.87m-1-8a4 4 0 0 1 0 7.75" />
                   </svg>
                 </span>
-                <span>No Account<br className="sm:hidden" /> Required</span>
+                <span className="whitespace-nowrap text-[#60778a]">No Account Required</span>
               </span>
               <span className="hidden h-10 w-px bg-[#a9c2c9] sm:block" aria-hidden="true" />
-              <span className="flex min-w-[150px] items-center justify-center gap-2 text-center">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#dbeaf6] text-[#23638f]">
+              <span className="flex w-full max-w-[220px] items-center justify-start gap-3 text-left sm:w-auto sm:min-w-[150px] sm:justify-center sm:gap-2 sm:text-center">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#a9cfe0] bg-[#f0f7fb] text-[#245f88]">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 12 2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 3c-2.755 0-5.29.93-7.318 2.484A12.003 12.003 0 0 0 3 12c0 4.268 2.23 8.014 5.603 10.148A11.954 11.954 0 0 0 12 21c1.64 0 3.198-.33 4.618-.934A12.003 12.003 0 0 0 21 12c0-1.42-.247-2.783-.7-4.05" />
                   </svg>
                 </span>
-                <span>Easy to<br className="sm:hidden" /> Use</span>
+                <span className="whitespace-nowrap text-[#60778a]">Easy to Use</span>
               </span>
             </div>
           </div>

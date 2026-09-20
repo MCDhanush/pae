@@ -23,12 +23,17 @@ import type { Player } from '../../types'
 type GamePhase = 'lobby' | 'question' | 'question_end' | 'game_over'
 
 const OPTION_COLORS = [
-  'from-red-500 to-rose-600',
-  'from-blue-500 to-indigo-600',
-  'from-amber-500 to-yellow-600',
-  'from-emerald-500 to-green-600',
+  'from-[#f4c7c3] to-[#edb7b1]',
+  'from-[#c9e3f0] to-[#a9cfe0]',
+  'from-[#f6dfaa] to-[#e5c878]',
+  'from-[#bfe4df] to-[#9ecbc9]',
 ]
-const OPTION_BG = ['bg-red-500/20 border-red-500/40', 'bg-blue-500/20 border-blue-500/40', 'bg-amber-500/20 border-amber-500/40', 'bg-emerald-500/20 border-emerald-500/40']
+const OPTION_BG = [
+  'bg-[#fff1ef] border-[#edb7b1]',
+  'bg-[#edf7fb] border-[#a9cfe0]',
+  'bg-[#fff8e6] border-[#e5c878]',
+  'bg-[#e8f7f4] border-[#9ecbc9]',
+]
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
 const RANK_MEDAL_COLORS = ['text-amber-400', 'text-slate-400', 'text-amber-700']
 function MedalIcon({ rank, size = 'sm' }: { rank: number; size?: 'sm' | 'lg' }) {
@@ -257,7 +262,7 @@ export default function HostGamePage() {
               <button
                 onClick={handleEndGame}
                 disabled={isEnding}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl text-xs font-semibold hover:bg-red-500/30 active:scale-95 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl border border-[#edb7b1] bg-[#fff1ef] px-3 py-1.5 text-xs font-semibold text-[#8d3f49] transition-all hover:bg-[#ffe7e3] active:scale-95 disabled:opacity-50"
               >
                 {isEnding ? (
                   <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
@@ -361,7 +366,7 @@ export default function HostGamePage() {
                   <div className="divide-y divide-white/5 max-h-60 overflow-y-auto">
                     {players.map((p, i) => (
                       <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#dbeaf6] to-[#c9e3f0] border border-[#a9cfe0] text-[#23638f] flex items-center justify-center text-xs font-bold shrink-0">
                           {p.nickname.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-sm font-medium text-white/90">{p.nickname}</span>
@@ -653,7 +658,7 @@ export default function HostGamePage() {
                 <div className="space-y-1.5 max-h-48 overflow-y-auto">
                   {players.slice(0, 12).map((p) => (
                     <div key={p.id} className="flex items-center gap-2 py-1">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] border border-[#8bcac8] text-[#0b5262] flex items-center justify-center text-[10px] font-bold shrink-0">
                         {p.nickname.charAt(0).toUpperCase()}
                       </div>
                       <span className="text-xs text-white/70 truncate">{p.nickname}</span>
@@ -672,13 +677,13 @@ export default function HostGamePage() {
         {phase === 'game_over' && (
           <div className="animate-fadeInUp flex flex-col items-center gap-8 py-8">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-violet-500/30 animate-bounceIn">
-                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] border border-[#8bcac8] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-[#0f8f7c]/15 animate-bounceIn">
+                <svg className="w-8 h-8 text-[#0f6b78]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
               </div>
-              <h2 className="text-4xl font-black text-white">Game Over!</h2>
-              <p className="text-white/50 mt-2">Here are the final results</p>
+              <h2 className="text-4xl font-black text-[#183247]">Game Over!</h2>
+              <p className="text-[#60778a] mt-2">Here are the final results</p>
             </div>
 
             {/* Top 3 podium */}
@@ -691,17 +696,17 @@ export default function HostGamePage() {
                   return (
                     <div key={entry.player_id} className="flex flex-col items-center gap-2 flex-1">
                       <MedalIcon rank={rank} size="lg" />
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#dbeaf6] to-[#c9e3f0] border border-[#a9cfe0] text-[#23638f] flex items-center justify-center font-bold text-sm">
                         {entry.nickname.charAt(0).toUpperCase()}
                       </div>
-                      <p className="text-xs font-bold text-white/80 text-center truncate w-full">{entry.nickname}</p>
-                      <p className="text-xs text-violet-300 font-black">{entry.score}</p>
+                      <p className="text-xs font-bold text-[#183247] text-center truncate w-full">{entry.nickname}</p>
+                      <p className="text-xs text-[#0f6b78] font-black">{entry.score}</p>
                       <div className={`w-full ${heights[podiumPos]} rounded-t-xl ${
-                        rank === 0 ? 'bg-gradient-to-t from-amber-600 to-amber-400' :
-                        rank === 1 ? 'bg-gradient-to-t from-slate-500 to-slate-400' :
-                        'bg-gradient-to-t from-amber-800 to-amber-600'
+                        rank === 0 ? 'bg-gradient-to-t from-[#d6af4d] to-[#f6dfaa]' :
+                        rank === 1 ? 'bg-gradient-to-t from-[#a9c2c9] to-[#dbe7ea]' :
+                        'bg-gradient-to-t from-[#d9b15c] to-[#f1d995]'
                       } flex items-center justify-center`}>
-                        <span className="text-white font-black text-xl">#{rank + 1}</span>
+                        <span className="text-[#183247] font-black text-xl">#{rank + 1}</span>
                       </div>
                     </div>
                   )
@@ -710,19 +715,19 @@ export default function HostGamePage() {
             )}
 
             {/* Full leaderboard */}
-            <div className="w-full max-w-lg bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-white/10">
-                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Full Rankings</h3>
+            <div className="w-full max-w-lg bg-white/80 backdrop-blur-sm border border-[#c9dadd] rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#c9dadd]">
+                <h3 className="text-sm font-bold text-[#60778a] uppercase tracking-wider">Full Rankings</h3>
               </div>
               <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
                 {leaderboard.map((entry, i) => (
-                  <div key={entry.player_id} className="flex items-center gap-3 px-4 py-3">
-                    <span className="w-6 text-sm text-center">{i < 3 ? <MedalIcon rank={i} /> : <span className="text-white/30">#{i+1}</span>}</span>
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                  <div key={entry.player_id} className="flex items-center gap-3 px-4 py-3 border-b border-[#e6eff1] last:border-b-0">
+                    <span className="w-6 text-sm text-center">{i < 3 ? <MedalIcon rank={i} /> : <span className="text-[#78909c]">#{i+1}</span>}</span>
+                    <div className="w-7 h-7 rounded-full bg-[#dbeaf6] border border-[#a9cfe0] text-[#23638f] flex items-center justify-center text-xs font-bold shrink-0">
                       {entry.nickname.charAt(0).toUpperCase()}
                     </div>
-                    <span className="flex-1 font-medium text-sm text-white/90">{entry.nickname}</span>
-                    <span className="font-black text-violet-300">{entry.score}</span>
+                    <span className="flex-1 font-medium text-sm text-[#183247]">{entry.nickname}</span>
+                    <span className="font-black text-[#0f6b78]">{entry.score}</span>
                   </div>
                 ))}
               </div>
@@ -731,12 +736,12 @@ export default function HostGamePage() {
             {/* All participants */}
             {players.length > 0 && (
               <div className="w-full max-w-lg bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/10">
-                  <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">All Participants ({players.length})</h3>
+                <div className="px-4 py-3 border-b border-[#c9dadd]">
+                  <h3 className="text-sm font-bold text-[#60778a] uppercase tracking-wider">All Participants ({players.length})</h3>
                 </div>
                 <div className="flex flex-wrap gap-2 p-4 max-h-36 overflow-y-auto">
                   {players.map((p) => (
-                    <span key={p.id} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-white/70">
+                    <span key={p.id} className="px-2.5 py-1 bg-[#edf7fb] border border-[#c9e3f0] rounded-full text-xs text-[#23638f]">
                       {p.nickname}
                     </span>
                   ))}

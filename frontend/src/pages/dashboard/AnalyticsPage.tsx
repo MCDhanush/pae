@@ -289,7 +289,7 @@ export default function AnalyticsPage() {
                               <span className={`text-sm font-black w-6 ${e.rank <= 3 ? 'text-amber-300' : 'text-white/30'}`}>
                                 #{e.rank}
                               </span>
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#dbeaf6] to-[#c9e3f0] border border-[#a9cfe0] text-[#23638f] flex items-center justify-center text-xs font-bold shrink-0">
                                 {e.nickname.charAt(0).toUpperCase()}
                               </div>
                               <span className="flex-1 text-sm font-medium text-white/80">{e.nickname}</span>

@@ -131,10 +131,32 @@
   .route-light input,
   .route-light textarea,
   .route-light select {
+    appearance: none;
+    padding-right: 2.5rem !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2360778a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-position: right 0.75rem center !important;
+    background-repeat: no-repeat !important;
+    background-size: 1rem !important;
     color: #183247 !important;
     background-color: rgba(255, 255, 255, 0.92) !important;
     border-color: #c9dadd !important;
     caret-color: #0f6b78;
+    cursor: pointer;
+  }
+
+  .route-light select:hover {
+    border-color: #8bcac8 !important;
+    background-color: #ffffff !important;
+  }
+
+  .route-light select:focus {
+    border-color: #5db8b3 !important;
+    box-shadow: 0 0 0 3px rgba(217, 241, 239, 0.9);
+  }
+
+  .route-light select option {
+    color: #183247;
+    background-color: #fffdf8;
   }
 
   .route-light input::placeholder,
@@ -192,6 +214,25 @@
   .route-light header [class*="bg-indigo"] {
     background-color: #d9f1ef !important;
     border-color: #8bcac8 !important;
+  }
+
+  .route-light button[class*="from-violet"],
+  .route-light button[class*="from-indigo"],
+  .route-light a[class*="from-violet"],
+  .route-light a[class*="from-indigo"] {
+    background-image: none !important;
+    background-color: #d9f1ef !important;
+    border-color: #8bcac8 !important;
+    color: #0b5262 !important;
+    box-shadow: 0 8px 20px rgba(15, 143, 124, 0.16) !important;
+  }
+
+  .route-light button[class*="from-violet"]:hover,
+  .route-light button[class*="from-indigo"]:hover,
+  .route-light a[class*="from-violet"]:hover,
+  .route-light a[class*="from-indigo"]:hover {
+    background-color: #c4e8e5 !important;
+    color: #0b5262 !important;
   }
 
   .route-light header [class*="bg-black/"],

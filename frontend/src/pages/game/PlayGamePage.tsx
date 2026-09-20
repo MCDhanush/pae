@@ -257,10 +257,21 @@ export default function PlayGamePage() {
 
       {/* Top bar */}
       <header className="relative z-10 bg-black/20 backdrop-blur-md border-b border-white/10 px-4 py-3">
-        <div className="max-w-xl mx-auto flex items-center justify-between">
-          <div>
+        <div className="max-w-xl mx-auto grid grid-cols-[auto_1fr_auto_auto] items-center gap-4">
+          <button
+            type="button"
+            onClick={() => { reset(); navigate('/join') }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+            aria-label="Back to join game"
+            title="Back to join game"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="min-w-0">
             <p className="text-white/50 text-[10px] font-medium uppercase tracking-wider">Playing as</p>
-            <p className="font-black text-sm text-white">{myNickname}</p>
+            <p className="truncate font-black text-sm text-white">{myNickname}</p>
           </div>
           <div className="text-center">
             <p className="text-white/50 text-[10px] font-medium uppercase tracking-wider">PIN</p>
