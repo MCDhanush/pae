@@ -12,12 +12,12 @@ import PAELogo from '../../components/ui/PAELogo'
 
 type AnalyticsView = 'overview' | 'session'
 
-const ACCURACY_COLORS = ['#10B981', '#e5a92f', '#EF4444', '#218fc0', '#307bad']
+const ACCURACY_COLORS = ['#0f8f7c', '#e5a92f', '#d98983', '#2874d0', '#60778a']
 
 function AccuracyBadge({ pct }: { pct: number }) {
-  const cls = pct >= 70 ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
-    : pct >= 40 ? 'text-amber-300 bg-amber-500/15 border-amber-500/30'
-    : 'text-red-300 bg-red-500/15 border-red-500/30'
+  const cls = pct >= 70 ? 'text-[#0b5262] bg-[#d9f1ef] border-[#8bcac8]'
+    : pct >= 40 ? 'text-[#7a5b13] bg-[#fff1c7] border-[#e5c878]'
+    : 'text-[#8d3f49] bg-[#ffe7e3] border-[#edb7b1]'
   return (
     <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${cls}`}>
       {pct.toFixed(0)}%
@@ -89,8 +89,8 @@ export default function AnalyticsPage() {
     >
       {/* Blob bg */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="animate-blobFloat absolute top-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-3xl" />
-        <div className="animate-blobFloat2 absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="animate-blobFloat absolute top-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#0f8f7c]/10 blur-3xl" />
+        <div className="animate-blobFloat2 absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#2874d0]/10 blur-3xl" />
       </div>
 
       {/* Header */}
@@ -147,30 +147,30 @@ export default function AnalyticsPage() {
                       label: 'Total Quizzes',
                       value: overview?.total_quizzes ?? 0,
                       icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-                      color: 'from-violet-500 to-purple-600',
+                      color: 'from-[#d9f1ef] to-[#bfe4df]',
                     },
                     {
                       label: 'Total Sessions',
                       value: overview?.total_sessions ?? finishedSessions.length,
                       icon: 'M13 10V3L4 14h7v7l9-11h-7z',
-                      color: 'from-amber-400 to-orange-500',
+                      color: 'from-[#f6dfaa] to-[#fff1c7]',
                     },
                     {
                       label: 'Total Students',
                       value: overview?.total_students ?? 0,
                       icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
-                      color: 'from-sky-500 to-blue-600',
+                      color: 'from-[#dbeaf6] to-[#c9e3f0]',
                     },
                     {
                       label: 'Avg Score',
                       value: Math.round(overview?.avg_score_all_sessions ?? 0),
                       icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-                      color: 'from-emerald-500 to-teal-600',
+                      color: 'from-[#bfe4df] to-[#9ecbc9]',
                     },
                   ].map((stat) => (
                     <div key={stat.label} className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
                       <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
-                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-[#0b5262]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.icon} />
                         </svg>
                       </div>
@@ -264,9 +264,9 @@ export default function AnalyticsPage() {
                     {/* Key metrics */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {[
-                        { label: 'Total Players', value: sessionAnalytics.total_players, color: 'from-violet-500 to-purple-600' },
-                        { label: 'Avg Score', value: Math.round(sessionAnalytics.avg_score), color: 'from-amber-400 to-orange-500' },
-                        { label: 'Completion Rate', value: `${(sessionAnalytics.completion_rate * 100).toFixed(0)}%`, color: 'from-emerald-500 to-teal-600' },
+                        { label: 'Total Players', value: sessionAnalytics.total_players, color: 'from-[#d9f1ef] to-[#bfe4df]' },
+                        { label: 'Avg Score', value: Math.round(sessionAnalytics.avg_score), color: 'from-[#f6dfaa] to-[#fff1c7]' },
+                        { label: 'Completion Rate', value: `${(sessionAnalytics.completion_rate * 100).toFixed(0)}%`, color: 'from-[#bfe4df] to-[#9ecbc9]' },
                         { label: 'Questions', value: sessionAnalytics.total_questions, color: 'from-sky-500 to-blue-600' },
                       ].map((m) => (
                         <div key={m.label} className="gsap-card bg-white/5 border border-white/10 rounded-2xl p-5">
