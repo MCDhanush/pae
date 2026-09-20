@@ -71,6 +71,21 @@ npm run build
 
 The generated files are written to `frontend/dist`.
 
+## CI/CD
+
+GitHub Actions runs on pull requests and pushes to `main`:
+
+- Installs and builds the frontend.
+- Formats, tests, vets, and builds the backend.
+- On successful pushes to `main`, optionally triggers deployments.
+
+To enable deployment triggers, add these repository secrets:
+
+- `RENDER_DEPLOY_HOOK` — Render deploy-hook URL for the backend.
+- `NETLIFY_BUILD_HOOK` — Netlify build-hook URL for the frontend.
+
+If the hooks are not configured, CI still runs all validation checks and skips deployment.
+
 ## Main routes
 
 - `/` — Landing page
