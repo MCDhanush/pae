@@ -29,6 +29,23 @@ const INSTITUTION_TYPES = [
   { value: 'other', label: 'Other' },
 ]
 
+function DashboardCardSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-3 p-5" aria-label="Loading">
+      {Array.from({ length: rows }, (_, index) => (
+        <div key={index} className="flex animate-pulse items-center gap-3 rounded-xl border border-[#dce8eb] bg-white/70 p-3">
+          <div className="h-9 w-9 shrink-0 rounded-xl bg-[#d9f1ef]" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-3 w-3/5 rounded-full bg-[#dbeaf6]" />
+            <div className="h-2.5 w-2/5 rounded-full bg-[#edf2f3]" />
+          </div>
+          <div className="h-3 w-12 rounded-full bg-[#f6dfaa]" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { user, logout, updateProfile, isLoading: authLoading, error: authError, clearError } = useAuthStore()
@@ -548,7 +565,15 @@ export default function DashboardPage() {
           <div className="gsap-tab-content space-y-6">
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map(stat => (
+              {((user?.role === 'teacher' && (isLoadingQuizzes || isLoadingSessions)) || (user?.role !== 'teacher' && isLoadingAttempts)) ? (
+                {[1, 2, 3, 4].map(index => (
+                  <div key={index} className="gsap-card animate-pulse rounded-2xl border border-[#dce8eb] bg-white/70 p-4">
+                    <div className="mb-3 h-10 w-10 rounded-xl bg-[#d9f1ef]" />
+                    <div className="mb-2 h-7 w-16 rounded-full bg-[#dbeaf6]" />
+                    <div className="h-3 w-24 rounded-full bg-[#edf2f3]" />
+                  </div>
+                ))
+              ) : stats.map(stat => (
                 <div key={stat.label} className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -687,9 +712,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               {isLoadingQuizzes ? (
-                <div className="p-5 space-y-3">
-                  {[1,2,3].map(i => <div key={i} className="h-14 bg-white/5 rounded-xl animate-pulse" />)}
-                </div>
+                <DashboardCardSkeleton />
               ) : quizzes.length === 0 ? (
                 <div className="py-12 text-center">
                   <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3">
@@ -840,9 +863,7 @@ export default function DashboardPage() {
             </div>
 
             {isLoadingAttempts ? (
-              <div className="space-y-3">
-                {[1,2,3,4].map(i => <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />)}
-              </div>
+              <DashboardCardSkeleton rows={4} />
             ) : attempts.length === 0 ? (
               <div className="bg-white/5 border border-white/10 rounded-2xl py-16 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3">
@@ -908,9 +929,7 @@ export default function DashboardPage() {
             )}
 
             {isLoadingSessions ? (
-              <div className="space-y-3">
-                {[1,2,3,4].map(i => <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />)}
-              </div>
+              <DashboardCardSkeleton rows={4} />
             ) : sessions.length === 0 ? (
               <div className="bg-white/5 border border-white/10 rounded-2xl py-16 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3">

@@ -112,13 +112,13 @@ export default function MarketplacePage() {
 
   return (
     <div
-      className="route-light min-h-screen border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]"
+      className="route-light min-h-screen max-w-full overflow-x-hidden border-t-2 border-[#e5a92f]/70 bg-gradient-to-br from-[#fffdf8] via-[#f6faf9] to-[#eaf4f7]"
       ref={containerRef}
     >
       {/* Background blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-8%] left-[-4%] w-[500px] h-[500px] rounded-full bg-[#0f8f7c]/20 blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-[#2874d0]/20 blur-3xl" />
+      <div className="fixed inset-0 max-w-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-8%] left-[-4%] h-[500px] w-[500px] max-w-[80vw] rounded-full bg-[#0f8f7c]/20 blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-5%] h-[400px] w-[400px] max-w-[70vw] rounded-full bg-[#2874d0]/20 blur-3xl" />
       </div>
 
       {/* Header */}
@@ -178,7 +178,7 @@ export default function MarketplacePage() {
           </div>
 
           {/* Category pills */}
-          <div className="flex gap-2 flex-wrap justify-center">
+          <div className="flex max-w-full gap-2 flex-wrap justify-center overflow-hidden px-1">
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
