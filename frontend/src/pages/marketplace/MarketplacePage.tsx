@@ -9,19 +9,28 @@ import PAELogo from '../../components/ui/PAELogo'
 const CATEGORIES = ['All', 'Science', 'Math', 'History', 'Language', 'Geography', 'Technology', 'Arts', 'Other']
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Science: 'from-emerald-500 to-teal-600',
-  Math: 'from-blue-500 to-indigo-600',
-  History: 'from-amber-500 to-orange-600',
-  Language: 'from-[#0f6b78] to-[#168da9]',
-  Geography: 'from-cyan-500 to-sky-600',
-  Technology: 'from-rose-500 to-pink-600',
-  Arts: 'from-fuchsia-500 to-pink-600',
-  Other: 'from-gray-500 to-slate-600',
+  Science: 'from-[#bfe4df] to-[#d9f1ef]',
+  Math: 'from-[#c9e3f0] to-[#dbeaf6]',
+  History: 'from-[#f6dfaa] to-[#fff1c7]',
+  Language: 'from-[#bfe4df] to-[#c9e3f0]',
+  Geography: 'from-[#c9e3f0] to-[#edf7fb]',
+  Technology: 'from-[#f4c7c3] to-[#ffe7e3]',
+  Arts: 'from-[#f6dfaa] to-[#fcefd0]',
+  Other: 'from-[#dbe7ea] to-[#edf2f3]',
 }
 
 function getCategoryGradient(category?: string) {
   if (!category) return 'from-[#0f6b78] to-[#2874d0]'
   return CATEGORY_COLORS[category] ?? CATEGORY_COLORS['Other']
+}
+
+function getCategoryTextColor(category?: string) {
+  const normalized = category?.trim().toLowerCase()
+  if (normalized === 'math' || normalized === 'accountancy' || normalized === 'accounting') return 'text-[#23638f]'
+  if (normalized === 'science' || normalized === 'language') return 'text-[#0b5262]'
+  if (normalized === 'history' || normalized === 'arts') return 'text-[#7a5b13]'
+  if (normalized === 'technology') return 'text-[#8d3f49]'
+  return 'text-[#526b78]'
 }
 
 export default function MarketplacePage() {
@@ -234,7 +243,7 @@ export default function MarketplacePage() {
                   {/* Category + usage */}
                   <div className="flex items-center justify-between mb-3">
                     {quiz.category ? (
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold bg-gradient-to-r ${getCategoryGradient(quiz.category)} text-white`}>
+                      <span className={`rounded-full border border-white/70 bg-gradient-to-r px-2.5 py-1 text-[10px] font-bold ${getCategoryGradient(quiz.category)} ${getCategoryTextColor(quiz.category)}`}>
                         {quiz.category}
                       </span>
                     ) : (

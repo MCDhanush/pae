@@ -400,15 +400,15 @@ export default function DashboardPage() {
                 Upgrade
               </button>
             )}
-            <div className="hidden sm:flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl px-3 py-1.5">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] border border-[#8bcac8] text-[#0b5262] flex items-center justify-center font-bold text-xs">
+            <div className="hidden sm:flex max-w-[11rem] items-center gap-1.5 rounded-xl border border-[#c9dadd] bg-white/80 px-2 py-1">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#8bcac8] bg-gradient-to-br from-[#d9f1ef] to-[#bfe4df] text-[10px] font-bold text-[#0b5262]">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm font-medium text-white/80">{user?.name}</span>
+              <span className="truncate text-xs font-semibold text-[#526b78]">{user?.name}</span>
             </div>
             <button
               onClick={() => { logout(); navigate('/') }}
-              className="hidden sm:block px-3 py-1.5 text-xs text-white/50 hover:text-white/80 hover:bg-white/10 rounded-xl transition-colors border border-transparent hover:border-white/10"
+              className="hidden sm:block rounded-lg border border-transparent px-2 py-1 text-[11px] font-semibold text-[#60778a] transition-colors hover:border-[#c9dadd] hover:bg-white/80 hover:text-[#183247]"
             >
               Sign Out
             </button>

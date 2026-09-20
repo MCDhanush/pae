@@ -144,7 +144,14 @@ func (r *Repository) Count(ctx context.Context) (int64, error) {
 func (r *Repository) FindPublic(ctx context.Context, category, search string) ([]models.Quiz, error) {
 	filter := bson.M{"is_public": true}
 	if category != "" {
-		filter["category"] = category
+		if category == "Other" {
+			filter["category"] = bson.M{
+				"$exists": true,
+				"$nin": []string{"Science", "Math", "History", "Language", "Geography", "Technology", "Arts", ""},
+			}
+		} else {
+			filter["category"] = category
+		}
 	}
 	if search != "" {
 		filter["title"] = bson.M{"$regex": search, "$options": "i"}
