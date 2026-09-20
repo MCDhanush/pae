@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 
 import LandingPage from './pages/LandingPage'
@@ -33,6 +33,16 @@ function TeacherOnlyRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [pathname])
+
+  return null
+}
+
 function App() {
   const { loadUser, token } = useAuthStore()
 
@@ -43,7 +53,9 @@ function App() {
   }, [token, loadUser])
 
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -95,7 +107,8 @@ function App() {
       <Route path="/results/:pin" element={<ResultsPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 
