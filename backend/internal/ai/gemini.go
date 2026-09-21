@@ -91,11 +91,13 @@ type geminiRequest struct {
 type geminiGenConfig struct {
 	ResponseMIMEType string  `json:"responseMimeType"`
 	Temperature      float64 `json:"temperature"`
+	MaxOutputTokens  int     `json:"maxOutputTokens"`
 }
 
 type geminiResponse struct {
 	Candidates []struct {
-		Content geminiContent `json:"content"`
+		Content      geminiContent `json:"content"`
+		FinishReason string        `json:"finishReason"`
 	} `json:"candidates"`
 }
 
@@ -114,6 +116,7 @@ func (c *Client) Generate(ctx context.Context, req GenerateRequest) ([]Generated
 		GenerationConfig: geminiGenConfig{
 			ResponseMIMEType: "application/json",
 			Temperature:      0.8,
+			MaxOutputTokens:  8192,
 		},
 	}
 
@@ -126,15 +129,23 @@ func (c *Client) Generate(ctx context.Context, req GenerateRequest) ([]Generated
 	for _, model := range c.models {
 		rawJSON, err := c.generateWithModel(ctx, model, bodyBytes)
 		if err == nil {
-			return parseGeneratedQuestions(rawJSON, req.Type)
+			generated, parseErr := parseGeneratedQuestions(rawJSON, req.Type)
+			if parseErr == nil {
+				return generated, nil
+			}
+			if !isRetryableGenerationError(parseErr) {
+				return nil, parseErr
+			}
+			lastErr = fmt.Errorf("Gemini model %s returned incomplete output: %w", model, parseErr)
+			continue
 		}
-		if !isQuotaError(err) {
+		if !isQuotaError(err) && !isTokenLimitError(err) {
 			return nil, err
 		}
 		lastErr = err
 	}
 	if lastErr != nil {
-		return nil, fmt.Errorf("all configured Gemini models are out of quota: %w", lastErr)
+		return nil, fmt.Errorf("all configured Gemini models failed: %w", lastErr)
 	}
 	return nil, errors.New("no Gemini models configured")
 }
@@ -166,7 +177,13 @@ func (c *Client) generateWithModel(ctx context.Context, model string, body []byt
 		return "", fmt.Errorf("decode Gemini model %s response: %w", model, err)
 	}
 
-	if len(gemResp.Candidates) == 0 || len(gemResp.Candidates[0].Content.Parts) == 0 {
+	if len(gemResp.Candidates) == 0 {
+		return "", errors.New("Gemini returned no content")
+	}
+	if gemResp.Candidates[0].FinishReason == "MAX_TOKENS" {
+		return "", &modelError{model: model, statusCode: http.StatusRequestEntityTooLarge, body: "model output exceeded maxOutputTokens"}
+	}
+	if len(gemResp.Candidates[0].Content.Parts) == 0 {
 		return "", errors.New("Gemini returned no content")
 	}
 	return gemResp.Candidates[0].Content.Parts[0].Text, nil
@@ -193,6 +210,18 @@ func isQuotaError(err error) bool {
 			(strings.Contains(body, "quota") ||
 				strings.Contains(body, "rate limit") ||
 				strings.Contains(body, "resource_exhausted")))
+}
+
+func isTokenLimitError(err error) bool {
+	var modelErr *modelError
+	return errors.As(err, &modelErr) &&
+		modelErr.statusCode == http.StatusRequestEntityTooLarge &&
+		strings.Contains(strings.ToLower(modelErr.body), "maxoutputtokens")
+}
+
+func isRetryableGenerationError(err error) bool {
+	return strings.Contains(strings.ToLower(err.Error()), "unexpected end of json input") ||
+		strings.Contains(strings.ToLower(err.Error()), "unexpected end of json")
 }
 
 func parseModels(value string) []string {

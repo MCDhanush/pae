@@ -428,14 +428,14 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
             {STEPS.map((s, i) => (
               <div key={s.label} className="flex items-center gap-2">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-                  i < step ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : i === step ? 'bg-violet-600 shadow-lg shadow-violet-500/30' : 'bg-white/10'
+                  i < step ? 'bg-[#bfe4df] border border-[#8bcac8] shadow-lg shadow-[#0f8f7c]/15' : i === step ? 'bg-[#d9f1ef] border border-[#5db8b3] shadow-lg shadow-[#0f8f7c]/15' : 'bg-[#edf2f3] border border-[#c9dadd]'
                 }`}>
                   {i < step ? (
                     <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <svg className={`w-3.5 h-3.5 ${i === step ? 'text-white' : 'text-white/30'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-3.5 h-3.5 ${i === step ? 'text-[#0b5262]' : 'text-[#78909c]'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={s.icon} />
                     </svg>
                   )}
@@ -495,7 +495,7 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
                 <button
                   type="button"
                   onClick={() => setValue('is_public', !watchIsPublic)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${watchIsPublic ? 'bg-violet-500' : 'bg-white/15'}`}
+                  className={`relative w-11 h-6 rounded-full border transition-colors ${watchIsPublic ? 'border-[#5db8b3] bg-[#0f8f7c]' : 'border-[#c9dadd] bg-[#dbe7ea]'}`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${watchIsPublic ? 'translate-x-5' : ''}`} />
                 </button>
@@ -717,7 +717,7 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
 
           {step < 2 ? (
             <button type="button" onClick={handleNextStep}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl text-white font-bold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              className="flex items-center gap-2 rounded-xl border border-[#0f6b78] bg-gradient-to-r from-[#0f8f7c] to-[#0f6b78] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#0f8f7c]/20 transition-all hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]">
               Next
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -725,7 +725,7 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
             </button>
           ) : (
             <button type="button" onClick={handleSave} disabled={isSaving}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl text-white font-bold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100">
+              className="flex items-center gap-2 rounded-xl border border-[#0f6b78] bg-gradient-to-r from-[#0f8f7c] to-[#0f6b78] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#0f8f7c]/20 transition-all hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100">
               {isSaving ? (
                 <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
