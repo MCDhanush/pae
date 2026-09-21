@@ -21,10 +21,10 @@ const TYPE_LABELS: Record<AIType, string> = {
 }
 
 const TYPE_COLORS: Record<AIType, string> = {
-  multiple_choice: 'bg-[#d9f1ef] text-[#0b5262] border-[#8bcac8]',
-  true_false: 'bg-[#dbeaf6] text-[#23638f] border-[#a9cfe0]',
-  fill_blank: 'bg-[#fff1c7] text-[#7a5b13] border-[#e5c878]',
-  reflection: 'bg-[#e8f7f4] text-[#0b5262] border-[#9ecbc9]',
+  multiple_choice: 'bg-[#eaf4f7] text-[#0f6b78] border-[#a8d5d6]',
+  true_false: 'bg-[#edf4fb] text-[#2874d0] border-[#b8d3ed]',
+  fill_blank: 'bg-[#fff7df] text-[#9a6b08] border-[#efd18a]',
+  reflection: 'bg-[#e8f6ef] text-[#18724f] border-[#acd9c1]',
 }
 
 // Inline-editable card for a single preview question
@@ -45,7 +45,7 @@ function PreviewCard({
   const [editOptions, setEditOptions] = useState(q.options?.map(o => ({ ...o })) ?? [])
   const [editAnswer, setEditAnswer] = useState(q.answer ?? '')
 
-  const typeColor = TYPE_COLORS[q.type as AIType] ?? 'bg-white/10 text-white/40 border-white/20'
+  const typeColor = TYPE_COLORS[q.type as AIType] ?? 'bg-[#f1f5f6] text-[#60778a] border-[#d6e2e5]'
 
   const saveEdit = () => {
     onUpdate({
@@ -62,17 +62,17 @@ function PreviewCard({
   }
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+    <div className="bg-white border border-[#dbe8e8] rounded-2xl overflow-hidden shadow-sm">
       {/* Card header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#e6eeee]">
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center text-[10px] font-black text-white/50">
+          <span className="w-5 h-5 rounded-md bg-[#eaf4f7] flex items-center justify-center text-[10px] font-black text-[#60778a]">
             {index + 1}
           </span>
           <span className={clsx('px-2 py-0.5 rounded-full border text-[10px] font-bold', typeColor)}>
             {TYPE_LABELS[q.type as AIType] ?? q.type}
           </span>
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[10px] font-semibold">
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fff7df] border border-[#efd18a] text-[#9a6b08] text-[10px] font-semibold">
             <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
@@ -83,7 +83,7 @@ function PreviewCard({
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="px-2.5 py-1 rounded-lg bg-white/8 hover:bg-white/12 text-white/50 hover:text-white/80 text-xs font-semibold transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-[#f1f5f6] hover:bg-[#eaf4f7] text-[#60778a] hover:text-[#183247] text-xs font-semibold transition-colors"
             >
               Edit
             </button>
@@ -105,26 +105,26 @@ function PreviewCard({
           /* ── Edit mode ── */
           <div className="space-y-3">
             <div>
-              <label className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-1 block">
+              <label className="text-[#60778a] text-[10px] font-semibold uppercase tracking-wider mb-1 block">
                 Question text
               </label>
               <textarea
                 value={editText}
                 onChange={e => setEditText(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white text-sm placeholder-white/30 focus:outline-none focus:border-violet-500/50 resize-none"
+                className="w-full px-3 py-2.5 bg-[#fbfdfc] border border-[#cbdfe1] rounded-xl text-[#183247] text-sm placeholder-[#8aa0ad] focus:outline-none focus:border-[#0f6b78] resize-none"
               />
             </div>
 
             {/* MC / TF option editor */}
             {(q.type === 'multiple_choice' || q.type === 'true_false') && editOptions.length > 0 && (
               <div>
-                <label className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-1.5 block">
+                <label className="text-[#60778a] text-[10px] font-semibold uppercase tracking-wider mb-1.5 block">
                   Options — select the correct answer
                 </label>
                 <div className="space-y-1.5">
                   {editOptions.map((opt, i) => (
-                    <div key={opt.id} className="flex items-center gap-2">
+                    <div key={opt.id} className="flex items-center gap0">
                       <button
                         type="button"
                         onClick={() => setCorrectOption(opt.id)}
@@ -132,18 +132,18 @@ function PreviewCard({
                           'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
                           opt.is_right
                             ? 'border-emerald-400 bg-emerald-500/20'
-                            : 'border-white/20 bg-transparent hover:border-white/40',
+                            : 'border-[#cbdfe1] bg-transparent hover:border-[#0f6b78]',
                         )}
                       >
                         {opt.is_right && (
                           <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                         )}
                       </button>
-                      <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/40 shrink-0">
+                      <span className="w-5 h-5 rounded-md bg-[#eaf4f7] flex items-center justify-center text-[10px] font-bold text-[#60778a] shrink-0">
                         {String.fromCharCode(65 + i)}
                       </span>
                       {q.type === 'true_false' ? (
-                        <span className="flex-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white/60 text-sm">
+                        <span className="flex-1 px-3 py-1.5 bg-[#f6faf9] border border-[#dbe8e8] rounded-lg text-[#526b7c] text-sm">
                           {opt.text}
                         </span>
                       ) : (
@@ -155,7 +155,7 @@ function PreviewCard({
                             updated[i] = { ...updated[i], text: e.target.value }
                             setEditOptions(updated)
                           }}
-                          className="flex-1 px-3 py-1.5 bg-white/8 border border-white/15 rounded-lg text-white text-sm focus:outline-none focus:border-violet-500/40"
+                          className="flex-1 px-3 py-1.5 bg-[#fbfdfc] border border-[#cbdfe1] rounded-lg text-[#183247] text-sm focus:outline-none focus:border-[#0f6b78]"
                         />
                       )}
                     </div>
@@ -167,14 +167,14 @@ function PreviewCard({
             {/* Fill blank answer editor */}
             {q.type === 'fill_blank' && (
               <div>
-                <label className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-1 block">
+                <label className="text-[#60778a] text-[10px] font-semibold uppercase tracking-wider mb-1 block">
                   Correct answer
                 </label>
                 <input
                   type="text"
                   value={editAnswer}
                   onChange={e => setEditAnswer(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/8 border border-white/15 rounded-xl text-white text-sm focus:outline-none focus:border-violet-500/50"
+                  className="w-full px-3 py-2 bg-[#fbfdfc] border border-[#cbdfe1] rounded-xl text-[#183247] text-sm focus:outline-none focus:border-[#0f6b78]"
                 />
               </div>
             )}
@@ -182,7 +182,7 @@ function PreviewCard({
             <div className="flex gap-2 pt-1">
               <button
                 onClick={saveEdit}
-                className="flex-1 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl transition-colors"
+                className="flex-1 py-2 bg-[#0f6b78] hover:bg-[#0b5262] text-white text-xs font-bold rounded-xl transition-colors"
               >
                 Save changes
               </button>
@@ -193,7 +193,7 @@ function PreviewCard({
                   setEditAnswer(q.answer ?? '')
                   setEditing(false)
                 }}
-                className="px-4 py-2 bg-white/8 hover:bg-white/12 text-white/50 text-xs font-semibold rounded-xl transition-colors"
+                className="px-4 py-2 bg-[#f1f5f6] hover:bg-[#eaf4f7] text-[#60778a] text-xs font-semibold rounded-xl transition-colors"
               >
                 Cancel
               </button>
@@ -214,7 +214,7 @@ function PreviewCard({
                       'flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border',
                       opt.is_right
                         ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200'
-                        : 'bg-white/5 border-white/10 text-white/40',
+                        : 'bg-[#f6faf9] border-[#dbe8e8] text-[#60778a]',
                     )}
                   >
                     <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black shrink-0">
@@ -243,7 +243,7 @@ function PreviewCard({
 
             {/* reflection */}
             {q.type === 'reflection' && (
-              <p className="text-white/30 text-xs italic">Open-ended — no graded answer</p>
+              <p className="text-[#8aa0ad] text-xs italic">Open-ended — no graded answer</p>
             )}
 
             {/* Explanation (collapsible) */}
@@ -251,7 +251,7 @@ function PreviewCard({
               <div>
                 <button
                   onClick={() => setShowExplanation(v => !v)}
-                  className="flex items-center gap-1.5 text-white/40 hover:text-white/60 text-xs font-semibold transition-colors"
+                  className="flex items-center gap-1.5 text-[#60778a] hover:text-[#183247] text-xs font-semibold transition-colors"
                 >
                   <svg
                     className={clsx('w-3 h-3 transition-transform', showExplanation ? 'rotate-90' : '')}
@@ -301,7 +301,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
   const [isUpgradingAI, setIsUpgradingAI] = useState(false)
 
   useEffect(() => {
-    quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+    quizAPI.getAIUsage().then(setAIUsage).catch(() => { })
   }, [])
 
   const handleAIUpgrade = async (planType: PlanType) => {
@@ -337,7 +337,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
               localStorage.setItem('auth_token', result.token)
               await useAuthStore.getState().loadUser()
               // Refresh usage count
-              quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+              quizAPI.getAIUsage().then(setAIUsage).catch(() => { })
               setUpgradeRequired(false)
               resolve()
             } catch (e) { reject(e) }
@@ -368,7 +368,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
       setQuestions(result)
       setPhase('preview')
       // Refresh quota count after a successful generation
-      quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+      quizAPI.getAIUsage().then(setAIUsage).catch(() => { })
     } catch (e: unknown) {
       const status = (e as { response?: { status?: number } })?.response?.status
       if (status === 402) {
@@ -397,24 +397,24 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-lg bg-[#fffdf8] border border-[#c9dadd] rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="relative z-10 w-full max-w-lg bg-[#fffdf8] border border-[#dbe8e8] rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#e1ecec] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#d9f1ef] border border-[#8bcac8] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#eaf4f7] border border-[#a8d5d6] flex items-center justify-center">
               <svg className="w-4 h-4 text-[#0f6b78]" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
             <div>
               <h2 className="text-[#183247] font-black text-sm">Generate with AI</h2>
-              <p className="text-[#60778a] text-[10px]">Powered by Gemini 1.5 Flash</p>
+              <p className="text-[#60778a] text-[10px]">Powered by AI</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-xl bg-[#edf2f3] hover:bg-[#dbe7ea] flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-xl bg-[#f1f5f6] hover:bg-[#eaf4f7] flex items-center justify-center transition-colors"
           >
             <svg className="w-3.5 h-3.5 text-[#60778a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -439,7 +439,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                   onChange={e => setTopic(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleGenerate()}
                   placeholder="e.g. Photosynthesis, World War II, Algebra…"
-                  className="w-full px-4 py-3 bg-white border border-[#c9dadd] rounded-2xl text-[#183247] text-sm placeholder-[#8aa0aa] focus:outline-none focus:border-[#5db8b3] focus:ring-2 focus:ring-[#d9f1ef] transition-all"
+                  className="w-full px-4 py-3 bg-[#fbfdfc] border border-[#cbdfe1] rounded-2xl text-[#183247] text-sm placeholder-[#8aa0ad] focus:outline-none focus:border-[#0f6b78] focus:bg-white transition-all"
                   autoFocus
                 />
               </div>
@@ -451,7 +451,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                   <select
                     value={difficulty}
                     onChange={e => setDifficulty(e.target.value as Difficulty)}
-                    className="w-full px-3 py-2.5 bg-white border border-[#c9dadd] rounded-2xl text-[#183247] text-sm focus:outline-none focus:border-[#5db8b3] focus:ring-2 focus:ring-[#d9f1ef] transition-all appearance-none"
+                    className="w-full px-3 py-2.5 bg-[#fbfdfc] border border-[#cbdfe1] rounded-2xl text-[#183247] text-sm focus:outline-none focus:border-[#0f6b78] transition-all appearance-none"
                   >
                     <option className="bg-[#fffdf8] text-[#183247]" value="easy">Easy</option>
                     <option className="bg-[#fffdf8] text-[#183247]" value="medium">Medium</option>
@@ -463,7 +463,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                   <select
                     value={qType}
                     onChange={e => setQType(e.target.value as AIType)}
-                    className="w-full px-3 py-2.5 bg-white/5 border border-white/15 rounded-2xl text-white text-sm focus:outline-none focus:border-violet-500/50 transition-all appearance-none"
+                    className="w-full px-3 py-2.5 bg-[#fbfdfc] border border-[#cbdfe1] rounded-2xl text-[#183247] text-sm focus:outline-none focus:border-[#0f6b78] transition-all appearance-none"
                   >
                     {(Object.entries(TYPE_LABELS) as [AIType, string][]).map(([v, l]) => (
                       <option className="bg-[#fffdf8] text-[#183247]" key={v} value={v}>{l}</option>
@@ -476,7 +476,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
               <div>
                 <label className="text-white/60 text-xs font-semibold mb-1.5 flex items-center justify-between">
                   <span>Number of questions</span>
-                  <span className="text-violet-400 font-black">{count}</span>
+                  <span className="text-[#0f6b78] font-black">{count}</span>
                 </label>
                 <input
                   type="range"
@@ -484,7 +484,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                   max={10}
                   value={count}
                   onChange={e => setCount(Number(e.target.value))}
-                  className="w-full accent-violet-500"
+                  className="w-full accent-[#0f6b78]"
                 />
                 <div className="flex justify-between text-[10px] text-white/25 mt-0.5">
                   <span>1</span>
@@ -503,7 +503,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                   onChange={e => setContext(e.target.value)}
                   rows={3}
                   placeholder="Paste learning material, notes, or any extra context…"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/15 rounded-2xl text-white text-sm placeholder-white/25 focus:outline-none focus:border-violet-500/50 focus:bg-white/8 transition-all resize-none"
+                  className="w-full px-4 py-3 bg-[#fbfdfc] border border-[#cbdfe1] rounded-2xl text-[#183247] text-sm placeholder-[#8aa0ad] focus:outline-none focus:border-[#0f6b78] focus:bg-white transition-all resize-none"
                 />
               </div>
 
@@ -518,8 +518,8 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                 <div className={clsx(
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-xs font-semibold',
                   aiUsage.remaining > 0
-                    ? 'bg-violet-500/10 border-violet-500/20 text-violet-300'
-                    : 'bg-rose-500/10 border-rose-500/20 text-rose-300',
+                    ? 'bg-[#eaf4f7] border-[#a8d5d6] text-[#0f6b78]'
+                    : 'bg-[#fff0f0] border-[#f0b7b7] text-[#b34d52]',
                 )}>
                   <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -548,10 +548,10 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
           {phase === 'loading' && (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <div className="relative w-14 h-14">
-                <div className="absolute inset-0 rounded-full border-2 border-violet-500/20" />
-                <div className="absolute inset-0 rounded-full border-2 border-t-violet-400 animate-spin" />
-                <div className="absolute inset-2 rounded-full bg-violet-500/10 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-violet-300" fill="currentColor" viewBox="0 0 20 20">
+                <div className="absolute inset-0 rounded-full border-2 border-[#a8d5d6]" />
+                <div className="absolute inset-0 rounded-full border-2 border-t-[#0f6b78] animate-spin" />
+                <div className="absolute inset-2 rounded-full bg-[#eaf4f7] flex items-center justify-center">
+                  <svg className="w-5 h-5 text-[#0f6b78]" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 </div>
@@ -572,7 +572,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                 </p>
                 <button
                   onClick={() => { setPhase('form'); setError('') }}
-                  className="text-violet-400 hover:text-violet-300 text-xs font-semibold transition-colors flex items-center gap-1"
+                  className="text-[#0f6b78] hover:text-[#0b5262] text-xs font-semibold transition-colors flex items-center gap-1"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -609,7 +609,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                 <button
                   onClick={() => handleAIUpgrade('ai_10')}
                   disabled={isUpgradingAI}
-                  className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                  className="flex-1 py-2.5 bg-[#0f6b78] hover:bg-[#0b5262] rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                 >
                   {isUpgradingAI && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
                   +10 gens — ₹49
@@ -617,7 +617,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                 <button
                   onClick={() => handleAIUpgrade('ai_20')}
                   disabled={isUpgradingAI}
-                  className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                  className="flex-1 py-2.5 bg-[#0f6b78] hover:bg-[#0b5262] rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                 >
                   {isUpgradingAI && <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
                   +20 gens — ₹79
@@ -628,7 +628,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
             <button
               onClick={handleGenerate}
               disabled={!topic.trim()}
-              className="w-full py-3.5 rounded-2xl border border-[#0f6b78] bg-gradient-to-r from-[#0f8f7c] to-[#0f6b78] text-white font-black transition-all text-sm shadow-lg shadow-[#0f8f7c]/20 hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-40 flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-gradient-to-r from-[#0f6b78] to-[#1975ad] hover:opacity-90 disabled:opacity-40 text-white font-black rounded-2xl transition-all text-sm shadow-lg shadow-[#0f6b78]/20 flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
