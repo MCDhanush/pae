@@ -109,7 +109,7 @@ export default function DashboardPage() {
         setIsLoadingQuizzes(false)
         setIsLoadingSessions(false)
       }
-      quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+      quizAPI.getAIUsage().then(setAIUsage).catch(() => { })
     } else {
       // Student: load attempts
       setIsLoadingAttempts(true)
@@ -235,7 +235,7 @@ export default function DashboardPage() {
               localStorage.setItem('auth_token', result.token)
               await useAuthStore.getState().loadUser()
               // Refresh AI usage after any purchase
-              quizAPI.getAIUsage().then(setAIUsage).catch(() => {})
+              quizAPI.getAIUsage().then(setAIUsage).catch(() => { })
               resolve()
             } catch (e) {
               reject(e)
@@ -340,17 +340,17 @@ export default function DashboardPage() {
 
   const stats = user?.role === 'teacher'
     ? [
-        { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-[#d9f1ef] to-[#bfe4df]' },
-        { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#dbeaf6] to-[#c9e3f0]' },
-        { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-[#ffe7e3] to-[#f4c7c3]' },
-        { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#f6dfaa] to-[#ecd28b]' },
-      ]
+      { label: 'My Quizzes', value: quizzes.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-[#d9f1ef] to-[#bfe4df]' },
+      { label: 'Total Sessions', value: sessions.length, iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#dbeaf6] to-[#c9e3f0]' },
+      { label: 'Active Now', value: sessions.filter(s => s.status === 'active').length, iconPath: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 8v4l2 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z', color: 'from-[#ffe7e3] to-[#f4c7c3]' },
+      { label: 'Total Questions', value: quizzes.reduce((a, q) => a + q.questions.length, 0), iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#f6dfaa] to-[#ecd28b]' },
+    ]
     : [
-        { label: 'Quiz Attempts', value: attempts.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-[#d9f1ef] to-[#bfe4df]' },
-        { label: 'Total Score', value: attempts.reduce((a, att) => a + att.score, 0), iconPath: 'M13 10V3L4 14h7v7l9-11h-7z', color: 'from-[#dbeaf6] to-[#c9e3f0]' },
-        { label: 'Avg Score', value: attempts.length > 0 ? Math.round(attempts.reduce((a, att) => a + att.score, 0) / attempts.length) : 0, iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: 'from-[#bfe4df] to-[#9ecbc9]' },
-        { label: 'Accuracy', value: attempts.length > 0 ? Math.round((attempts.reduce((a, att) => a + att.correct_answers, 0) / attempts.reduce((a, att) => a + att.total_questions, 0)) * 100) : 0, iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#ffe7e3] to-[#f4c7c3]' },
-      ]
+      { label: 'Quiz Attempts', value: attempts.length, iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'from-[#d9f1ef] to-[#bfe4df]' },
+      { label: 'Total Score', value: attempts.reduce((a, att) => a + att.score, 0), iconPath: 'M13 10V3L4 14h7v7l9-11h-7z', color: 'from-[#dbeaf6] to-[#c9e3f0]' },
+      { label: 'Avg Score', value: attempts.length > 0 ? Math.round(attempts.reduce((a, att) => a + att.score, 0) / attempts.length) : 0, iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: 'from-[#bfe4df] to-[#9ecbc9]' },
+      { label: 'Accuracy', value: attempts.length > 0 ? Math.round((attempts.reduce((a, att) => a + att.correct_answers, 0) / attempts.reduce((a, att) => a + att.total_questions, 0)) * 100) : 0, iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', color: 'from-[#ffe7e3] to-[#f4c7c3]' },
+    ]
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -521,7 +521,7 @@ export default function DashboardPage() {
               Welcome back, {user?.name?.split(' ')[0]}!
             </h1>
             <p className="text-white/40 text-sm mt-0.5">
-              {user?.role === 'teacher' 
+              {user?.role === 'teacher'
                 ? `${quizzes.length} quiz${quizzes.length !== 1 ? 'zes' : ''} · ${sessions.length} session${sessions.length !== 1 ? 's' : ''}`
                 : `${attempts.length} attempt${attempts.length !== 1 ? 's' : ''} · ${attempts.reduce((a, att) => a + att.score, 0)} total point${attempts.reduce((a, att) => a + att.score, 0) !== 1 ? 's' : ''}`
               }
@@ -546,11 +546,10 @@ export default function DashboardPage() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                tab === t.id
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === t.id
                   ? 'bg-white/15 text-white shadow-sm'
                   : 'text-white/50 hover:text-white/70'
-              }`}
+                }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={t.icon} />
@@ -566,24 +565,26 @@ export default function DashboardPage() {
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {((user?.role === 'teacher' && (isLoadingQuizzes || isLoadingSessions)) || (user?.role !== 'teacher' && isLoadingAttempts)) ? (
-                {[1, 2, 3, 4].map(index => (
+                [1, 2, 3, 4].map(index => (
                   <div key={index} className="gsap-card animate-pulse rounded-2xl border border-[#dce8eb] bg-white/70 p-4">
                     <div className="mb-3 h-10 w-10 rounded-xl bg-[#d9f1ef]" />
                     <div className="mb-2 h-7 w-16 rounded-full bg-[#dbeaf6]" />
                     <div className="h-3 w-24 rounded-full bg-[#edf2f3]" />
                   </div>
                 ))
-              ) : stats.map(stat => (
-                <div key={stat.label} className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.iconPath} />
-                    </svg>
+              ) : (
+                stats.map(stat => (
+                  <div key={stat.label} className="gsap-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stat.iconPath} />
+                      </svg>
+                    </div>
+                    <p className="text-2xl font-black text-white">{stat.value}{stat.label === 'Accuracy' ? '%' : ''}</p>
+                    <p className="text-xs text-white/40 mt-0.5">{stat.label}</p>
                   </div>
-                  <p className="text-2xl font-black text-white">{stat.value}{stat.label === 'Accuracy' ? '%' : ''}</p>
-                  <p className="text-xs text-white/40 mt-0.5">{stat.label}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Plan & Usage card — teachers only */}
@@ -783,18 +784,18 @@ export default function DashboardPage() {
                     Join a Game
                   </h3>
                   <p className="text-white/40 text-sm mb-5">Enter the game PIN to join and play instantly</p>
-                  
+
                   <form onSubmit={async (e) => {
                     e.preventDefault()
                     const formData = new FormData(e.currentTarget)
                     const pin = (formData.get('pin') as string).toUpperCase()
                     const nickname = formData.get('nickname') as string
-                    
+
                     if (!pin || pin.length !== 6) {
                       alert('PIN must be exactly 6 characters')
                       return
                     }
-                    
+
                     try {
                       const result = await playerAPI.join({ pin, nickname })
                       if (result.player_id) {
@@ -836,7 +837,7 @@ export default function DashboardPage() {
                       Join Game
                     </button>
                   </form>
-                  
+
                   <div className="mt-6 pt-6 border-t border-white/10">
                     <Link
                       to="/marketplace"
@@ -979,7 +980,7 @@ export default function DashboardPage() {
                       <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Participants</h4>
                       {loadingPlayers === session.id ? (
                         <div className="flex gap-1">
-                          {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-400/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />)}
+                          {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-400/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />)}
                         </div>
                       ) : (sessionPlayers[session.id] ?? []).length === 0 ? (
                         <p className="text-white/30 text-xs">No participants recorded.</p>
@@ -1083,11 +1084,10 @@ export default function DashboardPage() {
                               setProfileForm(form => ({ ...form, institution_type: option.value }))
                               setInstitutionTypeOpen(false)
                             }}
-                            className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                              profileForm.institution_type === option.value
+                            className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${profileForm.institution_type === option.value
                                 ? 'bg-[#d9f1ef] font-semibold text-[#0b5262]'
                                 : 'text-[#183247] hover:bg-[#edf7fb] hover:text-[#0f6b78]'
-                            }`}
+                              }`}
                           >
                             {option.label}
                           </button>
