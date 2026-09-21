@@ -1016,8 +1016,8 @@
   appearance: none !important;
   height: 6px !important;
   border-radius: 9999px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: linear-gradient(to right, #0f6b78 0%, #0f6b78 56%, #dbe8e8 56%, #dbe8e8 100%) !important;
+  border: none !important;
   outline: none !important;
 }
 
@@ -1029,7 +1029,8 @@
   border-radius: 50% !important;
   background: #0f6b78 !important;
   cursor: pointer !important;
-  border: 2px solid #ffffff !important;
+  border: 3px solid #fffdf8 !important;
+  box-shadow: 0 2px 6px rgba(15, 107, 120, 0.3) !important;
 }
 
 .range-slider::-moz-range-thumb {
@@ -1038,12 +1039,13 @@
   border-radius: 50% !important;
   background: #0f6b78 !important;
   cursor: pointer !important;
-  border: 2px solid #ffffff !important;
+  border: 3px solid #fffdf8 !important;
+  box-shadow: 0 2px 6px rgba(15, 107, 120, 0.3) !important;
 }
 
 .range-slider::-moz-range-track {
   height: 6px !important;
   border-radius: 9999px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: #dbe8e8 !important;
   border: none !important;
 }

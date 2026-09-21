@@ -474,7 +474,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
 
               {/* Count */}
               <div>
-                <label className="text-sm font-semibold mb-1.5 flex items-center justify-between" style={{ color: "rgba(255,255,255,0.6)" }}>
+                <label className="text-sm font-semibold mb-1.5 flex items-center justify-between text-[#60778a]">
                   <span>Number of questions</span>
                   <span className="font-black" style={{ color: "#0f6b78" }}>{count}</span>
                 </label>
@@ -488,7 +488,7 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
                   className="range-slider w-full"
                 />
 
-                <div className="flex justify-between text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+                <div className="flex justify-between text-[10px] mt-0.5 text-[#8aa0ad]">
                   <span>1</span>
                   <span>10</span>
                 </div>
@@ -496,9 +496,9 @@ export default function AIGenerateModal({ onAdd, onClose }: AIGenerateModalProps
 
               {/* Context */}
               <div>
-                <label className="text-white/60 text-xs font-semibold mb-1.5 flex items-center justify-between">
+                <label className="text-[#60778a] text-xs font-semibold mb-1.5 flex items-center justify-between">
                   <span>Additional context</span>
-                  <span className="text-white/25 font-normal">optional</span>
+                  <span className="text-[#8aa0ad] font-normal">optional</span>
                 </label>
                 <textarea
                   value={context}
