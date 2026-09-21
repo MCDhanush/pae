@@ -487,17 +487,18 @@ export default function CreateQuizPage({ initialData, quizId, isEditing = false 
             {/* Marketplace toggle */}
             <div className="border-t border-white/10 pt-4">
               <label className="text-xs font-bold text-white/50 uppercase tracking-wider block mb-3">Marketplace</label>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+              <div className="flex items-center justify-between rounded-xl border border-[#c9dadd] bg-white/80 p-3 shadow-sm">
                 <div>
-                  <p className="text-sm font-semibold text-white/80">Publish to Marketplace</p>
-                  <p className="text-xs text-white/35 mt-0.5">Let other teachers discover and copy this quiz</p>
+                  <p className="text-sm font-semibold text-[#29495b]">Publish to Marketplace</p>
+                  <p className="mt-0.5 text-xs text-[#78909c]">Let other teachers discover and copy this quiz</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setValue('is_public', !watchIsPublic)}
-                  className={`relative w-11 h-6 rounded-full border transition-colors ${watchIsPublic ? 'border-[#5db8b3] bg-[#0f8f7c]' : 'border-[#c9dadd] bg-[#dbe7ea]'}`}
+                  aria-label="Publish quiz to marketplace"
+                  className={`relative h-6 w-11 rounded-full border-2 transition-colors ${watchIsPublic ? 'border-[#0f6b78] bg-[#0f8f7c]' : 'border-[#a9c2c9] bg-[#e5edf0]'}`}
                 >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${watchIsPublic ? 'translate-x-5' : ''}`} />
+                  <span className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full border border-[#c9dadd] bg-white shadow-sm transition-transform ${watchIsPublic ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
               {watchIsPublic && (
